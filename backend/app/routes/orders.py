@@ -5,7 +5,12 @@ from datetime import datetime
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import Body
-from app.core.security import get_current_user, require_admin
+from app.core.security import (
+    get_current_user,
+    require_admin,
+    is_admin_user,
+    check_order_ownership_or_admin,
+)
 from sqlmodel import Session, select, delete
 
 from app.db.session import get_session
@@ -133,6 +138,15 @@ def create_order(
     if not customer:
         raise HTTPException(status_code=422, detail="Customer not found")
 
+    # Verificar que el customer pertenece al usuario autenticado (a menos que sea admin)
+    if not is_admin_user(user, session):
+        user_email = (user.get("email") or "").lower()
+        if not customer.email or customer.email.lower() != user_email:
+            raise HTTPException(
+                status_code=403, 
+                detail="No tienes permiso para asociar pedidos a este cliente"
+            )
+
     try:
         db_order = Order.model_validate(order)
     except ValidationError as e:
@@ -213,8 +227,24 @@ def read_orders(
     limit: int = 100,
     user=Depends(get_current_user),
 ):
-    orders = session.exec(select(Order).offset(skip).limit(limit)).all()
-    return orders
+    if is_admin_user(user, session):
+        return session.exec(select(Order).offset(skip).limit(limit)).all()
+
+    user_email = (user.get("email") or "").lower()
+    if not user_email:
+        return []
+    customers = session.exec(
+        select(Customer).where(Customer.email == user_email)
+    ).all()
+    if not customers:
+        return []
+    customer_ids = [c.id for c in customers]
+    return session.exec(
+        select(Order)
+        .where(Order.customer_id.in_(customer_ids))
+        .offset(skip)
+        .limit(limit)
+    ).all()
 
 
 @router.get("/orders/admin", response_model=List[dict])
@@ -353,6 +383,18 @@ def read_customer_orders(
     user=Depends(get_current_user),
 ):
     """Obtener todos los pedidos de un cliente específico"""
+    customer = session.get(Customer, customer_id)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+
+    if not is_admin_user(user, session):
+        user_email = (user.get("email") or "").lower()
+        if not customer.email or customer.email.lower() != user_email:
+            raise HTTPException(
+                status_code=403,
+                detail="No tienes permiso para ver los pedidos de este cliente"
+            )
+
     orders = session.exec(
         select(Order)
         .where(Order.customer_id == customer_id)
@@ -462,6 +504,7 @@ def read_order(
     order = session.get(Order, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+    check_order_ownership_or_admin(order, user, session)
     return order
 
 
@@ -470,7 +513,7 @@ def update_order(
     order_id: int,
     session: Session = Depends(get_session),
     order: Order = Body(...),
-    user=Depends(get_current_user),
+    user=Depends(require_admin()),
 ):
     db_order = session.get(Order, order_id)
     if not db_order:
@@ -647,7 +690,7 @@ def delete_order(
     *,
     session: Session = Depends(get_session),
     order_id: int,
-    user=Depends(get_current_user),
+    user=Depends(require_admin()),
 ):
     try:
         # Obtener la orden con sus items

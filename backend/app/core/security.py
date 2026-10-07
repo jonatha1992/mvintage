@@ -134,3 +134,25 @@ def get_user_permissions(user: User, db: Session) -> List[str]:
 
 # Alias for backward compatibility
 get_current_active_user = get_current_user
+
+
+def is_admin_user(user_data: dict, session: Session) -> bool:
+    """Check if the firebase user has admin role in database"""
+    uid = user_data.get("uid")
+    if not uid:
+        return False
+    user = get_user_by_firebase_uid(session, uid)
+    if not user:
+        return False
+    return user_has_role(session, user.id, "admin")
+
+
+def check_order_ownership_or_admin(order, user_data: dict, session: Session) -> bool:
+    """Verifies that the user owns the order via customer email or has admin role"""
+    if is_admin_user(user_data, session):
+        return True
+    from app.models.customer import Customer
+    customer = session.get(Customer, order.customer_id)
+    if customer and customer.email and customer.email.lower() == (user_data.get("email") or "").lower():
+        return True
+    raise HTTPException(status_code=403, detail="No autorizado para acceder a esta orden")
