@@ -242,7 +242,7 @@
             <p class="text-xs font-body text-body-text">
               Diseñado con por 
               <a href="mailto:tecnofusion.it@gmail.com" class="underline transition-colors font-body hover:text-body-text">
-                TecnoFusion
+                tecnofusion.dev
               </a>
             </p>
           </div>
