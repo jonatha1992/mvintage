@@ -61,9 +61,14 @@
                     </div>
                     <div>
                         <label for="password" class="sr-only">Contraseña</label>
-                        <input id="password" name="password" type="password" v-model="password" required
-                            class="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                            placeholder="Contraseña" />
+                        <div class="relative">
+                            <input id="password" name="password" :type="showPassword ? 'text' : 'password'" v-model="password" required
+                                class="relative block w-full px-3 py-2 pr-12 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                                placeholder="Contraseña" />
+                            <button type="button" @click="showPassword = !showPassword" :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'" :aria-pressed="showPassword" class="absolute inset-y-0 right-0 z-20 flex items-center px-3 text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
                     </div>
 
                     <div>
@@ -103,6 +108,7 @@ const authStore = useAuthStore()
 const isLogin = ref(true)
 const email = ref('')
 const password = ref('')
+const showPassword = ref(false)
 const loading = ref(false)
 const error = ref('')
 
