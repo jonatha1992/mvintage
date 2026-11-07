@@ -120,6 +120,7 @@ import { useRouter } from 'vue-router'
 import { UserIcon, ShoppingBagIcon, ArrowLeftOnRectangleIcon } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '../../store/auth'
 import { useToast } from 'vue-toastification'
+import { authApi } from '../../config/api'
 import type { UserUpdateData } from '../../types/users/user.types'
 
 const authStore = useAuthStore()
@@ -198,17 +199,27 @@ const resetForm = () => {
 const handleSubmit = async () => {
   loading.value = true
   try {
-    // Aquí implementarías la lógica para actualizar el usuario en el backend
-    // Por ahora solo mostramos un mensaje de éxito
+    // Llamar al API para actualizar el usuario
+    const updatedUser = await authApi.updateCurrentUser(userForm.value)
+    
+    // Actualizar el store con los nuevos datos
+    await authStore.fetchBackendUser()
+    
     toast.success('Perfil actualizado correctamente')
     
-    // TODO: Implementar llamada al API para actualizar usuario
-    // await apiClient.put('/users/me', userForm.value)
-    // await authStore.fetchBackendUser() // Refrescar datos del usuario
-    
-  } catch (error) {
-    console.error('Error updating profile:', error)
-    toast.error('Error al actualizar el perfil')
+  } catch (error: any) {
+    // Manejar diferentes tipos de errores
+    if (error.response?.status === 401) {
+      toast.error('Sesión expirada. Por favor, inicia sesión nuevamente.')
+      await authStore.logout()
+      router.push('/auth')
+    } else if (error.response?.status === 400) {
+      toast.error('Datos inválidos. Verifica la información ingresada.')
+    } else if (error.response?.data?.detail) {
+      toast.error(`Error: ${error.response.data.detail}`)
+    } else {
+      toast.error('Error al actualizar el perfil. Intenta nuevamente.')
+    }
   } finally {
     loading.value = false
   }
@@ -221,7 +232,6 @@ const handleLogout = async () => {
     toast.success('Sesión cerrada correctamente')
     router.push('/auth')
   } catch (error) {
-    console.error('Error during logout:', error)
     toast.error('Error al cerrar sesión')
   }
 }

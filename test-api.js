@@ -4,8 +4,8 @@ const axios = require('axios');
 const BASE_URL = 'http://localhost:8000/api/v1';
 
 async function testEndpoints() {
-  console.log('🔄 Testing Frontend-Backend API Communication...\n');
-  
+  console.log('🚀 Testing Backend API Endpoints...\n');
+
   const tests = [
     {
       name: 'Health Check',
@@ -35,9 +35,8 @@ async function testEndpoints() {
 
   for (const test of tests) {
     try {
-      console.log(`Testing: ${test.name}`);
-      console.log(`${test.method} ${test.url}`);
-      
+      console.log(`Testing: ${test.name}...`);
+
       const response = await axios({
         method: test.method,
         url: test.url,
@@ -49,34 +48,34 @@ async function testEndpoints() {
       });
 
       if (response.status === 200) {
-        console.log('✅ SUCCESS: Endpoint responding correctly');
+        console.log(`  ✅ SUCCESS: ${test.name}`);
         if (response.data) {
-          console.log(`   Response keys: ${Object.keys(response.data).join(', ')}`);
+          console.log(`  📊 Response: ${JSON.stringify(response.data, null, 2).substring(0, 200)}...`);
         }
       } else if (response.status === 401 && test.expectAuth) {
-        console.log('⚠️  AUTH REQUIRED: Endpoint exists but needs authentication');
+        console.log(`  🔐 AUTH REQUIRED: ${test.name} (Expected)`);
       } else if (response.status === 403) {
-        console.log('⚠️  PERMISSION DENIED: Endpoint exists but needs admin role');
+        console.log(`  🚫 FORBIDDEN: ${test.name}`);
       } else if (response.status === 404) {
-        console.log('❌ NOT FOUND: Endpoint does not exist');
+        console.log(`  ❌ NOT FOUND: ${test.name}`);
       } else {
-        console.log(`⚠️  STATUS ${response.status}: ${response.statusText}`);
+        console.log(`  ⚠️ UNEXPECTED: ${test.name} - Status ${response.status}`);
       }
       
     } catch (error) {
       if (error.code === 'ECONNREFUSED') {
-        console.log('❌ CONNECTION REFUSED: Backend server not running');
+        console.log(`  🔌 CONNECTION REFUSED: ${test.name} - Backend not running`);
       } else if (error.code === 'ETIMEDOUT') {
-        console.log('❌ TIMEOUT: Backend server not responding');
+        console.log(`  ⏰ TIMEOUT: ${test.name} - Request took too long`);
       } else {
-        console.log(`❌ ERROR: ${error.message}`);
+        console.log(`  💥 ERROR: ${test.name} - ${error.message}`);
       }
     }
-    
-    console.log(''); // Add spacing
+
+    console.log(''); // Empty line between tests
   }
-  
-  console.log('🏁 API Communication Test Complete');
+
+  console.log('✨ API Testing Complete!');
 }
 
 testEndpoints().catch(console.error);

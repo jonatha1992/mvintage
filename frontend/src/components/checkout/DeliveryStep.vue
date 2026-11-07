@@ -496,32 +496,17 @@ const deliveryCosts = computed(() => {
 
 // Check if delivery info is complete
 const isDeliveryInfoComplete = computed(() => {
-  console.log('🔍 Checking isDeliveryInfoComplete:', {
-    deliveryType: deliveryType.value,
-    addressCompleted: addressCompleted.value,
-    selectedCarrier: selectedCarrier.value,
-    firstName: props.firstName,
-    lastName: props.lastName,
-    phone: props.phone,
-    street: props.street,
-    city: props.city,
-    postalCode: props.postalCode
-  })
-  
   // For retiro local, only need delivery type selected
   if (deliveryType.value === 'retiro_local') {
-    console.log('✅ Retiro local selected - complete!')
     return true
   }
   
   // For envio domicilio, need address completed AND carrier selected
   if (deliveryType.value === 'envio_domicilio') {
     const isComplete = addressCompleted.value && selectedCarrier.value !== ''
-    console.log('📦 Envio domicilio check:', { addressCompleted: addressCompleted.value, selectedCarrier: selectedCarrier.value, isComplete })
     return isComplete
   }
   
-  console.log('❌ No delivery type selected')
   return false
 })
 
@@ -530,13 +515,6 @@ const isAddressValid = computed(() => {
   const isValid = props.street.trim() && 
          props.city.trim() && 
          props.postalCode.trim()
-  
-  console.log('🏠 Address validation:', {
-    street: props.street,
-    city: props.city,
-    postalCode: props.postalCode,
-    isValid
-  })
   
   return isValid
 })
@@ -586,30 +564,15 @@ const getCarrierDisplayName = (carrier: string): string => {
 
 // Completar dirección y mostrar transportistas
 const completeAddressAndShowCarriers = () => {
-  console.log('🔄 Attempting to complete address and show carriers')
-  console.log('📋 Current form state:', {
-    firstName: props.firstName,
-    lastName: props.lastName,
-    phone: props.phone,
-    street: props.street,
-    city: props.city,
-    postalCode: props.postalCode,
-    isAddressValid: isAddressValid.value
-  })
-  
   if (isAddressValid.value) {
-    console.log('✅ Address is valid, proceeding to carrier selection')
     addressCompleted.value = true
     showAddressForm.value = false
     showCarrierSelection.value = true
     
     // Cargar cotizaciones si hay código postal
     if (props.postalCode && props.postalCode.trim().length >= 4) {
-      console.log('📞 Loading shipping quotes for postal code:', props.postalCode)
       loadShippingQuotes()
     }
-  } else {
-    console.log('❌ Address is not valid, cannot proceed')
   }
 }
 
@@ -624,7 +587,6 @@ const onAddressSelected = (parsedAddress: ParsedAddress) => {
 // Function to load shipping quotes from API
 const loadShippingQuotes = async () => {
   if (!props.postalCode || props.postalCode.trim().length < 4) {
-    console.log('Postal code too short, skipping API call')
     return
   }
 
@@ -632,7 +594,6 @@ const loadShippingQuotes = async () => {
   quotesError.value = null
   
   try {
-    console.log(`Loading shipping quotes for CP: ${props.postalCode}, weight: ${props.totalWeightKg}kg`)
     
     const response = await shippingQuotesApi.getShippingQuotes({
       postal_code: props.postalCode,
@@ -649,7 +610,6 @@ const loadShippingQuotes = async () => {
         estimatedDays: quote.estimated_days,
         description: quote.estimated_delivery_text
       }))
-      console.log('Shipping quotes loaded:', shippingOptions.value)
       
       // Solo mostrar error si hay problemas reales, no por precios estimados normales
       if (response.message && !response.api_available) {
@@ -659,7 +619,6 @@ const loadShippingQuotes = async () => {
       throw new Error(response.message || 'Error al obtener cotizaciones')
     }
   } catch (error: any) {
-    console.error('Error loading shipping quotes:', error)
     // Mejorar el mensaje de error para ser más claro
     if (error.message?.includes('precios estimados')) {
       quotesError.value = 'Servicio de cotización temporalmente no disponible. Mostrando precios estimados.'

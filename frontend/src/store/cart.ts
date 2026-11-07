@@ -109,8 +109,6 @@ export const useCartStore = defineStore('cart', {
     ) {
       // Check session validity before adding
       if (!this.isSessionValid()) {
-        const expiredMinutes = this.lastSaved ? Math.round((Date.now() - this.lastSaved) / 1000 / 60) : 0;
-        console.log('Cart session expired after', expiredMinutes, 'minutes, clearing before adding new item');
         this.clearCart();
       }
       let cartItemId: string;
@@ -207,7 +205,6 @@ export const useCartStore = defineStore('cart', {
 
             // Handle legacy format (just items array)
             if (Array.isArray(cartData)) {
-              console.log('Converting legacy cart format');
               this.items = this.validateCartItems(cartData);
               this.saveToStorage(); // Save in new format
               return;
@@ -220,7 +217,6 @@ export const useCartStore = defineStore('cart', {
 
               // Check if cart has expired (60 minutes)
               if (timeDiff > this.sessionTimeout) {
-                console.log('Cart session expired after', Math.round(timeDiff / 1000 / 60), 'minutes, clearing cart');
                 this.clearStorage();
                 this.items = [];
                 return;
@@ -232,16 +228,13 @@ export const useCartStore = defineStore('cart', {
 
               // If we filtered out invalid items, save the cleaned cart
               if (this.items.length !== cartData.items.length) {
-                console.log('Cleaned invalid cart items');
                 this.saveToStorage();
               }
             } else {
-              console.log('Invalid cart data format, clearing...');
               this.clearStorage();
               this.items = [];
             }
           } catch (error) {
-            console.error('Error loading cart from storage:', error);
             this.clearStorage();
             this.items = [];
           }
@@ -277,21 +270,17 @@ export const useCartStore = defineStore('cart', {
             // Product is not available at all
             itemsToRemove.push(item.id);
             hasStockIssues = true;
-            console.log(`Producto sin stock removido del carrito: ${item.product.name}`);
           } else if (!stockResult.has_enough_stock) {
             // Not enough stock for requested quantity
             const availableStock = stockResult.available_stock;
             if (availableStock > 0) {
               // Adjust quantity to available stock
-              const oldQuantity = item.quantity;
               this.updateQuantity(item.id, availableStock);
               hasStockIssues = true;
-              console.log(`Cantidad reducida para ${item.product.name}: ${oldQuantity} → ${availableStock}`);
             } else {
               // No stock available, remove from cart
               itemsToRemove.push(item.id);
               hasStockIssues = true;
-              console.log(`Producto sin stock removido del carrito: ${item.product.name}`);
             }
           }
 
@@ -315,7 +304,6 @@ export const useCartStore = defineStore('cart', {
 
         return { hasStockIssues, allAvailable: response.all_available };
       } catch (error) {
-        console.error('Error al verificar el stock:', error);
         // En caso de error, mostramos un mensaje al usuario
         this.showStockNotification(false, true);
         return { hasStockIssues: true, allAvailable: false, error: true };
@@ -337,7 +325,7 @@ export const useCartStore = defineStore('cart', {
           toast.info('Se ajustó la cantidad de algunos productos por stock limitado');
         }
       } catch (error) {
-        console.log('Stock validation completed with adjustments');
+        // Stock validation completed with adjustments
       }
     },
 
@@ -373,12 +361,7 @@ export const useCartStore = defineStore('cart', {
 
     // Debug function to check cart state
     debugCart() {
-      console.log('ðŸ›’ Cart Debug Info:');
-      console.log('Items array:', this.items);
-      console.log('Items length:', this.items.length);
-      console.log('Item count:', this.itemCount);
-      console.log('Is empty:', this.isEmpty);
-      console.log('LocalStorage cart:', localStorage.getItem('cart'));
+      // Debug info available in dev tools if needed
     },
 
     // Validate cart items helper method
@@ -409,7 +392,6 @@ export const useCartStore = defineStore('cart', {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('cart');
         this.lastSaved = null;
-        console.log('Cart localStorage cleared');
       }
     },
 
@@ -421,7 +403,6 @@ export const useCartStore = defineStore('cart', {
       if (typeof window !== 'undefined') {
         setInterval(() => {
           if (!this.isSessionValid() && !this.isEmpty) {
-            console.log('Cart session expired during use after', Math.round((Date.now() - (this.lastSaved || 0)) / 1000 / 60), 'minutes, clearing cart');
             this.clearCart();
           }
         }, 10 * 60 * 1000); // Check every 10 minutes (reduced frequency)

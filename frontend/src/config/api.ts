@@ -78,7 +78,6 @@ const setupResponseInterceptors = (client: AxiosInstance) => {
             return apiClient(originalRequest);
           }
         } catch (refreshError) {
-          console.error('Error al refrescar el token:', refreshError);
           // Si falla el refresh, redirigir al login
           if (window.location.pathname !== '/auth') {
             window.location.href = '/auth?session_expired=true';
@@ -106,7 +105,6 @@ apiClient.interceptors.request.use(
         }
       }
     } catch (error) {
-      console.error('❌ Error al obtener el token de Firebase:', error);
     }
     return config;
   },
@@ -123,16 +121,6 @@ apiClient.interceptors.response.use(
 
       // Manejar respuestas HTML inesperadas
       if (typeof data === 'string' && data.startsWith('<!DOCTYPE html>')) {
-        console.error('❌ El servidor devolvió HTML en lugar de JSON. Posibles causas:', {
-          url: error.config.url,
-          status,
-          posiblesCausas: [
-            'El servidor backend no está en ejecución',
-            'URL de la API incorrecta',
-            'Error de autenticación',
-            'Error interno del servidor'
-          ]
-        });
 
         const errorHtml = new Error(`El servidor devolvió una respuesta HTML. Verifica si el backend está en ejecución en ${config.backendUrl}`);
         (errorHtml as any).isHtmlResponse = true;
@@ -141,17 +129,11 @@ apiClient.interceptors.response.use(
 
       // Registrar errores (excepto 401 que ya se maneja en el interceptor de respuesta)
       if (status !== 401) {
-        console.error(`❌ Error de API (${status}): ${error.config.method?.toUpperCase()} ${error.config.url}`, {
-          data,
-          headers: error.response.headers
-        });
       }
     } else if (error.request) {
       // No se recibió respuesta del servidor
-      console.error('❌ No se recibió respuesta del servidor. Verifica si el backend está en ejecución en', config.backendUrl, error);
     } else {
       // Error al configurar la petición
-      console.error('❌ Error al configurar la petición:', error.message);
     }
 
     return Promise.reject(error);
@@ -174,13 +156,13 @@ export const authApi = {
 
   // Get current user info
   async getCurrentUser(): Promise<User> {
-    const response = await apiClient.get('/auth/me');
+    const response = await apiClient.get('/users/me');
     return response.data;
   },
 
   // Update current user
   async updateCurrentUser(updates: Partial<UserUpdateData>): Promise<User> {
-    const response = await apiClient.patch('/auth/me', updates);
+    const response = await apiClient.patch('/users/me', updates);
     return response.data;
   },
 
@@ -207,7 +189,6 @@ export const authApi = {
     try {
       await apiClient.post('/auth/logout');
     } catch (error) {
-      console.error('Error during logout:', error);
     }
   },
 };
@@ -467,15 +448,10 @@ export const ordersApi = {
 
   // Update order shipping status manually (admin)
   async updateOrderShippingStatus(orderId: number, shippingStatus: string): Promise<any> {
-    console.log(`🔄 API: Updating order ${orderId} shipping status to: ${shippingStatus}`);
-    console.log(`📡 Sending request to: /orders/${orderId}/shipping-status`);
-    console.log(`📦 Payload:`, { shipping_status: shippingStatus });
-
     const response = await apiClient.put(`/orders/${orderId}/shipping-status`, {
       shipping_status: shippingStatus
     });
 
-    console.log(`✅ API response:`, response.data);
     return response.data;
   },
 

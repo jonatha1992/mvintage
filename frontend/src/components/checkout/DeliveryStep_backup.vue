@@ -633,13 +633,11 @@ const onAddressSelected = (parsedAddress: ParsedAddress) => {
 // Function to load shipping quotes from API
 const loadShippingQuotes = async () => {
   if (!props.postalCode) {
-    console.log('No postal code provided, using fallback prices')
     return
   }
 
   // Don't load quotes for very short postal codes
   if (props.postalCode.trim().length < 4) {
-    console.log(`Postal code too short (${props.postalCode}), skipping API call`)
     return
   }
 
@@ -647,7 +645,6 @@ const loadShippingQuotes = async () => {
   quotesError.value = null
 
   try {
-    console.log(`Loading shipping quotes for CP: ${props.postalCode}, weight: ${props.totalWeightKg}kg`)
 
     const response = await shippingQuotesApi.getShippingQuotes({
       postal_code: props.postalCode,
@@ -659,7 +656,6 @@ const loadShippingQuotes = async () => {
 
     if (response.success && response.options) {
       shippingOptions.value = response.options
-      console.log('Shipping quotes loaded:', response.options)
 
       // Update cost for current method if available
       const carrierMapping: Record<string, string> = {
@@ -692,7 +688,6 @@ const loadShippingQuotes = async () => {
     }
 
   } catch (error) {
-    console.error('Error loading shipping quotes:', error)
     quotesError.value = 'Error al cargar cotizaciones, usando precios estimados'
     shippingOptions.value = []
   } finally {

@@ -769,14 +769,7 @@ const updateSelectedOrder = () => {
   if (selectedOrder.value) {
     const updatedOrder = allOrders.value.find(order => order.order_id === selectedOrder.value!.order_id);
     if (updatedOrder) {
-      console.log(`🔄 Updating selected order ${selectedOrder.value.order_id}:`);
-      console.log(`  - Old status: ${selectedOrder.value.status}`);
-      console.log(`  - New status: ${updatedOrder.status}`);
-      console.log(`  - Old payment_status: ${selectedOrder.value.payment_status}`);
-      console.log(`  - New payment_status: ${updatedOrder.payment_status}`);
       selectedOrder.value = { ...updatedOrder };
-    } else {
-      console.error(`❌ Could not find updated order ${selectedOrder.value.order_id} in allOrders`);
     }
   }
 };
@@ -887,7 +880,6 @@ const updatePaymentStatus = async () => {
     toast.success(statusMessages[selectedPaymentStatus.value] || 'Estado actualizado');
     closePaymentVerificationModal();
   } catch (error) {
-    console.error('Error al actualizar el estado:', error);
     toast.error('Error al actualizar el estado del pago');
   } finally {
     loading.value = false;
@@ -896,15 +888,7 @@ const updatePaymentStatus = async () => {
 
 
 const viewOrderDetails = (order: Order) => {
-  console.log('🔍 Original order data:', order);
-  console.log('🔍 Customer object:', order.customer);
-  console.log('🔍 Customer properties:', {
-    name: order.customer_name,
-    email: order.customer_email,
-    phone: order.customer_phone
-  });
   selectedOrder.value = { ...order };
-  console.log('🔍 Selected order after assignment:', selectedOrder.value);
   showOrderDetailsModal.value = true;
 };
 
@@ -920,7 +904,6 @@ const saveTrackingInfo = async () => {
     // the manual shipping status so the explicit choice by the admin takes
     // final precedence when both are sent together.
     if (trackingForm.value.trackingNumber || trackingForm.value.shippingNotes) {
-      console.log(`🔄 Updating tracking info for order ${selectedOrder.value.order_id}`);
       const shippingData = {
         trackingNumber: trackingForm.value.trackingNumber,
         // Include provider when available to satisfy API typing
@@ -928,27 +911,17 @@ const saveTrackingInfo = async () => {
         shippingNotes: trackingForm.value.shippingNotes
       };
       await ordersApi.updateOrderShipping(selectedOrder.value.order_id, shippingData);
-      console.log(`✅ Tracking update completed`);
-
-      // If admin also changed the shipping status in the same form, warn in logs
-      if (newShippingStatus.value) {
-        console.warn(`⚠️ Both trackingNumber and manual shipping status provided. Applying tracking update first, then manual status: ${newShippingStatus.value}`);
-      }
     }
 
     // Finally, update shipping status if changed (apply last so admin explicit choice wins)
     if (newShippingStatus.value) {
-      console.log(`🔄 Updating order ${selectedOrder.value.order_id} shipping status to: ${newShippingStatus.value}`);
       await ordersApi.updateOrderShippingStatus(selectedOrder.value.order_id, newShippingStatus.value);
-      console.log(`✅ Status update completed`);
     }
-    
-    console.log(`🔄 Reloading orders...`);
+
     // Small delay to ensure backend has processed the update
     await new Promise(resolve => setTimeout(resolve, 500));
     await loadOrders();
     updateSelectedOrder();
-    console.log(`✅ Orders reloaded and selected order updated`);
     
     showTrackingModal.value = false;
     
@@ -980,7 +953,6 @@ const saveTrackingInfo = async () => {
     };
     newShippingStatus.value = '';
   } catch (error) {
-    console.error('Error al guardar la información de envío:', error);
     toast.error('Error al guardar la información de envío');
   } finally {
     trackingLoading.value = false;
@@ -995,7 +967,6 @@ const coordinatePickup = async (order: Order) => {
     await loadOrders();
     toast.success('Pedido listo para recogida. Se notificará al cliente.');
   } catch (error) {
-    console.error('Error al coordinar la recogida:', error);
     toast.error('Error al coordinar la recogida');
   } finally {
     loading.value = false;
@@ -1011,7 +982,6 @@ const markAsShipped = async (order: Order | number) => {
     await loadOrders();
     toast.success('Pedido marcado como enviado');
   } catch (error) {
-    console.error('Error al marcar el pedido como enviado:', error);
     toast.error('Error al marcar el pedido como enviado');
   } finally {
     loading.value = false;
@@ -1025,7 +995,6 @@ const updateOrderStatus = async (orderId: number, status: string, notes: string 
     await loadOrders();
     toast.success('Estado del pedido actualizado');
   } catch (error) {
-    console.error('Error al actualizar el estado del pedido:', error);
     toast.error('Error al actualizar el estado del pedido');
   } finally {
     loading.value = false;
@@ -1086,7 +1055,6 @@ const bulkMarkShipped = async () => {
     selectAll.value = false;
     toast.success('Pedidos marcados como enviados correctamente');
   } catch (error) {
-    console.error('Error al marcar los pedidos como enviados:', error);
     toast.error('Error al actualizar los pedidos');
   } finally {
     loading.value = false;
@@ -1096,9 +1064,7 @@ const bulkMarkShipped = async () => {
 const loadOrders = async () => {
   try {
     loading.value = true;
-    console.log(`🔄 Loading orders from API...`);
     const response = await ordersApi.getOrdersWithCustomerInfo();
-    console.log(`📦 Received ${response.length} orders from API`);
     
     // Guardar todos los pedidos
     allOrders.value = response.map((order: any): Order => {
@@ -1149,7 +1115,6 @@ const loadOrders = async () => {
     });
     
   } catch (error: any) {
-    console.error('Error loading orders:', error);
     toast.error('Error al cargar los pedidos');
     allOrders.value = [];
   } finally {
@@ -1159,14 +1124,12 @@ const loadOrders = async () => {
 
 const updateOrderShipping = async (orderId: number, shippingData: any) => {
   try {
-    console.log('Updating order shipping:', { orderId, shippingData });
     await ordersApi.updateOrderShipping(orderId, shippingData);
     
     toast.success('Información de envío actualizada exitosamente');
     closeShippingModal();
     await loadOrders();
   } catch (error) {
-    console.error('Error updating order shipping:', error);
     toast.error('Error al actualizar la información de envío');
   }
 };
@@ -1182,7 +1145,6 @@ const loadStatistics = async () => {
       total: 0
     };
   } catch (error) {
-    console.error('Error loading statistics:', error);
   }
 };
 
@@ -1206,7 +1168,6 @@ const deleteSelectedOrders = async () => {
     selectAll.value = false;
     await loadOrders();
   } catch (error) {
-    console.error('Error al eliminar pedidos:', error);
     toast.error('Error al eliminar pedidos');
   } finally {
     loading.value = false;
@@ -1225,7 +1186,6 @@ const deleteIndividualOrder = async (orderId: number) => {
     toast.success('Pedido eliminado exitosamente');
     await loadOrders();
   } catch (error) {
-    console.error('Error al eliminar pedido:', error);
     toast.error('Error al eliminar pedido');
   } finally {
     loading.value = false;
@@ -1234,7 +1194,6 @@ const deleteIndividualOrder = async (orderId: number) => {
 
 // Initialize
 onMounted(async () => {
-  console.log('Admin Orders View mounted');
   
   // Check admin access
   if (!authStore.hasAdminAccess) {
@@ -1249,7 +1208,6 @@ onMounted(async () => {
       loadStatistics()
     ]);
   } catch (error) {
-    console.error('Error initializing component:', error);
   } finally {
     loading.value = false;
   }

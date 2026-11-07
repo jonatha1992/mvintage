@@ -24,16 +24,17 @@
       @load="handleLoad"
       @error="handleError"
     />
-    <!-- Estado de error -->
-    <div 
-      v-if="imageState.error && fallbackSrc" 
-      class="absolute inset-0"
+    <!-- Estado de error con fallback -->
+    <div
+      v-if="imageState.error && fallbackSrc"
+      class="absolute inset-0 z-10"
     >
       <img
         :src="fallbackSrc"
         :alt="alt"
-        :class="[imageClass, aspectRatioClass]"
+        :class="[imageClass, aspectRatioClass, 'opacity-100']"
         @load="handleFallbackLoad"
+        @error="() => {}"
       />
     </div>
   </div>
@@ -58,10 +59,17 @@ const props = withDefaults(defineProps<Props>(), {
   imageClass: 'object-cover w-full h-full',
   containerClass: ''
 })
+
+// Define emits FIRST before using emit
+const emit = defineEmits<{
+  error: [src: string]
+  load: [src: string]
+}>()
+
 const imageRef = ref<HTMLImageElement>()
 const { getImageState, setImageLoading, setImageLoaded, setImageError, observeImage } = useImageLoading()
-const eagerLoad = computed(() => 
-  props.loading === 'eager' || 
+const eagerLoad = computed(() =>
+  props.loading === 'eager' ||
   props.src.startsWith('blob:') ||
   props.src.includes('firebasestorage')
 )
@@ -76,14 +84,21 @@ const aspectRatioClass = computed(() => {
 })
 const handleLoad = () => {
   setImageLoaded(props.src)
+  // Emit load event to parent
+  emit('load', props.src)
 }
 const handleError = () => {
   setImageError(props.src)
+  // Emit error event to parent
+  emit('error', props.src)
 }
 const handleFallbackLoad = () => {
   setImageLoaded(props.src)
 }
 onMounted(() => {
+  // Initialize loading state for all images
+  setImageLoading(props.src, true)
+
   if (imageRef.value && !eagerLoad.value) {
     observeImage(imageRef.value)
   }

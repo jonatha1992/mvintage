@@ -234,16 +234,22 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
+import { useProducts } from '../../store/products';
 import type { DeliveryInfo, Customer } from '../../types';
 
 const router = useRouter();
 const toast = useToast();
+const { invalidateCache } = useProducts();
 
 const orderData = ref<any>(null);
 const deliveryInfo = ref<DeliveryInfo | null>(null);
 const customerInfo = ref<Customer | any>({});
 
 onMounted(() => {
+  // Clear products cache on cash purchase confirmation
+  // This ensures fresh stock data is fetched next time
+  invalidateCache();
+
   const storedData = localStorage.getItem('cash_order');
   if (storedData) {
     try {
@@ -251,11 +257,10 @@ onMounted(() => {
       orderData.value = data;
       deliveryInfo.value = data.delivery_info;
       customerInfo.value = data.customer;
-      
+
       // Clear stored data to prevent reuse
       localStorage.removeItem('cash_order');
     } catch (error) {
-      console.error('Error parsing cash order data:', error);
       toast.error('Error cargando datos de entrega');
       router.push('/');
     }

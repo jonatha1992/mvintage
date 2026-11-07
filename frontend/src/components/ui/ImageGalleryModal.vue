@@ -276,7 +276,6 @@ const handleImageLoad = () => {
 
 const handleImageError = () => {
   imageLoading.value = false;
-  console.warn('Error cargando imagen en galería');
 };
 
 const handleKeydown = (event: KeyboardEvent) => {

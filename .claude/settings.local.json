@@ -1,24 +1,47 @@
 {
-    "permissions": {
-        "allow": [
-            "Bash(dir:*)",
-            "Bash(python:*)",
-            "Bash(alembic current:*)",
-            "Bash(source:*)",
-            "Bash(npm run dev:*)",
-            "Bash(npx vue-tsc:*)",
-            "Bash(node:*)",
-            "mcp__sequential-thinking__sequentialthinking",
-            "Bash(pip install:*)",
-            "Bash(vue-tsc --noEmit)",
-            "Bash(npm ls:*)",
-            "Bash(npm run test:*)",
-            "Bash(npm run build:test:*)"
-        ],
-        "deny": [],
-        "ask": [],
-        "additionalDirectories": [
-            "C:\\c\\Repositorio\\mvintage"
-        ]
-    }
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(python:*)",
+      "Bash(alembic current:*)",
+      "Bash(source:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx vue-tsc:*)",
+      "Bash(node:*)",
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(pip install:*)",
+      "Bash(vue-tsc --noEmit)",
+      "Bash(npm ls:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run build:test:*)",
+      "Bash(git checkout:*)",
+      "mcp__git__git_commit",
+      "mcp__git__git_add",
+      "mcp__git__git_status",
+      "mcp__git__git_diff_staged",
+      "mcp__git__git_diff_unstaged",
+      "Bash(npm run build:*)",
+      "mcp__fetch__fetch",
+      "mcp__filesystem__directory_tree",
+      "mcp__filesystem__read_text_file",
+      "mcp__filesystem__list_directory",
+      "mcp__browserbase__browserbase_session_create",
+      "Bash(findstr:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_evaluate",
+      "mcp__git__git_log",
+      "mcp__memory__read_graph",
+      "mcp__filesystem__create_directory",
+      "mcp__filesystem__write_file"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\c\\Repositorio\\mvintage"
+    ]
+  }
 }

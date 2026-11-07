@@ -183,7 +183,6 @@ const verifyWithToken = async (token: string) => {
   } catch (error) {
     verificationStatus.value = 'error';
     errorMessage.value = 'Error al verificar el email. Por favor intenta nuevamente.';
-    console.error('Verification error:', error);
   }
 };
 
@@ -221,7 +220,6 @@ const verifyWithCode = async () => {
     }
   } catch (error) {
     toast.error('Error al verificar el email. Por favor intenta nuevamente.');
-    console.error('Verification error:', error);
   } finally {
     processing.value = false;
   }
@@ -260,7 +258,6 @@ const resendVerificationEmail = async () => {
     
   } catch (error) {
     toast.error('Error al reenviar el cdigo');
-    console.error('Resend error:', error);
   } finally {
     resending.value = false;
   }

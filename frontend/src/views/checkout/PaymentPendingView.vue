@@ -114,7 +114,6 @@ const checkPaymentStatus = async () => {
       toast.info('El pago sigue pendiente');
     }
   } catch (error) {
-    console.error('Error verificando estado del pago:', error);
     toast.error('Error al verificar el estado del pago');
   } finally {
     checking.value = false;
@@ -135,7 +134,6 @@ onMounted(async () => {
     try {
       orderDetails.value = await paymentsApi.getPaymentStatus(Number(orderId));
     } catch (error) {
-      console.error('Error obteniendo detalles del pago:', error);
       toast.error('Error obteniendo detalles del pedido');
     }
   }

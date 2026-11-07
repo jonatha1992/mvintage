@@ -145,7 +145,6 @@ const performSearch = async () => {
       await searchAddresses(searchQuery.value, props.countryCode)
       showSuggestions.value = true
     } catch (err) {
-      console.error('Search error:', err)
     }
   }
 }

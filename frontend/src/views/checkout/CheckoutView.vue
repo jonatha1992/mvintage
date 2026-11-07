@@ -457,7 +457,6 @@ const handleDeliveryMethodChange = (data: { method: string; cost: number }) => {
   selectedDeliveryMethod.value = data.method;
   deliveryMethod.value = data.method;
   deliveryCost.value = data.cost;
-  console.log('🚚 Delivery method changed:', data);
 };
 
 const handleContinueToPayment = () => {
@@ -467,7 +466,6 @@ const handleContinueToPayment = () => {
 const handleDeliveryMethodChanged = (data: { method: string; cost: number }) => {
   deliveryMethod.value = data.method;
   deliveryCost.value = data.cost;
-  console.log('ðŸšš Delivery method changed:', data);
 };
 
 onMounted(async () => {
@@ -518,7 +516,6 @@ onMounted(async () => {
       
       usingPreviousData.value = true;
       
-      console.log('Form auto-populated with previous customer data');
       toast.success('Datos cargados desde compra anterior', { timeout: 2000 });
     } else {
       // First-time buyer - only pre-fill basic info from auth
@@ -534,10 +531,8 @@ onMounted(async () => {
           lastName.value = nameParts.slice(1).join(' ') || '';
         }
       }
-      console.log('First-time buyer - basic info pre-filled');
     }
   } catch (error) {
-    console.error('Error loading user data:', error);
     // Fallback to basic auth info
     if (authStore.backendUser) {
       checkoutForm.value.email = authStore.backendUser.email;
@@ -581,7 +576,6 @@ const processOrder = async () => {
   
   try {
     // Validate stock with backend using the new stock service
-    console.log('Validating real-time stock with backend...');
     processing.value = true;
     
     // Prepare items for stock check
@@ -651,7 +645,6 @@ const processOrder = async () => {
     };
     
     const customer = await customersApi.createCustomer(customerData);
-    console.log('Customer created:', customer);
     
     // Step 2: Create order with real customer_id
     const orderData: Partial<Order> = {
@@ -662,13 +655,10 @@ const processOrder = async () => {
     };
     
     const response = await ordersApi.createOrder(orderData);
-    console.log('Order created:', response);
     
     // Step 3: Create order items
     for (const item of cartStore.items) {
       // FINAL stock check right before creating order item
-      console.log(`FINAL stock check for product ${item.product.id} before order item creation...`);
-      
       try {
         // Use the stock service for final verification
         const finalStockCheck = await stockService.checkStock([{
@@ -676,19 +666,10 @@ const processOrder = async () => {
           variant_id: item.variant?.variant.id,
           quantity: item.quantity
         }]);
-        
+
         const itemResult = finalStockCheck.items[0];
         
-        console.log(`Final stock check result:`, {
-          product_id: item.product.id,
-          product_name: item.product.name,
-          final_available_stock: itemResult.available_stock,
-          requested_quantity: item.quantity,
-          has_enough_stock: itemResult.has_enough_stock
-        });
-        
         if (!itemResult.has_enough_stock) {
-          console.error(`FINAL STOCK CHECK FAILED: Product ${item.product.id} now has ${itemResult.available_stock} stock but ${item.quantity} requested`);
           throw new Error(`Stock insuficiente para "${item.product.name}". Stock disponible: ${itemResult.available_stock}, solicitado: ${item.quantity}`);
         }
         
@@ -700,12 +681,10 @@ const processOrder = async () => {
         }
         
       } catch (error: any) {
-        console.error(`Error in final stock check for product ${item.product.id}:`, error);
         if (error.message?.includes('Stock insuficiente')) {
           throw error;
         }
-        // If it's an API error, log it but continue
-        console.warn('Could not verify final stock, proceeding with order item creation');
+        // If it's an API error, continue with order item creation
       }
       
       const itemPrice = item.product.has_discount && item.product.discounted_price 
@@ -720,49 +699,13 @@ const processOrder = async () => {
         price: itemPrice
       };
       
-      console.log('Creating order item:', JSON.stringify(orderItemData, null, 2));
-      console.log('Cart item variant info:', item.variant);
-      console.log('Cart item selectedColor:', item.selectedColor);
-      console.log('Cart item selectedSize:', item.selectedSize);
-      console.log('Product is_unique:', item.product.is_unique);
-      console.log('STOCK INFORMATION:');
-      console.log('Frontend shows stock:', item.product.stock);
-      console.log('Product variants with stock:', item.product.variants?.map(v => ({
-        variant_id: v.id,
-        stock: v.stock,
-        color: v.color_id,
-        size: v.size_id
-      })));
-      console.log('Product price details:', {
-        original_price: item.product.price,
-        has_discount: item.product.has_discount,
-        discounted_price: item.product.discounted_price,
-        calculated_price: itemPrice
-      });
-      
       try {
         await orderItemsApi.createOrderItem(orderItemData);
-        console.log('Order item created successfully for product:', item.product.id);
       } catch (error: any) {
-        console.error('ERROR CREATING ORDER ITEM:');
-        console.error('Backend error message:', JSON.stringify(error.response?.data, null, 2));
-        console.error('Error status:', error.response?.status);
-        console.error('Data we sent:', JSON.stringify(orderItemData, null, 2));
-        console.error('Full cart item:', JSON.stringify({
-          id: item.id,
-          product_id: item.product.id,
-          product_name: item.product.name,
-          is_unique: item.product.is_unique,
-          quantity: item.quantity,
-          variant: item.variant,
-          selectedColor: item.selectedColor,
-          selectedSize: item.selectedSize
-        }, null, 2));
         throw error; // Re-throw to be caught by outer try-catch
       }
     }
     
-    console.log('Order items created for order:', response.order.id);
     
     // Step 4: Handle different payment methods
     if (checkoutForm.value.paymentMethod === 'mercadopago' && response.payment_preference) {
@@ -810,7 +753,6 @@ const processOrder = async () => {
     }
     
   } catch (error: any) {
-    console.error('Error processing order:', error);
     
     // Handle specific stock error
     if (error.response?.data?.detail?.includes('Stock insuficiente')) {

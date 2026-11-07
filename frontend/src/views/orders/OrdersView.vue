@@ -257,45 +257,27 @@ const loadOrders = async () => {
   try {
     loading.value = true;
     hasError.value = false; // Reset error state
-    console.log('Cargando pedidos del usuario...');
-    console.log('Usuario autenticado:', authStore.isAuthenticated);
-    console.log('Email del usuario:', authStore.backendUser?.email);
-    
     orders.value = await ordersApi.getMyOrders();
-    console.log('Pedidos cargados:', orders.value);
-    console.log('Cantidad de pedidos:', orders.value.length);
-    
+
     // Si no hay pedidos pero no hubo error, mostrar info
     if (orders.value.length === 0) {
-      console.log('🛒 No se encontraron pedidos para el usuario');
     }
     
   } catch (error: any) {
-    console.error('Error loading orders:', error);
-    console.error('Error response:', error?.response);
-    console.error('Error data:', error?.response?.data);
-    console.error('Error status:', error?.response?.status);
-
     // Manejo de errores específicos
     if (error?.response?.status === 401) {
-      console.log('Error 401: Sesion expirada');
       toast.error('Sesion expirada. Por favor, inicia sesión nuevamente.');
       authStore.logout();
       router.push('/auth');
     } else if (error?.response?.status === 400) {
-      console.log('Error 400: Problema con la solicitud');
       toast.error('Error en la solicitud. Intenta cerrar sesión y volver a iniciar.');
     } else if (error?.response?.status === 404) {
-      console.log('Error 404: Endpoint no encontrado');
       toast.error('Error del servidor. El servicio no está disponible.');
     } else if (error?.response?.status >= 500) {
-      console.log('Error del servidor:', error?.response?.status);
       toast.error('Error del servidor. Por favor, intenta más tarde.');
     } else if (error?.code === 'NETWORK_ERROR' || error?.message?.includes('Network Error')) {
-      console.log('Error de red');
       toast.error('Error de conexión. Verifica tu internet e intenta nuevamente.');
     } else {
-      console.log('Error desconocido:', error?.message);
       toast.error(`Error al cargar los pedidos: ${error?.response?.data?.detail || error?.message || 'Error desconocido'}`);
     }
     

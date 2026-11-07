@@ -359,9 +359,7 @@ const loadUsers = async () => {
       )
     })
     users.value = filteredUsers
-    toast.success(`👥 ${filteredUsers.length} usuarios con roles cargados correctamente`)
   } catch (error: any) {
-    console.error('Error loading users:', error)
     const errorMessage = error.response?.data?.detail || 'Error al cargar usuarios'
     toast.error(`❌ ${errorMessage}`)
   } finally {
@@ -372,9 +370,7 @@ const loadUsers = async () => {
 const loadRoles = async () => {
   try {
     roles.value = await rolesApi.getAllRoles()
-    toast.success('🎭 Roles cargados correctamente')
   } catch (error: any) {
-    console.error('Error loading roles:', error)
     const errorMessage = error.response?.data?.detail || 'Error al cargar roles'
     toast.error(`❌ ${errorMessage}`)
   }
@@ -394,7 +390,6 @@ const manageUserRoles = async (user: UserWithRoles) => {
     const userRoles = await rolesApi.getUserRoles(user.id)
     selectedUser.value.roles = userRoles
   } catch (error) {
-    console.error('Error loading user roles:', error)
   }
 }
 
@@ -419,7 +414,6 @@ const addUserRole = async () => {
     // Update users list
     await loadUsers()
   } catch (error: any) {
-    console.error('Error assigning role:', error)
     const errorMessage = error.response?.data?.detail || 'Error al asignar el rol'
     toast.error(`❌ ${errorMessage}`)
   }
@@ -439,7 +433,6 @@ const removeUserRole = async (userId: number, roleId: number) => {
     // Update users list
     await loadUsers()
   } catch (error: any) {
-    console.error('Error removing role:', error)
     const errorMessage = error.response?.data?.detail || 'Error al remover el rol'
     toast.error(`❌ ${errorMessage}`)
   }
@@ -529,11 +522,7 @@ const addNewUser = async () => {
       name: newUserForm.value.username || newUserForm.value.email,
       role_id: newUserForm.value.roleId as number
     }
-    console.log('🔍 Creating user with payload:', { 
-      ...requestPayload, 
-      password: '[HIDDEN]' 
-    })
-    
+
     // Crear usuario usando la API
     const result = await usersApi.createUser(requestPayload)
     
@@ -546,20 +535,7 @@ const addNewUser = async () => {
     await loadUsers()
     
   } catch (error: any) {
-    console.error('Error creating user:', error)
-    
-    // Log detallado del error para debugging
-    console.log('🔍 Full error response:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        data: error.config?.data ? JSON.parse(error.config.data) : null
-      }
-    })
-    
+
     // Extraer mensaje de error específico
     let errorMessage = 'Error al crear usuario'
     

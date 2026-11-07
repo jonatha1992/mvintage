@@ -9,6 +9,9 @@ class UserBase(SQLModel):
     username: Optional[str] = Field(default=None, index=True, unique=True)
     firebase_uid: Optional[str] = Field(default=None, unique=True, index=True)
     nombre: Optional[str] = Field(default=None)
+    first_name: Optional[str] = Field(default=None)
+    last_name: Optional[str] = Field(default=None)
+    phone: Optional[str] = Field(default=None)
 
 class User(UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -55,6 +58,9 @@ class UserRead(UserBase):
             firebase_uid=user.firebase_uid,
             nombre=user.nombre,
             name=user.nombre,  # Alias
+            first_name=user.first_name,
+            last_name=user.last_name,
+            phone=user.phone,
             email_verified=user.email_verified,
             email_verified_at=user.email_verified_at
         )

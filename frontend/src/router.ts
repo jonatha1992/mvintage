@@ -134,7 +134,6 @@ router.beforeEach(async (to, from, next) => {
       try {
         await authStore.fetchUserRoles(false); // false = usar cachÃ© si estÃ¡ disponible
       } catch (error) {
-        console.error('Error cargando roles:', error);
       }
     }
 
@@ -147,15 +146,12 @@ router.beforeEach(async (to, from, next) => {
 
   // Verificar si la ruta requiere autenticacin
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    console.log('ðŸ”’ Ruta protegida, redirigiendo a login');
     next('/auth');
   } else if (to.path === '/auth' && authStore.isAuthenticated) {
     // Si el usuario ya está autenticado, redirigir según sus roles
     if (authStore.hasAdminAccess) {
-      console.log('✔ Admin autenticado, redirigiendo a admin');
       next('/admin/products');
     } else {
-      console.log('✔ Usuario regular autenticado, redirigiendo a home');
       next('/');
     }
   } else {

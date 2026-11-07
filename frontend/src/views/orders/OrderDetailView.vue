@@ -344,12 +344,10 @@ onMounted(async () => {
 const loadOrderDetails = async () => {
   try {
     loading.value = true;
-    console.log(' Cargando detalles del pedido:', orderId.value);
 
     // First, check if the OrdersView passed the order via history.state
     const passedOrder = (window.history && (window.history.state as any)?.order) ? (window.history.state as any).order : null;
     if (passedOrder) {
-      console.log('ℹ️ Order passed via history.state, using passed object:', passedOrder);
       // Normalize minimal fields in the passed object
       if (passedOrder.order_id && !passedOrder.id) passedOrder.id = passedOrder.order_id;
       // Flatten customer if exists
@@ -371,25 +369,21 @@ const loadOrderDetails = async () => {
       if (!hasItems || !hasCustomer) {
         // Fallback to fetching enriched data if necessary (admin/my-orders)
         try {
-          console.log('ℹ️ Passed order missing nested data, attempting to load enriched order from endpoints...');
 
           if (authStore.hasAdminAccess) {
             const adminOrders: any[] = await ordersApi.getOrdersWithCustomerInfo();
             const found = adminOrders.find(o => Number(o.id || o.order_id) === Number(passedOrder.id || passedOrder.order_id || orderId.value));
             if (found) {
               enrichedOrder = found;
-              console.log('✔️ Enriched order found via admin endpoint:', found);
             }
           } else {
             const myOrders: any[] = await ordersApi.getMyOrders();
             const found = myOrders.find(o => Number(o.id || o.order_id) === Number(passedOrder.id || passedOrder.order_id || orderId.value));
             if (found) {
               enrichedOrder = found;
-              console.log('✔️ Enriched order found via my-orders endpoint:', found);
             }
           }
         } catch (err) {
-          console.warn('⚠️ Could not load enriched order data for passed order:', err);
         }
       }
 
@@ -407,15 +401,12 @@ const loadOrderDetails = async () => {
       }
 
       order.value = enrichedOrder;
-      console.log('✔️ Final order used in view (from passed state):', order.value);
 
       return;
     }
 
     // No passed order: First attempt: basic order endpoint
-    console.log('ℹ️ No order passed via state — fetching basic order from API');
     const basicOrder: any = await ordersApi.getOrder(parseInt(orderId.value));
-    console.log('✔️ Basic order loaded:', basicOrder);
 
     let enrichedOrder: any = basicOrder;
 
@@ -425,7 +416,6 @@ const loadOrderDetails = async () => {
 
     if (missingItems || missingCustomer) {
       try {
-        console.log('ℹ️ Basic order missing nested data, attempting to load enriched order...');
 
         // Prefer admin endpoint when user has admin access (returns customer + items)
         if (authStore.hasAdminAccess) {
@@ -433,7 +423,6 @@ const loadOrderDetails = async () => {
           const found = adminOrders.find(o => Number(o.id || o.order_id) === Number(basicOrder.id || basicOrder.order_id || orderId.value));
           if (found) {
             enrichedOrder = found;
-            console.log('✔️ Enriched order found via admin endpoint:', found);
           }
         } else {
           // For regular users, try the my-orders endpoint (which includes items)
@@ -441,11 +430,9 @@ const loadOrderDetails = async () => {
           const found = myOrders.find(o => Number(o.id || o.order_id) === Number(basicOrder.id || basicOrder.order_id || orderId.value));
           if (found) {
             enrichedOrder = found;
-            console.log('✔️ Enriched order found via my-orders endpoint:', found);
           }
         }
       } catch (err) {
-        console.warn('⚠️ Could not load enriched order data:', err);
       }
     }
 
@@ -465,9 +452,7 @@ const loadOrderDetails = async () => {
     }
 
     order.value = enrichedOrder;
-    console.log('✔️ Final order used in view:', order.value);
   } catch (error) {
-    console.error('Error loading order details:', error);
     toast.error('Error al cargar los detalles del pedido');
     order.value = null;
   } finally {

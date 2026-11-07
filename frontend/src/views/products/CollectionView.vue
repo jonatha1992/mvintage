@@ -138,12 +138,23 @@
             </div>
           </div>
 
+          <!-- Loading State -->
+          <div v-if="isLoading && products.length === 0" class="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">
+            <div v-for="n in 6" :key="n" class="animate-pulse">
+              <div class="bg-gray-200 rounded-lg aspect-square"></div>
+              <div class="mt-4 space-y-2">
+                <div class="h-4 bg-gray-200 rounded"></div>
+                <div class="w-2/3 h-4 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          </div>
+
           <!-- Products Grid -->
-          <div class="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">
-            <ProductCard 
-              v-for="product in paginatedProducts" 
-              :key="product.id" 
-              :product="product" 
+          <div v-else class="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">
+            <ProductCard
+              v-for="product in paginatedProducts"
+              :key="product.id"
+              :product="product"
             />
           </div>
 
@@ -214,14 +225,17 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProductCard from '../../components/products/ProductCard.vue'
-import { masterDataApi, productsApi } from '../../config/index'
+import { masterDataApi } from '../../config/index'
 import type { Product, Category } from '../../types'
+import { useProducts } from '../../store/products'
 
 const route = useRoute()
 const router = useRouter()
 
+// Use products store
+const { products, categories: storeCategories, isLoading, ensureProducts, ensureCategories } = useProducts()
+
 // Data
-const allProducts = ref<Product[]>([])
 const categories = ref<Category[]>([])
 const showMobileFilters = ref(false)
 const productsPerPage = ref(12)
@@ -255,12 +269,12 @@ const collectionTitle = computed(() => {
 })
 
 const filteredProducts = computed(() => {
-  if (!allProducts.value) return []
-  let products = [...allProducts.value]
+  if (!products.value) return []
+  let filteredProducts = [...products.value]
 
   // Filter by category
   if (filters.value.category) {
-    products = products.filter(product => 
+    filteredProducts = filteredProducts.filter(product =>
       product.categoria?.toLowerCase() === filters.value.category.toLowerCase()
     )
   }
@@ -268,7 +282,7 @@ const filteredProducts = computed(() => {
   // Filter by price range
   if (filters.value.priceRange) {
     const [min, max] = filters.value.priceRange.split('-').map(Number)
-    products = products.filter(product => {
+    filteredProducts = filteredProducts.filter(product => {
       const price = Number(product.price)
       if (max) {
         return price >= min && price <= max
@@ -282,21 +296,21 @@ const filteredProducts = computed(() => {
   if (filters.value.sortBy) {
     switch (filters.value.sortBy) {
       case 'price-asc':
-        products.sort((a, b) => Number(a.price) - Number(b.price))
+        filteredProducts.sort((a, b) => Number(a.price) - Number(b.price))
         break
       case 'price-desc':
-        products.sort((a, b) => Number(b.price) - Number(a.price))
+        filteredProducts.sort((a, b) => Number(b.price) - Number(a.price))
         break
       case 'name-asc':
-        products.sort((a, b) => a.name.localeCompare(b.name))
+        filteredProducts.sort((a, b) => a.name.localeCompare(b.name))
         break
       case 'name-desc':
-        products.sort((a, b) => b.name.localeCompare(a.name))
+        filteredProducts.sort((a, b) => b.name.localeCompare(a.name))
         break
       case 'newest':
         // Ordenar por ID (asumiendo que IDs mÃ¡s altos = productos mÃ¡s nuevos)
         // TambiÃ©n priorizar productos marcados como 'new'
-        products.sort((a, b) => {
+        filteredProducts.sort((a, b) => {
           if (a.is_new && !b.is_new) return -1
           if (!a.is_new && b.is_new) return 1
           return b.id - a.id
@@ -305,7 +319,7 @@ const filteredProducts = computed(() => {
     }
   }
 
-  return products
+  return filteredProducts
 })
 
 const paginatedProducts = computed(() => {
@@ -327,8 +341,8 @@ const activeFiltersCount = computed(() => {
 
 // Methods
 const getCategoryCount = (categoryName: string) => {
-  if (!allProducts.value) return 0
-  return allProducts.value.filter(product => 
+  if (!products.value) return 0
+  return products.value.filter(product =>
     product.categoria?.toLowerCase() === categoryName.toLowerCase()
   ).length
 }
@@ -361,10 +375,9 @@ const loadMoreProducts = () => {
 const loadProducts = async () => {
   if (import.meta.env.VITEST) return
   try {
-    const response = await productsApi.getProducts()
-    allProducts.value = response.products
+    await ensureProducts()
   } catch (error) {
-    console.error('Error fetching products:', error)
+    // Error is handled by the store
   }
 }
 
@@ -372,11 +385,9 @@ const loadCategories = async () => {
   try {
     categories.value = await masterDataApi.getCategoriesWithStock()
   } catch (error) {
-    console.error('Error loading categories:', error)
     try {
       categories.value = await masterDataApi.getCategories()
     } catch (fallbackError) {
-      console.error('Error loading categories (fallback):', fallbackError)
     }
   }
 }

@@ -53,7 +53,6 @@ class EmailService {
       const response = await api.post('/emails/welcome', request);
       return response.data;
     } catch (error) {
-      console.error('Error sending welcome email:', error);
       throw new Error('Error al enviar email de bienvenida');
     }
   }
@@ -66,7 +65,6 @@ class EmailService {
       const response = await api.post('/emails/notify', request);
       return response.data;
     } catch (error) {
-      console.error('Error sending notification email:', error);
       throw new Error('Error al enviar email de notificación');
     }
   }
@@ -79,7 +77,6 @@ class EmailService {
       const response = await api.post('/emails/order-confirmation', request);
       return response.data;
     } catch (error) {
-      console.error('Error sending order confirmation email:', error);
       throw new Error('Error al enviar email de confirmación de pedido');
     }
   }
@@ -92,7 +89,6 @@ class EmailService {
       const response = await api.post('/emails/contact', request);
       return response.data;
     } catch (error) {
-      console.error('Error sending contact email:', error);
       throw new Error('Error al enviar mensaje de contacto');
     }
   }
@@ -124,7 +120,6 @@ class EmailVerificationService {
       const response = await api.post('/email-verification/verify', request);
       return response.data;
     } catch (error) {
-      console.error('Error verifying email:', error);
       throw new Error('Error al verificar email');
     }
   }
@@ -137,7 +132,6 @@ class EmailVerificationService {
       const response = await api.post('/email-verification/resend-verification', request);
       return response.data;
     } catch (error) {
-      console.error('Error resending verification email:', error);
       throw new Error('Error al reenviar email de verificación');
     }
   }
@@ -150,7 +144,6 @@ class EmailVerificationService {
       const response = await api.get(`/email-verification/status/${userId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting verification status:', error);
       throw new Error('Error obteniendo estado de verificación');
     }
   }

@@ -192,7 +192,6 @@ onMounted(() => {
       // Clear stored data to prevent reuse
       localStorage.removeItem('transfer_order');
     } catch (error) {
-      console.error('Error parsing transfer order data:', error);
       toast.error('Error cargando datos de transferencia');
       router.push('/');
     }

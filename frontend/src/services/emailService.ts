@@ -54,7 +54,6 @@ class EmailService {
 
   private initializeEmailJS(): void {
     if (!EMAIL_CONFIG.serviceId || !EMAIL_CONFIG.publicKey) {
-      // console.warn('⚠️ EmailJS no configurado. Variables de entorno faltantes.');
       this.isConfigured = false;
       return;
     }
@@ -62,16 +61,13 @@ class EmailService {
     try {
       emailjs.init(EMAIL_CONFIG.publicKey);
       this.isConfigured = true;
-      console.log('✅ EmailJS configurado correctamente');
     } catch (error) {
-      console.error('❌ Error configurando EmailJS:', error);
       this.isConfigured = false;
     }
   }
 
   private checkConfiguration(): boolean {
     if (!this.isConfigured) {
-      console.warn('📧 EmailJS no está configurado. Email no enviado.');
       return false;
     }
     return true;
@@ -104,10 +100,8 @@ class EmailService {
         templateParams
       );
 
-      console.log('✅ Email de pago exitoso enviado:', response);
       return true;
     } catch (error) {
-      console.error('❌ Error enviando email de pago exitoso:', error);
       return false;
     }
   }
@@ -140,10 +134,8 @@ class EmailService {
         templateParams
       );
 
-      console.log('✅ Email de pago fallido enviado:', response);
       return true;
     } catch (error) {
-      console.error('❌ Error enviando email de pago fallido:', error);
       return false;
     }
   }
@@ -175,10 +167,8 @@ class EmailService {
         templateParams
       );
 
-      console.log('✅ Email de confirmación de pedido enviado:', response);
       return true;
     } catch (error) {
-      console.error('❌ Error enviando email de confirmación:', error);
       return false;
     }
   }
@@ -214,10 +204,8 @@ class EmailService {
         templateParams
       );
 
-      console.log('✅ Email de instrucciones de transferencia enviado:', response);
       return true;
     } catch (error) {
-      console.error('❌ Error enviando email de transferencia:', error);
       return false;
     }
   }
@@ -252,10 +240,8 @@ class EmailService {
         templateParams
       );
 
-      console.log('✅ Email de entrega programada enviado:', response);
       return true;
     } catch (error) {
-      console.error('❌ Error enviando email de entrega:', error);
       return false;
     }
   }

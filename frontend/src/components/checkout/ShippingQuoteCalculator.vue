@@ -250,7 +250,6 @@ const calculateShipping = async () => {
       }
     }
   } catch (err: any) {
-    console.error('Error calculating shipping:', err)
     error.value = err.response?.data?.detail || 'Error al calcular el envío. Por favor intenta nuevamente.'
   } finally {
     loading.value = false

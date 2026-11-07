@@ -5,6 +5,7 @@ import Toast from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
 import './style.css'
 import './styles/admin-buttons.css'
+import './styles/scroll-animations.css'
 import App from './App.vue'
 import router from './router'
 
@@ -54,10 +55,8 @@ if (typeof window !== 'undefined') {
   // Import and initialize cart store before app mount
   import('./store/cart').then(({ useCartStore }) => {
     const cartStore = useCartStore()
-    console.log('🛒 Initializing cart store...')
     cartStore.initializeCart()
-    console.log('🛒 Cart initialized with', cartStore.items.length, 'items')
-  }).catch(console.error)
+  }).catch(() => {})
 }
 
 // Mount app after cart initialization is started

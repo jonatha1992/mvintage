@@ -22,7 +22,6 @@ try {
   auth = getAuth(app);
   storage = getStorage(app);
 } catch (error) {
-  console.error('❌ Error inicializando Firebase:', error)
   throw error;
 }
 

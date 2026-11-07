@@ -267,7 +267,6 @@ const handleLogout = async () => {
     closeMenus();
     router.push('/');
   } catch (error) {
-    console.error('Error al cerrar sesión:', error);
   }
 };
 
@@ -276,12 +275,10 @@ const loadCategories = async () => {
     // Usar endpoint que solo devuelve categorías con stock
     categories.value = await masterDataApi.getCategoriesWithStock();
   } catch (error) {
-    console.error('Error cargando categorías:', error);
     // Fallback a todas las categorías si falla
     try {
       categories.value = await masterDataApi.getCategories();
     } catch (fallbackError) {
-      console.error('Error cargando categorías (fallback):', fallbackError);
     }
   }
 };

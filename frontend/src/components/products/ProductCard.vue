@@ -1,32 +1,27 @@
 ﻿<template>
   <router-link :to="`/product/${product.id}/${product.name}`" class="block h-full">
-    <div class="flex flex-col h-full overflow-hidden transition-all duration-200 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300">
+    <div class="flex flex-col h-full overflow-hidden transition-all duration-200 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 group product-card card-hover">
       <!-- Imagen del producto -->
       <div class="relative overflow-hidden aspect-square bg-gray-50">
         <!-- Imagen principal -->
-        <div class="absolute inset-0 transition-opacity duration-300 group-hover:opacity-0">
-          <OptimizedImage
-            :src="imageToShow"
+        <div class="absolute inset-0 transition-opacity duration-300" :class="{ 'group-hover:opacity-0': secondaryImage }">
+          <img
+            :src="primaryImage"
             :alt="product.name"
             loading="lazy"
-            aspect-ratio="square"
-            :show-spinner="true"
-            :fallback-src="defaultImage"
-            image-class="object-cover w-full h-full"
+            class="object-cover w-full h-full"
             @error="handleImageError"
           />
         </div>
 
         <!-- Imagen secundaria (hover) -->
-        <div v-if="product.images && product.images[1]" class="absolute inset-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
-          <OptimizedImage
-            :src="product.images[1].image_url"
+        <div v-if="secondaryImage" class="absolute inset-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+          <img
+            :src="secondaryImage"
             :alt="product.name"
             loading="lazy"
-            aspect-ratio="square"
-            :show-spinner="true"
-            :fallback-src="defaultImage"
-            image-class="object-cover w-full h-full"
+            class="object-cover w-full h-full"
+            @error="handleImageError"
           />
         </div>
 
@@ -94,35 +89,50 @@
 <script setup lang="ts">
 import { defineProps, computed, ref } from 'vue';
 import type { Product } from '../../types/products/product.types';
-import OptimizedImage from './OptimizedImage.vue';
 
-const defaultImage = 'https://firebasestorage.googleapis.com/v0/b/m-vintage.firebasestorage.app/o/modelo_card.jpg?alt=media&token=bfeea622-2abf-4d84-b570-96659c605f8a';
+// Local SVG image from public directory
+const defaultImage = '/imagen-portada.svg';
 
 const props = defineProps<{
   product: Product;
 }>();
 
-const imageError = ref(false);
+// Ref to track if primary image failed to load
+const primaryImageFailed = ref(false);
 
-// Improved image handling with error fallback
-const imageToShow = computed(() => {
-  if (imageError.value) {
+// Handle image load errors
+const handleImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement;
+  if (img.src !== defaultImage) {
+    primaryImageFailed.value = true;
+    img.src = defaultImage;
+  }
+};
+
+// Simplified image selection
+const primaryImage = computed(() => {
+  // If image failed, always use default
+  if (primaryImageFailed.value) {
     return defaultImage;
   }
-  
+
   // Check if product has images and first image exists
   if (props.product.images && props.product.images[0] && props.product.images[0].image_url) {
     return props.product.images[0].image_url;
   }
-  
+
+  // Default fallback
   return defaultImage;
 });
 
-// Handle image load errors
-const handleImageError = () => {
-  console.warn(`Failed to load image for product: ${props.product.name}`);
-  imageError.value = true;
-};
+const secondaryImage = computed(() => {
+  // Return second image if available, otherwise null
+  if (props.product.images && props.product.images[1] && props.product.images[1].image_url) {
+    return props.product.images[1].image_url;
+  }
+
+  return null;
+});
 
 
 // Determinar si el producto está sin stock
@@ -143,7 +153,6 @@ const isOutOfStock = computed(() => {
 
 // Quick add function (placeholder)
 const quickAdd = () => {
-  console.log('Quick add clicked for:', props.product.name);
   // TODO: Implementar lógica de quick add
 };
 </script>

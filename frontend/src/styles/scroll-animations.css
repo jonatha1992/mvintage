@@ -1,0 +1,163 @@
+/* Scroll Animation Base Classes */
+.scroll-animated {
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+/* Base states */
+.animate-out {
+  opacity: 0;
+  transform: translateY(30px) scale(0.95);
+}
+
+.animate-in {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Fade In Up Animation */
+.fade-in-up.animate-out {
+  opacity: 0;
+  transform: translateY(40px);
+}
+
+.fade-in-up.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Fade In Down Animation */
+.fade-in-down.animate-out {
+  opacity: 0;
+  transform: translateY(-40px);
+}
+
+.fade-in-down.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Fade In Left Animation */
+.fade-in-left.animate-out {
+  opacity: 0;
+  transform: translateX(-40px);
+}
+
+.fade-in-left.animate-in {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Fade In Right Animation */
+.fade-in-right.animate-out {
+  opacity: 0;
+  transform: translateX(40px);
+}
+
+.fade-in-right.animate-in {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Scale In Animation */
+.scale-in.animate-out {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.scale-in.animate-in {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Slide In Up Animation */
+.slide-in-up.animate-out {
+  opacity: 0;
+  transform: translateY(60px);
+}
+
+.slide-in-up.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Slide In Down Animation */
+.slide-in-down.animate-out {
+  opacity: 0;
+  transform: translateY(-60px);
+}
+
+.slide-in-down.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger Animation Delays */
+.stagger-1 { transition-delay: 0.1s; }
+.stagger-2 { transition-delay: 0.2s; }
+.stagger-3 { transition-delay: 0.3s; }
+.stagger-4 { transition-delay: 0.4s; }
+.stagger-5 { transition-delay: 0.5s; }
+
+/* Card Hover Enhancements */
+.scroll-animated.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scroll-animated.card-hover:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-animated {
+    transition: none;
+  }
+
+  .animate-out,
+  .animate-in {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Performance optimizations */
+.scroll-animated {
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Special animations for specific elements */
+.hero-title.animate-out {
+  opacity: 0;
+  transform: translateY(50px) scale(0.9);
+}
+
+.hero-title.animate-in {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-card.animate-out {
+  opacity: 0;
+  transform: translateY(30px) scale(0.95);
+}
+
+.product-card.animate-in {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.footer-section.animate-out {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.footer-section.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}

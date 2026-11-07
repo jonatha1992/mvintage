@@ -523,7 +523,6 @@ const loadOrders = async () => {
     
     orders.value = await ordersApi.getOrdersWithFilters(processedFilters);
   } catch (error) {
-    console.error('Error loading orders:', error);
     toast.error('Error cargando rdenes');
   } finally {
     loading.value = false;
@@ -534,7 +533,6 @@ const loadStats = async () => {
   try {
     stats.value = await ordersApi.getAdminStats();
   } catch (error) {
-    console.error('Error loading stats:', error);
   }
 };
 
@@ -567,7 +565,6 @@ const verifyTransfer = async (verified: boolean) => {
     await loadOrders();
     await loadStats();
   } catch (error) {
-    console.error('Error verifying transfer:', error);
     toast.error('Error verificando transferencia');
   } finally {
     processingTransfer.value = false;
@@ -610,7 +607,6 @@ const scheduleDelivery = async () => {
     await loadOrders();
     await loadStats();
   } catch (error) {
-    console.error('Error scheduling delivery:', error);
     toast.error('Error programando entrega');
   } finally {
     processingDelivery.value = false;
@@ -626,7 +622,6 @@ const markAsDelivered = async (order: Order) => {
     await loadOrders();
     await loadStats();
   } catch (error) {
-    console.error('Error marking as delivered:', error);
     toast.error('Error marcando como entregada');
   }
 };

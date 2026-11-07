@@ -114,67 +114,31 @@ const error = ref('')
 
 // Observar cambios en el estado de autenticación
 watch(() => authStore.isAuthenticated, (isAuth) => {
-    console.log(' Estado de autenticación cambió:', isAuth)
     if (isAuth) {
-        console.log('Usuario autenticado, redirigiendo a admin...')
         router.push('/admin/products')
     }
 }, { immediate: true })
 
 // Verificar si hay resultado de redirect al cargar el componente
 onMounted(async () => {
-    console.log('🔄 Verificando resultado de redirect...')
-    console.log('🔧 URL actual al montar:', window.location.href)
-    console.log('🔧 URL params:', new URLSearchParams(window.location.search).toString())
-    console.log(' Current user en firebase:', auth.currentUser)
-    console.log(' Auth store user:', authStore.firebaseUser)
-    console.log(' Auth store authenticated:', authStore.isAuthenticated)
-
     try {
-        // Verificar el estado actual de auth
-        console.log('🔧 Estado de auth antes de getRedirectResult:', {
-            currentUser: auth.currentUser,
-            authDomain: auth.app.options.authDomain,
-            projectId: auth.app.options.projectId
-        })
-        
         // Esperar un momento para asegurar que Firebase esté completamente inicializado
         await new Promise(resolve => setTimeout(resolve, 500))
         
-        console.log('📡 Ejecutando getRedirectResult...')
         const result = await getRedirectResult(auth)
-        console.log('📡 Resultado de getRedirectResult:', result)
         
         if (result && result.user) {
-            console.log('✅ Usuario encontrado en redirect result:', result.user.email)
         } else {
-            console.log('🔍 No hay resultado de redirect o usuario es null')
-            console.log('🔧 Intentando verificar si hay usuario persistido...')
-            
             // Verificar si hay un usuario ya autenticado
             if (auth.currentUser) {
-                console.log('✅ Usuario ya autenticado encontrado:', auth.currentUser.email)
-            } else {
-                console.log('❌ No hay usuario autenticado')
             }
         }
         
         if (result) {
             // Usuario autenticado exitosamente después del redirect
-            console.log('✅ Login con Google exitoso (redirect):', result.user.email)
-            console.log('📧 Email:', result.user.email)
-            console.log('🆔 UID:', result.user.uid)
-            console.log('✅ Token obtenido, el store debería actualizar automáticamente...')
             // No redirigir manualmente aquí, el watch lo hará
-        } else {
-            console.log('🔍 No hay resultado de redirect pendiente')
-            console.log('🔧 Verificando si hay usuario actual:', auth.currentUser)
         }
     } catch (err: any) {
-        console.error('🔴 Error procesando redirect result:', err)
-        console.error('🔴 Error code:', err.code)
-        console.error('🔴 Error message:', err.message)
-        console.error('🔴 Error details:', err)
         loading.value = false
 
         // Mensajes de error más específicos
@@ -207,7 +171,6 @@ const signInWithGoogle = async () => {
     try {
         loading.value = true
         error.value = ''
-        console.log('🚀 Iniciando login con Google (popup)...')
         
         const provider = new GoogleAuthProvider()
         
@@ -216,21 +179,10 @@ const signInWithGoogle = async () => {
             prompt: 'select_account' // Permite seleccionar cuenta si hay multiples
         })
 
-        console.log('🔧 Intentando abrir popup...')
         const result = await signInWithPopup(auth, provider)
-        console.log('✅ Login exitoso (popup):', result.user.email)
-        console.log('✅ User UID:', result.user.uid)
-        console.log('✅ Access token:', await result.user.getIdToken())
         loading.value = false
 
     } catch (err: any) {
-        console.error('🔴 Error login Google:', err)
-        console.error('🔴 Error code:', err.code)
-        console.error('🔴 Error message:', err.message)
-        console.error('🔴 Error details:', err)
-        if (err.customData) {
-            console.error('🔴 Error customData:', err.customData)
-        }
         loading.value = false
         
         // Mensajes de error más específicos
@@ -256,17 +208,14 @@ const handleSubmit = async () => {
         let result
         if (isLogin.value) {
             result = await signInWithEmailAndPassword(auth, email.value, password.value)
-            console.log('Login exitoso:', result.user.email)
         } else {
             result = await createUserWithEmailAndPassword(auth, email.value, password.value)
-            console.log('Registro exitoso:', result.user.email)
         }
 
         // El store detectará automáticamente el cambio y redirigirá
         // No necesitamos redirigir manualmente aquí
         loading.value = false
     } catch (err: any) {
-        console.error('Error auth:', err)
         error.value = getErrorMessage(err.code) || err.message || 'Error de autenticación'
         loading.value = false
     }

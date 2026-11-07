@@ -10,6 +10,7 @@ from firebase_admin import auth as firebase_auth
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 from pydantic import BaseModel
+from typing import Optional
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -18,6 +19,12 @@ class CreateUserRequest(BaseModel):
     password: str
     username: str = None
     role_id: int
+
+class UserUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
 
 @router.get("/debug-all", response_model=dict)
 def debug_all_users(
@@ -227,6 +234,53 @@ async def get_or_create_me(
     except Exception as e:
         logger.error(f"Error in /users/me for UID {firebase_user.get('uid')}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error processing user: {str(e)}")
+
+@router.patch("/me", response_model=UserRead)
+async def update_current_user(
+    user_update: UserUpdateRequest,
+    db: Session = Depends(get_session),
+    firebase_user: dict = Depends(verify_firebase_token)
+):
+    """
+    Actualiza la información del usuario actual.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    if not firebase_user:
+        logger.error("No Firebase user provided to PATCH /users/me")
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    logger.info(f"Updating user for Firebase UID: {firebase_user.get('uid')}")
+
+    try:
+        # Buscar usuario por Firebase UID
+        user = get_user_by_firebase_uid(db, firebase_user['uid'])
+        
+        if not user:
+            logger.error(f"User not found for UID: {firebase_user.get('uid')}")
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Actualizar campos si se proporcionan
+        update_data = user_update.dict(exclude_unset=True)
+        
+        for field, value in update_data.items():
+            if hasattr(user, field) and value is not None:
+                setattr(user, field, value)
+                logger.info(f"Updated {field} for user {user.id}")
+        
+        db.commit()
+        db.refresh(user)
+        
+        logger.info(f"User {user.id} updated successfully")
+        return UserRead.from_user(user)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating user for UID {firebase_user.get('uid')}: {str(e)}", exc_info=True)
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error updating user: {str(e)}")
 
 @router.get("/debug", response_model=dict)
 async def debug_user_auth(

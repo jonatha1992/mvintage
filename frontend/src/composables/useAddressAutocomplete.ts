@@ -84,7 +84,6 @@ export function useAddressAutocomplete() {
 
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Error al buscar direcciones'
-      console.error('Error searching addresses:', err)
       suggestions.value = []
       return []
 

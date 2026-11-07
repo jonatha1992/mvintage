@@ -15,14 +15,6 @@ function required(name: string, fallback?: string): string {
 
 const backendUrl = required('VITE_BACKEND_URL', 'http://localhost:8000/api/v1');
 
-// Debug temporal - remover después
-console.log('🔧 Config Debug:', {
-    mode: import.meta.env.MODE,
-    environment: import.meta.env.VITE_ENVIRONMENT,
-    backendUrl,
-    allEnv: import.meta.env
-});
-
 export const config = Object.freeze({
     backendUrl,
     firebase: {

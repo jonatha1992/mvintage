@@ -24,7 +24,7 @@
     <div class="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center">
       <div class="max-w-2xl">
         <div class="flex items-center justify-center mb-6 space-x-3">
-          <h1 class="text-5xl font-light tracking-wide text-white font-heading md:text-7xl">
+          <h1 class="text-5xl font-light tracking-wide text-white font-heading md:text-7xl hero-title">
             MATILDA VINTAGE
           </h1>
         </div>
@@ -32,12 +32,12 @@
           Estilo que perdura en el tiempo
         </p>
         <div class="space-y-4">
-          <button class="mr-4 btn-minimal btn-light font-body">
+          <button @click="scrollToProducts" class="mr-4 btn-minimal btn-light font-body">
             Ver Colección
           </button>
-          <button class="btn-minimal btn-dark font-body">
+          <router-link to="/shop" class="btn-minimal btn-dark font-body">
             Nuevos Arribos
-          </button>
+          </router-link>
         </div>
       </div>
     </div>
@@ -52,6 +52,29 @@
 </template>
 
 <script setup lang="ts">
+// Función para hacer scroll suave hacia los productos
+const scrollToProducts = () => {
+  // Buscar el elemento ProductGrid o un contenedor de productos
+  const productSection = document.querySelector('.product-grid') ||
+                        document.querySelector('[class*="product"]') ||
+                        document.querySelector('.min-h-screen') // Fallback al contenedor principal
+
+  if (productSection) {
+    // Calcular la posición para hacer scroll, dejando un poco de espacio arriba
+    const offsetTop = (productSection as HTMLElement).offsetTop - 100
+
+    window.scrollTo({
+      top: offsetTop,
+      behavior: 'smooth'
+    })
+  } else {
+    // Si no encuentra el elemento, hace scroll hacia abajo aproximadamente donde estarían los productos
+    window.scrollTo({
+      top: window.innerHeight * 0.9, // Aproximadamente 90% de la altura de viewport
+      behavior: 'smooth'
+    })
+  }
+}
 </script>
 
 <style scoped>

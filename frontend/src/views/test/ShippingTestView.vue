@@ -168,7 +168,6 @@ const loadCarriers = async () => {
     carriers.value = response.carriers || []
     lastApiResponse.value = response
   } catch (error: any) {
-    console.error('Error loading carriers:', error)
     lastApiResponse.value = error.response?.data || { error: error.message }
   } finally {
     loadingCarriers.value = false
@@ -176,7 +175,6 @@ const loadCarriers = async () => {
 }
 
 const onQuoteSelected = (quote: ShippingQuoteOption) => {
-  console.log('Quote selected:', quote)
 }
 
 // Auto-test API on mount

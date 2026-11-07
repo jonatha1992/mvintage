@@ -92,7 +92,6 @@ const retryPayment = async () => {
     // Redirigir a MercadoPago
     window.location.href = preference.init_point;
   } catch (error) {
-    console.error('Error creando nueva preferencia:', error);
     toast.error('Error al reintentar el pago');
   }
 };
@@ -110,7 +109,6 @@ onMounted(async () => {
     try {
       orderDetails.value = await paymentsApi.getPaymentStatus(Number(orderId));
     } catch (error) {
-      console.error('Error obteniendo detalles del pago:', error);
       toast.error('Error obteniendo detalles del pedido');
     }
   }

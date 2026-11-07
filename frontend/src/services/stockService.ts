@@ -11,7 +11,6 @@ export const stockService = {
     try {
       return await productsApi.checkStock(items);
     } catch (error) {
-      console.error('Error al verificar el stock:', error);
       // En caso de error, asumimos que no hay stock disponible
       return {
         items: items.map(item => ({

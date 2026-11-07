@@ -91,11 +91,13 @@ import { useRoute } from 'vue-router';
 import { paymentsApi } from '../../config/api';
 import { useToast } from 'vue-toastification';
 import { useCartStore } from '../../store/cart';
+import { useProducts } from '../../store/products';
 import { emailService } from '../../services/emailVerificationService';
 
 const route = useRoute();
 const toast = useToast();
 const cartStore = useCartStore();
+const { invalidateCache } = useProducts();
 const orderDetails = ref<any>(null);
 const pendingOrderData = ref<any>(null);
 
@@ -114,7 +116,11 @@ onMounted(async () => {
   try {
     // Clear cart immediately on successful payment
     cartStore.clearCart();
-    
+
+    // Invalidate products cache after successful purchase
+    // This ensures fresh stock data is fetched next time
+    invalidateCache();
+
     // Get order data from localStorage (stored during checkout)
     const storedOrderData = localStorage.getItem('pending_order');
     if (storedOrderData) {
@@ -142,10 +148,7 @@ onMounted(async () => {
           //   total_amount: orderDetails.value.total,
           //   payment_method: orderDetails.value.payment_method === 'mercadopago' ? 'MercadoPago' : orderDetails.value.payment_method
           // });
-          console.log('Email confirmation temporarily disabled - needs proper parameters');
-          console.log('✔ Email de confirmación enviado');
         } catch (emailError) {
-          console.error('✖ Error enviando email de confirmación:', emailError);
           // No mostrar error al usuario, el email es opcional
         }
       }
@@ -154,7 +157,6 @@ onMounted(async () => {
     }
     
   } catch (error) {
-    console.error('Error en PaymentSuccessView:', error);
     toast.error('Error obteniendo detalles del pedido');
   }
 });

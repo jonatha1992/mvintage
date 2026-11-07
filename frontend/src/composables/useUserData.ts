@@ -28,16 +28,13 @@ export function useUserData() {
     try {
       const data = await customersApi.getMyCustomerData()
       customerData.value = data
-      console.log('Customer data loaded:', data.name, data.email)
       return data
     } catch (err: any) {
       // 404 es normal para usuarios sin compras anteriores
       if (err?.response?.status === 404) {
-        console.log('No previous customer data found (first-time buyer)')
         customerData.value = null
         error.value = null
       } else {
-        console.error('Error loading customer data:', err)
         error.value = 'Error al cargar los datos del usuario'
         customerData.value = null
       }

@@ -732,7 +732,6 @@ const loadSimilarProducts = async (categoria: string, currentProductId: number) 
     const shuffled = filtered.sort(() => 0.5 - Math.random());
     similarProducts.value = shuffled.slice(0, 6);
   } catch (error) {
-    console.error('Error loading similar products:', error);
     similarProducts.value = [];
   }
 };
@@ -745,7 +744,6 @@ onMounted(async () => {
     const foundProduct = response.products.find((p: Product) => p.id === productId);
     
     if (!foundProduct) {
-      console.error('Product not found:', productId);
       return;
     }
     
@@ -774,7 +772,6 @@ onMounted(async () => {
       await loadSimilarProducts(product.value.categoria, product.value.id);
     }
   } catch (error) {
-    console.error('Error loading product:', error);
   }
 });
 
@@ -833,7 +830,6 @@ const addToCart = () => {
     quantity.value = 1;
     
   } catch (error) {
-    console.error('Error agregando producto al carrito:', error);
     toast.error('Error al agregar el producto al carrito');
   }
 };

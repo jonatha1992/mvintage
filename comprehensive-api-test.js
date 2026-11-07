@@ -4,10 +4,6 @@
 async function testAPI() {
     const BASE_URL = 'http://localhost:8000/api/v1';
 
-    console.log('🚀 COMPREHENSIVE M-VINTAGE API TEST');
-    console.log('====================================');
-    console.log(`Testing backend at: ${BASE_URL}\n`);
-
     // Test cases organized by category
     const testSuites = [
         {
@@ -75,7 +71,6 @@ async function testAPI() {
     // Run all test suites
     for (const suite of testSuites) {
         console.log(`\n${suite.name}`);
-        console.log('─'.repeat(suite.name.length + 2));
 
         for (const test of suite.tests) {
             totalTests++;
@@ -146,7 +141,7 @@ async function testAPI() {
                     failedTests++;
                 }
 
-                console.log(`${icon} ${test.name.padEnd(35)} ${status}`);
+                console.log(`  ${icon} ${test.name}: ${status}`);
 
             } catch (error) {
                 failedTests++;
@@ -160,40 +155,41 @@ async function testAPI() {
                     errorMsg = error.message;
                 }
 
-                console.log(`❌ ${test.name.padEnd(35)} ERROR: ${errorMsg}`);
+                console.log(`  ❌ ${test.name}: ERROR - ${errorMsg}`);
             }
         }
     }
 
     // Summary
-    console.log('\n📊 TEST SUMMARY');
-    console.log('===============');
+    console.log('\n' + '='.repeat(60));
+    console.log('🎯 API TEST SUMMARY');
+    console.log('='.repeat(60));
     console.log(`Total Tests: ${totalTests}`);
     console.log(`✅ Successful: ${successfulTests}`);
-    console.log(`🔐 Auth Required (Expected): ${authRequiredTests}`);
+    console.log(`🔐 Auth Required: ${authRequiredTests}`);
     console.log(`❌ Failed: ${failedTests}`);
 
     const workingEndpoints = successfulTests + authRequiredTests;
     const successRate = ((workingEndpoints / totalTests) * 100).toFixed(1);
 
-    console.log(`\n🎯 Overall Health: ${successRate}% of endpoints are working correctly`);
+    console.log(`\n📊 Success Rate: ${successRate}%`);
 
     if (successRate >= 90) {
-        console.log('🟢 EXCELLENT: Frontend-Backend communication is working great!');
+        console.log('🎉 Excellent! API is working well.');
     } else if (successRate >= 75) {
-        console.log('🟡 GOOD: Most endpoints working, minor issues detected');
+        console.log('⚠️  Good, but some endpoints need attention.');
     } else {
-        console.log('🔴 ISSUES: Significant problems detected with API communication');
+        console.log('🚨 Poor performance - multiple endpoints failing.');
     }
 
-    console.log('\n💡 Next Steps:');
+    console.log('\n📝 Notes:');
     if (authRequiredTests > 0) {
-        console.log('   - Test with authenticated user to verify protected endpoints');
+        console.log(`- ${authRequiredTests} endpoints require authentication`);
     }
     if (failedTests > 0) {
-        console.log('   - Investigate failed endpoints for missing routes or server errors');
+        console.log(`- ${failedTests} endpoints are failing and need investigation`);
     }
-    console.log('   - Frontend should now be able to communicate with backend correctly');
+    console.log('='.repeat(60));
 }
 
 // Run the test
