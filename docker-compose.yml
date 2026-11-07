@@ -1,7 +1,10 @@
 version: '3.8'
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
     ports:
       - "8000:8000"
     volumes:

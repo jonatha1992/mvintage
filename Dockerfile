@@ -3,6 +3,8 @@ FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
+ARG GIT_SHA=unknown
+ENV GIT_SHA=${GIT_SHA}
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \

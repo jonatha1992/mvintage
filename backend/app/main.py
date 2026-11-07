@@ -17,6 +17,10 @@ from app.routes.shipping_quotes import router as shipping_quotes_router
 # Email functionality moved to /routes/ (standard approach)
 from app.core.config import settings
 from fastapi import Depends
+import os
+import re
+import subprocess
+from pathlib import Path
 from app.db.session import get_session
 from app.db.migrations import run_migrations
 from sqlmodel import Session, select
@@ -87,6 +91,28 @@ app.include_router(shipping_quotes_router, prefix="/api/v1")
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/version.json")
+def version_json():
+    root = Path(__file__).resolve().parents[2]
+    version = os.environ.get("APP_VERSION", "1.0.0")
+    for candidate in (root / "VERSION", root / "pyproject.toml"):
+        if candidate.is_file():
+            text = candidate.read_text(encoding="utf-8")
+            match = re.search(r"(?m)^version\s*=\s*[\"']([^\"']+)", text) if candidate.suffix == ".toml" else re.search(r"\S+", text)
+            if match:
+                version = match.group(1)
+                break
+    if not re.fullmatch(r"\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?", version):
+        version = "1.0.0"
+    sha = os.environ.get("GIT_SHA", "")
+    if not re.fullmatch(r"[0-9a-fA-F]{7,40}", sha):
+        try:
+            sha = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=root, text=True, stderr=subprocess.DEVNULL).strip()
+        except (OSError, subprocess.CalledProcessError):
+            sha = "unknown"
+    return {"version": version, "sha": sha[:7]}
 
 
 @app.get("/debug/auth")
