@@ -1,7 +1,6 @@
 services:
   backend:
-    ports:
-      - "127.0.0.1:3901:8000"
+    ports: !reset []
   frontend:
-    ports:
+    ports: !reset
       - "127.0.0.1:3901:5173"
