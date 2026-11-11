@@ -2,5 +2,5 @@ services:
   backend:
     ports: !reset []
   frontend:
-    ports: !reset
+    ports: !override
       - "127.0.0.1:3901:5173"
