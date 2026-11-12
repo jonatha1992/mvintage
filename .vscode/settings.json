@@ -7,4 +7,14 @@
     "python.testing.pytestEnabled": true,
     "claudeCodeChat.permissions.yoloMode": true,
     "python-envs.defaultEnvManager": "ms-python.python:system",
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#5534b5",
+        "activityBar.foreground": "#ffffff",
+        "statusBar.background": "#5534b5",
+        "statusBar.foreground": "#ffffff",
+        "titleBar.background": "#5534b5",
+        "titleBar.foreground": "#ffffff",
+        "titleBar.inactiveBackground": "#5534b599"
+    },
+    "peacock.color": "#5534b5"
 }
