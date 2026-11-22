@@ -57,10 +57,10 @@
                       <!-- Price -->
                       <div class="flex items-center mt-2 space-x-2">
                         <span class="text-lg font-medium font-body text-body-text">
-                          ${{ cartStore.getItemPrice(item).toLocaleString() }}
+                          {{ formatPrice(cartStore.getItemPrice(item)) }}
                         </span>
                         <span v-if="item.product.has_discount" class="text-sm line-through font-body text-body-text">
-                          ${{ item.product.price.toLocaleString() }}
+                          {{ formatPrice(item.product.price) }}
                         </span>
                         <span v-if="item.product.has_discount" class="text-sm font-medium text-red-600 font-body">
                           -{{ item.product.discount_percentage }}%
@@ -108,10 +108,10 @@
                     <!-- Item Total -->
                     <div class="text-right">
                       <p class="text-lg font-medium font-body text-body-text">
-                        ${{ cartStore.getItemTotal(item).toLocaleString() }}
+                        {{ formatPrice(cartStore.getItemTotal(item)) }}
                       </p>
                       <p v-if="item.quantity > 1" class="text-sm font-body text-body-text">
-                        ${{ cartStore.getItemPrice(item).toLocaleString() }} c/u
+                        {{ formatPrice(cartStore.getItemPrice(item)) }} c/u
                       </p>
                     </div>
                   </div>
@@ -130,14 +130,14 @@
             <div class="flex justify-between text-sm">
               <span class="text-gray-600 font-body">Subtotal ({{ cartStore.itemCount }} productos)</span>
               <span class="text-gray-900 font-body">
-                ${{ (cartStore.totalSavings > 0 ? cartStore.totalOriginalPrice : cartStore.totalPrice).toLocaleString() }}
+                {{ formatPrice((cartStore.totalSavings > 0 ? cartStore.totalOriginalPrice : cartStore.totalPrice)) }}
               </span>
             </div>
 
             <!-- Discount -->
             <div v-if="cartStore.totalSavings > 0" class="flex justify-between text-sm">
               <span class="text-red-600 font-body">Descuentos</span>
-              <span class="text-red-600 font-body">-${{ cartStore.totalSavings.toLocaleString() }}</span>
+              <span class="text-red-600 font-body">-{{ formatPrice(cartStore.totalSavings) }}</span>
             </div>
 
             <!-- Shipping -->
@@ -151,7 +151,7 @@
               <div class="flex justify-between">
                 <span class="text-lg font-medium text-gray-900 font-body">Total</span>
                 <span class="text-lg font-medium text-gray-900 font-body">
-                  ${{ cartStore.totalPrice.toLocaleString() }}
+                  {{ formatPrice(cartStore.totalPrice) }}
                 </span>
               </div>
             </div>
@@ -216,6 +216,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatPrice } from '../../utils/price'
 import { onMounted, withDefaults } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore, type CartItem } from '../../store/cart';

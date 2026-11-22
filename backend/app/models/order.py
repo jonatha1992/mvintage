@@ -18,7 +18,11 @@ class Order(SQLModel, table=True):
     mercadopago_preference_id: Optional[str] = Field(default=None)
     
     # Delivery method
-    delivery_method: Optional[str] = Field(default="envio_andreani", max_length=30, description="envio_andreani, envio_correo, retiro_local")
+    delivery_method: Optional[str] = Field(
+        default=None,
+        max_length=30,
+        description="Modalidad obligatoria. La tienda solo admite retiro_local.",
+    )
     
     # Campos para TRANSFERENCIA
     bank_account_info: Optional[str] = Field(default=None, description="JSON con datos bancarios mostrados")

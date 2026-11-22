@@ -209,39 +209,36 @@ class CashController:
                 raise HTTPException(status_code=404, detail="Cliente no encontrado")
             
             # Calcular información de entrega
-            delivery_info = self.calculate_delivery_cost(customer, order.total, session)
+            if order.delivery_method != "retiro_local":
+                raise HTTPException(
+                    status_code=422,
+                    detail="El pago en efectivo solo está disponible para retiro en el local",
+                )
             
             # Actualizar orden con información de entrega
-            order.delivery_cost = delivery_info["cost"]
-            order.delivery_zone = delivery_info["zone_code"]
-            order.delivery_status = "pending"
+            order.delivery_cost = 0
+            order.delivery_zone = None
+            order.delivery_status = "pending_pickup"
             order.verification_required = True  # Requiere coordinación manual
             order.payment_status = "pending"  # Pendiente de entrega
             
             # Actualizar total si hay costo de envío
-            original_total = order.total
-            if delivery_info["cost"] > 0:
-                order.total += delivery_info["cost"]
             
             session.add(order)
             session.commit()
             session.refresh(order)
             
-            logger.info(f"Orden {order_id} configurada para entrega en efectivo - Zona: {delivery_info['zone_code']}")
+            logger.info("Orden %s configurada para retiro y pago en efectivo", order_id)
             
             return {
                 "order_id": order.id,
-                "delivery_info": delivery_info,
-                "original_total": original_total,
-                "delivery_cost": delivery_info["cost"],
+                "delivery_method": "retiro_local",
+                "delivery_cost": 0,
                 "final_total": order.total,
-                "customer_address": self.format_full_address(customer),
-                "estimated_delivery": f"{delivery_info['estimated_days']} días hábiles",
                 "instructions": [
-                    "Nos contactaremos contigo en las próximas 24 horas para coordinar la entrega",
-                    "Prepara el monto exacto en efectivo",
-                    "Ten tu DNI disponible al momento de la entrega",
-                    "Revisa los productos antes de efectuar el pago"
+                    "Te contactaremos cuando el pedido esté listo",
+                    "Coordinaremos día y horario de retiro",
+                    "Aboná el monto exacto al retirar",
                 ]
             }
             

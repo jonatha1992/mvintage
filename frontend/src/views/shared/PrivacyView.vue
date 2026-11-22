@@ -12,7 +12,7 @@
           <section>
             <h2 class="text-2xl font-light text-gray-900 mb-4">Introducción</h2>
             <p class="text-gray-700 leading-relaxed mb-4">
-              En M-VINTAGE respetamos su privacidad y estamos comprometidos con la protección de sus datos personales. 
+              En Showroom Isabella respetamos su privacidad y estamos comprometidos con la protección de sus datos personales.
               Esta Política de Privacidad explica cómo recopilamos, utilizamos, divulgamos y protegemos su información 
               cuando utiliza nuestro sitio web y servicios.
             </p>
@@ -61,7 +61,7 @@
                 <li>Procesar y gestionar sus compras</li>
                 <li>Enviar confirmaciones y actualizaciones de pedidos</li>
                 <li>Gestionar pagos y facturación</li>
-                <li>Coordinar envíos y entregas</li>
+                <li>Coordinar el retiro de pedidos</li>
               </ul>
             </div>
 
@@ -93,7 +93,7 @@
               Podemos compartir su información en las siguientes circunstancias:
             </p>
             <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
-              <li><strong>Proveedores de servicios:</strong> Para procesar pagos, envíos y soporte técnico</li>
+              <li><strong>Proveedores de servicios:</strong> Para procesar pagos y brindar soporte técnico</li>
               <li><strong>Requerimientos legales:</strong> Cuando sea necesario por ley o proceso legal</li>
               <li><strong>Protección de derechos:</strong> Para proteger nuestros derechos, privacidad y seguridad</li>
               <li><strong>Transferencias comerciales:</strong> En caso de fusión, adquisición o venta de activos</li>
@@ -127,7 +127,7 @@
             </div>
             
             <p class="text-gray-700 leading-relaxed">
-              Puede controlar y gestionar las cookies a travÃ©s de la configuración de su navegador.
+              Puede controlar y gestionar las cookies a través de la configuración de su navegador.
             </p>
           </section>
 
@@ -212,7 +212,7 @@
             <p class="text-gray-700 leading-relaxed mb-4">
               Podemos actualizar esta Política de Privacidad periódicamente. Le notificaremos 
               sobre cambios significativos publicando la nueva política en nuestro sitio web 
-              y actualizando la fecha de "última actualizacin".
+              y actualizando la fecha de "última actualización".
             </p>
             <p class="text-gray-700 leading-relaxed">
               Le recomendamos revisar esta política regularmente para mantenerse informado 
@@ -230,13 +230,13 @@
               </p>
               <div class="space-y-2 text-gray-700">
                 <p><strong>Email:</strong> 
-                  <a href="mailto:mvintageapp@gmail.com" class="text-blue-600 hover:text-blue-800">
-                    mvintageapp@gmail.com
+                  <a href="mailto:Showroomisabellaa@gmail.com" class="text-blue-600 hover:text-blue-800">
+                    Showroomisabellaa@gmail.com
                   </a>
                 </p>
                 <p><strong>Teléfono:</strong> 
-                  <a href="tel:+5491139471826" class="text-blue-600 hover:text-blue-800">
-                    +54 9 11 3947-1826
+                  <a href="tel:+5491176372876" class="text-blue-600 hover:text-blue-800">
+                    +54 9 11 7637-2876
                   </a>
                 </p>
                 <p><strong>Dirección:</strong> Buenos Aires, Argentina</p>

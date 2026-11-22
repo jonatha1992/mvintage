@@ -32,7 +32,7 @@
           <div class="w-12 h-12 border-b-2 border-white rounded-full animate-spin"></div>
         </div>
         
-        <!-- Botones navegacin -->
+        <!-- Botones navegación -->
         <button 
           v-if="images.length > 1"
           @click="previousImage" 

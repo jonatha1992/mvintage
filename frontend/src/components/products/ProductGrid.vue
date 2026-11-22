@@ -1,6 +1,6 @@
 <template>
   <div class="bg-[#dedede] product-grid">
-    <div class="px-4 py-16 mx-auto max-w-7xl sm:py-24 sm:px-6 lg:px-8">
+    <div class="px-4 py-10 mx-auto max-w-7xl sm:py-14 sm:px-6 lg:px-8">
       <!-- Section Header -->
       <div class="mb-16 text-center">
         <h2 class="mb-4 text-3xl font-light tracking-wide text-gray-900 font-heading md:text-4xl fade-in-up">
@@ -10,23 +10,17 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="isLoading && products.length === 0" class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <div v-for="n in 8" :key="n" class="animate-pulse">
-          <div class="bg-gray-200 rounded-lg aspect-square"></div>
-          <div class="mt-4 space-y-2">
-            <div class="h-4 bg-gray-200 rounded"></div>
-            <div class="w-2/3 h-4 bg-gray-200 rounded"></div>
-          </div>
-        </div>
+      <div v-if="isLoading && products.length === 0" class="grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <ProductCardSkeleton v-for="n in 8" :key="n" />
       </div>
 
       <!-- Product Grid -->
-      <div v-else class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <ProductCard v-for="product in displayProducts" :key="product.id" :product="product" />
+      <div v-else class="grid grid-cols-2 gap-x-3 gap-y-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <ProductCard v-for="(product, i) in displayProducts" :key="product.id" :product="product" :index="i" />
       </div>
       
       <!-- Load More Button -->
-      <div v-if="hasMoreProducts" class="mt-16 text-center">
+      <div v-if="hasMoreProducts" class="mt-10 text-center">
         <button @click="loadMoreProducts" class="btn-minimal btn-light font-body">
           Ver Mas Productos
         </button>
@@ -50,6 +44,7 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import ProductCard from './ProductCard.vue';
+import ProductCardSkeleton from './ProductCardSkeleton.vue';
 import type { Product } from '../../types/products/product.types';
 import { useProductsStore } from '../../store/products';
 import { storeToRefs } from 'pinia';
@@ -77,13 +72,13 @@ const filteredProducts = computed(() => {
   );
 });
 
-// Paginacin de productos
+// Paginación de productos
 const displayProducts = computed(() => {
   const endIndex = currentPage.value * productsPerPage.value;
   return filteredProducts.value.slice(0, endIndex);
 });
 
-// Verificar si hay mÃ¡s productos
+// Verificar si hay más productos
 const hasMoreProducts = computed(() => {
   return displayProducts.value.length < filteredProducts.value.length;
 });

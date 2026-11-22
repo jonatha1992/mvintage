@@ -29,7 +29,7 @@
             </h4>
             <!-- Price info with discount indication -->
             <div class="text-sm text-gray-600 font-body">
-              <span class="font-medium">{{ productData.quantity }} x ${{ productData.price.toLocaleString() }}</span>
+              <span class="font-medium">{{ productData.quantity }} x {{ formatPrice(productData.price) }}</span>
               <span v-if="productData.hasDiscount" class="ml-2 text-xs font-medium text-green-600">
                 ¡Con descuento!
               </span>
@@ -57,11 +57,11 @@
         <div class="p-3 mb-3 rounded-lg bg-gray-50">
           <div class="flex items-center justify-between text-sm font-body">
             <span class="text-gray-600">Total ({{ cartStore.itemCount }} {{ cartStore.itemCount === 1 ? 'producto' : 'productos' }}):</span>
-            <span class="font-semibold text-gray-900">${{ cartStore.totalPrice.toLocaleString() }}</span>
+            <span class="font-semibold text-gray-900">{{ formatPrice(cartStore.totalPrice) }}</span>
           </div>
           <div v-if="cartStore.totalSavings > 0" class="flex items-center justify-between mt-1 text-xs font-body">
             <span class="text-green-600">Ahorros:</span>
-            <span class="font-medium text-green-600">-${{ cartStore.totalSavings.toLocaleString() }}</span>
+            <span class="font-medium text-green-600">-{{ formatPrice(cartStore.totalSavings) }}</span>
           </div>
         </div>
         
@@ -79,6 +79,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatPrice } from '../../utils/price'
 import { useCartNotification } from '../../composables/useCartNotification'
 import { useCartModal } from '../../composables/useCartModal'
 import { useCartStore } from '../../store/cart'

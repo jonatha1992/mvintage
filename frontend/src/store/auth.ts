@@ -26,7 +26,7 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             const response = await apiClient.get('/users/me')
             backendUser.value = response.data
-            // TambiÃ©n obtener los roles del usuario (con cachÃ©)
+            // También obtener los roles del usuario (con caché)
             await fetchUserRoles(false)
         } catch (error) {
             // Si falla, probablemente el token no es valido, desloguear
@@ -35,7 +35,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     const fetchUserRoles = async (force = false) => {
-        // Verificar cachÃ© primero si no es forzado
+        // Verificar caché primero si no es forzado
         if (!force) {
             const cached = authCache.get<Role[]>('userRoles')
             if (cached) {

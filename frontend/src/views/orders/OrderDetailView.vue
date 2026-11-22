@@ -78,7 +78,7 @@
                     </div>
                   </div>
                   <p class="text-sm text-gray-500">{{ formatDateTime(order.created_at) }}</p>
-                  <p class="mt-1 text-xs text-gray-400">Tu pedido ha sido recibido y estÃ¡ siendo procesado</p>
+                  <p class="mt-1 text-xs text-gray-400">Tu pedido ha sido recibido y está siendo procesado</p>
                 </div>
               </li>
 
@@ -243,7 +243,7 @@
                     <p class="text-sm text-gray-500">Cantidad: {{ item.quantity }}</p>
                   </div>
                   <p class="text-sm font-medium text-gray-900">
-                    ${{ (item.price * item.quantity).toLocaleString() }}
+                    {{ formatPrice((item.price * item.quantity)) }}
                   </p>
                 </div>
               </div>
@@ -257,26 +257,26 @@
           <dl class="space-y-3">
             <div class="flex justify-between">
               <dt class="text-sm text-gray-600">Subtotal</dt>
-              <dd class="text-sm font-medium text-gray-900">${{ order.subtotal?.toLocaleString() }}</dd>
+              <dd class="text-sm font-medium text-gray-900">{{ formatPrice(order.subtotal) }}</dd>
             </div>
             <div v-if="order.discount && order.discount > 0" class="flex justify-between">
               <dt class="text-sm text-gray-600">Descuento</dt>
-              <dd class="text-sm font-medium text-green-600">-${{ order.discount.toLocaleString() }}</dd>
+              <dd class="text-sm font-medium text-green-600">-{{ formatPrice(order.discount) }}</dd>
             </div>
             <div class="flex justify-between">
               <dt class="text-sm text-gray-600">Envío</dt>
-              <dd class="text-sm font-medium text-gray-900">${{ order.shipping_cost?.toLocaleString() }}</dd>
+              <dd class="text-sm font-medium text-gray-900">{{ formatPrice(order.shipping_cost) }}</dd>
             </div>
             <div class="flex justify-between pt-3 border-t">
               <dt class="text-base font-medium text-gray-900">Total</dt>
-              <dd class="text-base font-medium text-gray-900">${{ order.total.toLocaleString() }}</dd>
+              <dd class="text-base font-medium text-gray-900">{{ formatPrice(order.total) }}</dd>
             </div>
           </dl>
         </div>
 
         <!-- Shipping Information -->
         <div class="p-6 bg-white rounded-lg shadow">
-          <h2 class="mb-4 text-lg font-medium text-gray-900">Informacin de Envio</h2>
+          <h2 class="mb-4 text-lg font-medium text-gray-900">Información de Retiro</h2>
           <div class="text-sm text-gray-600">
             <p class="font-medium text-gray-900">{{ order.customer_name }}</p>
             <p>{{ order.shipping_address }}</p>
@@ -297,7 +297,7 @@
           </svg>
         </div>
         <h3 class="mb-2 text-lg font-medium text-gray-900">Pedido no encontrado</h3>
-        <p class="mb-6 text-gray-600">No se pudo cargar la informacin del pedido</p>
+        <p class="mb-6 text-gray-600">No se pudo cargar la información del pedido</p>
         <router-link to="/orders"
           class="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-black border border-transparent rounded-md hover:bg-gray-800">
           Volver a mis pedidos
@@ -308,6 +308,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatPrice } from '../../utils/price'
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../../store/auth';
@@ -333,7 +334,7 @@ const orderId = computed(() => route.params.id as string);
 onMounted(async () => {
   // Check authentication
   if (!authStore.isAuthenticated) {
-    toast.warning('Debes iniciar sesin para ver tus pedidos');
+    toast.warning('Debes iniciar sesión para ver tus pedidos');
     router.push('/auth');
     return;
   }
@@ -510,9 +511,9 @@ const getPaymentDescription = (paymentMethod: string, paymentStatus: string) => 
       case 'transfer':
         return 'Realiza la transferencia para confirmar tu pedido';
       case 'cash':
-        return 'TendrÃ¡s que pagar en efectivo al recibir';
+        return 'Tendrás que pagar en efectivo al recibir';
       default:
-        return 'Pago pendiente de confirmacin';
+        return 'Pago pendiente de confirmación';
     }
   } else if (paymentStatus === 'pending') {
     return 'Estamos verificando tu pago';

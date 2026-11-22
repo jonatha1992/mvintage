@@ -45,7 +45,7 @@
               </div>
               <div class="flex-1 w-0 ml-5">
                 <dl>
-                  <dt class="text-sm font-medium truncate font-body text-body-text">Pendientes de verificacin</dt>
+                  <dt class="text-sm font-medium truncate font-body text-body-text">Pendientes de verificación</dt>
                   <dd class="text-lg font-medium font-body text-body-text">{{ stats.pending_verification }}</dd>
                 </dl>
               </div>
@@ -113,7 +113,7 @@
         <h2 class="mb-4 text-lg font-medium text-gray-900 font-heading">Filtros</h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label for="paymentMethod" class="block text-sm font-medium font-body text-body-text">MÃ©todo de pago</label>
+            <label for="paymentMethod" class="block text-sm font-medium font-body text-body-text">Método de pago</label>
             <select
               v-model="filters.payment_method"
               id="paymentMethod"
@@ -144,7 +144,7 @@
           </div>
 
           <div>
-            <label for="verificationRequired" class="block text-sm font-medium font-body text-body-text">Verificacin</label>
+            <label for="verificationRequired" class="block text-sm font-medium font-body text-body-text">Verificación</label>
             <select
               v-model="filters.verification_required"
               id="verificationRequired"
@@ -152,8 +152,8 @@
               class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-black focus:ring-black"
             >
               <option class="font-body" value="">Todos</option>
-              <option class="font-body" value="true">Requiere verificacin</option>
-              <option class="font-body" value="false">No requiere verificacin</option>
+              <option class="font-body" value="true">Requiere verificación</option>
+              <option class="font-body" value="false">No requiere verificación</option>
             </select>
           </div>
 
@@ -178,7 +178,7 @@
       <div class="overflow-hidden bg-white rounded-lg shadow">
         <div class="px-6 py-4 border-b border-gray-200">
           <div class="flex items-center justify-between">
-            <h2 class="text-lg font-medium text-gray-900 font-heading">Ã“rdenes</h2>
+            <h2 class="text-lg font-medium text-gray-900 font-heading">Órdenes</h2>
             <button
               @click="loadOrders"
               :disabled="loading"
@@ -208,7 +208,7 @@
                 <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase font-heading">Orden</th>
                 <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase font-heading">Cliente</th>
                 <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase font-heading">Total</th>
-                <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase font-heading">MÃ©todo</th>
+                <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase font-heading">Método</th>
                 <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase font-heading">Estado</th>
                 <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase font-heading">Fecha</th>
                 <th class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase font-heading">Acciones</th>
@@ -219,7 +219,7 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium font-body text-body-text">#{{ order.id }}</div>
                   <div v-if="order.verification_required" class="text-xs text-orange-600 font-body">
-                    Requiere verificacin
+                    Requiere verificación
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -307,13 +307,13 @@
           </div>
           
           <div>
-            <label for="adminNotes" class="block text-sm font-medium font-body text-body-text">Notas de verificacin</label>
+            <label for="adminNotes" class="block text-sm font-medium font-body text-body-text">Notas de verificación</label>
             <textarea
               v-model="transferForm.admin_notes"
               id="adminNotes"
               rows="3"
               class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-black focus:ring-black"
-              placeholder="Detalles de la verificacin..."
+              placeholder="Detalles de la verificación..."
             ></textarea>
           </div>
           
@@ -375,7 +375,7 @@
               required
               class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-black focus:ring-black"
             >
-              <option class="font-body" value="maÃ±ana">MaÃ±ana (9:00 - 13:00)</option>
+              <option class="font-body" value="mañana">Mañana (9:00 - 13:00)</option>
               <option class="font-body" value="tarde">Tarde (14:00 - 18:00)</option>
               <option class="font-body" value="noche">Noche (18:00 - 21:00)</option>
             </select>
@@ -420,15 +420,15 @@
           <div class="grid grid-cols-2 gap-4 text-sm">
             <div class="font-body"><strong>Cliente:</strong> {{ selectedOrder.customer?.name }}</div>
             <div class="font-body"><strong>Email:</strong> {{ selectedOrder.customer?.email }}</div>
-            <div class="font-body"><strong>TelÃ©fono:</strong> {{ selectedOrder.customer?.phone }}</div>
+            <div class="font-body"><strong>Teléfono:</strong> {{ selectedOrder.customer?.phone }}</div>
             <div class="font-body"><strong>Total:</strong> ${{ selectedOrder.total?.toLocaleString() }}</div>
-            <div class="font-body"><strong>MÃ©todo:</strong> {{ getPaymentMethodText(selectedOrder.payment_method) }}</div>
+            <div class="font-body"><strong>Método:</strong> {{ getPaymentMethodText(selectedOrder.payment_method) }}</div>
             <div class="font-body"><strong>Estado:</strong> {{ getPaymentStatusText(selectedOrder.payment_status || '') }}</div>
           </div>
           
           <!-- Address Info -->
           <div v-if="selectedOrder.customer" class="pt-4 border-t">
-            <h4 class="mb-2 font-medium font-heading">Direccin de entrega</h4>
+            <h4 class="mb-2 font-medium font-heading">Dirección de entrega</h4>
             <p class="text-sm font-body text-body-text">{{ formatCustomerAddress(selectedOrder.customer) }}</p>
             <div v-if="selectedOrder.customer.address_reference" class="mt-1 text-sm font-body text-body-text">
               <strong>Ref:</strong> {{ selectedOrder.customer.address_reference }}
@@ -492,7 +492,7 @@ const transferForm = ref({
 
 const deliveryForm = ref({
   scheduled_date: '',
-  time_slot: 'maÃ±ana',
+  time_slot: 'mañana',
   notes: ''
 });
 
@@ -575,7 +575,7 @@ const verifyTransfer = async (verified: boolean) => {
 const openDeliveryModal = (order: Order) => {
   selectedOrder.value = order;
   deliveryForm.value.scheduled_date = '';
-  deliveryForm.value.time_slot = order.customer?.preferred_delivery_time || 'maÃ±ana';
+  deliveryForm.value.time_slot = order.customer?.preferred_delivery_time || 'mañana';
   deliveryForm.value.notes = '';
   showDeliveryModal.value = true;
 };
@@ -585,7 +585,7 @@ const closeDeliveryModal = () => {
   selectedOrder.value = null;
   deliveryForm.value = {
     scheduled_date: '',
-    time_slot: 'maÃ±ana',
+    time_slot: 'mañana',
     notes: ''
   };
 };
@@ -714,7 +714,7 @@ const formatCustomerAddress = (customer: any) => {
   if (customer.city) parts.push(customer.city);
   if (customer.postal_code) parts.push(`CP ${customer.postal_code}`);
   if (customer.province) parts.push(customer.province);
-  return parts.join(', ') || 'Direccin no especificada';
+  return parts.join(', ') || 'Dirección no especificada';
 };
 
 // Initialize

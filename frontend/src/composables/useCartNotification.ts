@@ -2,8 +2,8 @@
 import type {
   Product,
   ProductVariant,
-  ColorType as Color,
-  SizeType as Size
+  VariantOption as Color,
+  VariantOption as Size
 } from '../types/products'
 
 interface NotificationProductData {
@@ -29,7 +29,7 @@ export function useCartNotification() {
     quantity: number,
     variantInfo?: { variant: ProductVariant; color: Color; size: Size }
   ) => {
-    // Preparar datos del producto para la notificacin
+    // Preparar datos del producto para la notificación
     const price = product.has_discount && product.discounted_price
       ? product.discounted_price
       : product.price
@@ -52,7 +52,7 @@ export function useCartNotification() {
 
     isNotificationVisible.value = true
 
-    // Auto hide despuÃ©s de 3 segundos
+    // Auto hide después de 3 segundos
     if (autoHideTimer) clearTimeout(autoHideTimer)
     autoHideTimer = window.setTimeout(() => {
       hideNotification()

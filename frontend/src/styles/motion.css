@@ -1,0 +1,190 @@
+/* Movimiento sutil: solo transform/opacity, <300ms (reveal <=500ms). Todo respeta prefers-reduced-motion. */
+
+/* 1. Reveal al hacer scroll: nativo con view(); fallback IntersectionObserver (directiva v-reveal) */
+@keyframes reveal-in {
+  from { opacity: 0; translate: 0 12px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports ((animation-timeline: view()) and (animation-range: entry)) {
+    .reveal {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry calc(var(--reveal-i, 0) * 6%) entry calc(30% + var(--reveal-i, 0) * 6%);
+    }
+  }
+
+  @supports not ((animation-timeline: view()) and (animation-range: entry)) {
+    .reveal {
+      transition: opacity 0.45s ease-out, translate 0.45s ease-out;
+      transition-delay: calc(var(--reveal-i, 0) * 60ms);
+    }
+    .reveal:not(.is-visible) {
+      opacity: 0;
+      translate: 0 12px;
+    }
+  }
+}
+
+/* 3. Botones y chips: feedback al presionar y color en 150ms */
+:where(button, [role='button'], .btn-minimal) {
+  transition-property: color, background-color, border-color, opacity, scale;
+  transition-duration: 150ms;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :where(button, [role='button'], .btn-minimal):not(:disabled):active {
+    scale: 0.97;
+  }
+}
+
+@keyframes cart-bump {
+  40% { scale: 1.25; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cart-bump {
+    animation: cart-bump 280ms ease-out;
+  }
+}
+
+/* 4. Diálogos <dialog>: fade + slide con @starting-style (la salida animada requiere allow-discrete) */
+.info-dialog {
+  opacity: 0;
+  transition-property: opacity, translate, display, overlay;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+  transition-behavior: allow-discrete;
+}
+
+.info-dialog[open] {
+  opacity: 1;
+}
+
+.info-dialog::backdrop {
+  background-color: rgb(0 0 0 / 0);
+  transition-property: background-color, display, overlay;
+  transition-duration: 200ms;
+  transition-behavior: allow-discrete;
+}
+
+.info-dialog[open]::backdrop {
+  background-color: rgb(0 0 0 / 0.5);
+}
+
+@starting-style {
+  .info-dialog[open] {
+    opacity: 0;
+  }
+  .info-dialog[open]::backdrop {
+    background-color: rgb(0 0 0 / 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .info-dialog {
+    translate: 0 16px;
+  }
+  .info-dialog[open] {
+    translate: 0 0;
+  }
+  @starting-style {
+    .info-dialog[open] {
+      translate: 0 16px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .info-dialog,
+  .info-dialog::backdrop {
+    transition-duration: 100ms;
+  }
+}
+
+/* Panel lateral / menú móvil (Vue <Transition>) */
+.panel-enter-active,
+.panel-leave-active {
+  transition: opacity 220ms ease-out;
+}
+.panel-enter-from,
+.panel-leave-to {
+  opacity: 0;
+}
+.panel-enter-active .panel-slide,
+.panel-leave-active .panel-slide {
+  transition: translate 250ms ease-out;
+}
+.panel-enter-from .panel-slide,
+.panel-leave-to .panel-slide {
+  translate: 100% 0;
+}
+
+.menu-enter-active,
+.menu-leave-active {
+  transition: opacity 180ms ease-out, translate 180ms ease-out;
+}
+.menu-enter-from,
+.menu-leave-to {
+  opacity: 0;
+  translate: 0 -8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-enter-active .panel-slide,
+  .panel-leave-active .panel-slide {
+    transition: none;
+  }
+  .panel-enter-from .panel-slide,
+  .panel-leave-to .panel-slide {
+    translate: 0 0;
+  }
+  .menu-enter-active,
+  .menu-leave-active {
+    transition-duration: 100ms;
+  }
+  .menu-enter-from,
+  .menu-leave-to {
+    translate: 0 0;
+  }
+}
+
+/* 5. Transición de ruta (View Transitions): fade corto; la barra de navegación no parpadea */
+.site-nav {
+  view-transition-name: site-nav;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* 6. Skeleton con shimmer (transform, sin repintar) */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: #e5e7eb;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent);
+    translate: -100% 0;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer {
+  to { translate: 100% 0; }
+}

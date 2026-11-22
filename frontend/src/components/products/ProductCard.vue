@@ -1,10 +1,10 @@
 ﻿<template>
-  <router-link :to="`/product/${product.id}/${product.name}`" class="block h-full">
-    <div class="flex flex-col h-full overflow-hidden transition-all duration-200 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 group product-card card-hover">
+  <router-link v-reveal="index" :to="`/product/${product.id}/${product.name}`" class="block h-full">
+    <div class="flex flex-col h-full overflow-hidden transition-shadow duration-200 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-md group product-card">
       <!-- Imagen del producto -->
       <div class="relative overflow-hidden aspect-square bg-gray-50">
         <!-- Imagen principal -->
-        <div class="absolute inset-0 transition-opacity duration-300" :class="{ 'group-hover:opacity-0': secondaryImage }">
+        <div class="absolute inset-0 pc-primary" :class="{ 'has-secondary': secondaryImage }">
           <img
             :src="primaryImage"
             :alt="product.name"
@@ -15,7 +15,7 @@
         </div>
 
         <!-- Imagen secundaria (hover) -->
-        <div v-if="secondaryImage" class="absolute inset-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+        <div v-if="secondaryImage" class="absolute inset-0 opacity-0 pc-secondary">
           <img
             :src="secondaryImage"
             :alt="product.name"
@@ -40,7 +40,7 @@
 
 
         <!-- Etiqueta de SIN STOCK en esquina superior izquierda -->
-        <div v-if="(product.stock ?? 0) <= 0" class="absolute top-0 left-0 z-10 mt-2 ml-4">
+        <div v-if="isOutOfStock" class="absolute top-0 left-0 z-10 mt-2 ml-4">
           <span class="px-3 py-1 text-xs font-bold text-white bg-gray-600 rounded-lg">SIN STOCK</span>
         </div>
       </div>
@@ -62,21 +62,21 @@
           <!-- Precio con descuento -->
           <div v-if="product.has_discount && product.discounted_price" class="space-y-0.5">
             <span class="block text-sm font-bold text-gray-900">
-              ${{ product.discounted_price.toFixed(2) }}
+              {{ formatPrice(product.discounted_price) }}
             </span>
             <span class="text-xs text-gray-400 line-through">
-              ${{ product.price.toFixed(2) }}
+              {{ formatPrice(product.price) }}
             </span>
           </div>
           
           <!-- Precio normal -->
           <div v-else>
             <span class="text-sm font-bold text-gray-900">
-              ${{ product.price.toFixed(2) }}
+              {{ formatPrice(product.price) }}
             </span>
             <span v-if="product.original_price && product.original_price > product.price" 
                   class="ml-1.5 text-xs text-gray-400 line-through">
-              ${{ product.original_price.toFixed(2) }}
+              {{ formatPrice(product.original_price) }}
             </span>
           </div>
         </div>
@@ -87,6 +87,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatPrice } from '../../utils/price'
+import { vReveal } from '../../composables/useReveal'
 import { defineProps, computed, ref } from 'vue';
 import type { Product } from '../../types/products/product.types';
 
@@ -95,6 +97,7 @@ const defaultImage = '/imagen-portada.svg';
 
 const props = defineProps<{
   product: Product;
+  index?: number;
 }>();
 
 // Ref to track if primary image failed to load
@@ -184,13 +187,27 @@ const quickAdd = () => {
   height: 100%;
 }
 
-/* Efecto hover en la imagen */
-img {
-  transition: transform 0.3s ease;
+/* Hover solo en dispositivos con puntero: zoom 1.04 y crossfade a la 2ª imagen */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  img {
+    transition: transform 280ms ease-out;
+  }
+  .group:hover img {
+    transform: scale(1.04);
+  }
 }
 
-.router-link:hover img {
-  transform: scale(1.03);
+@media (hover: hover) {
+  .pc-primary,
+  .pc-secondary {
+    transition: opacity 250ms ease-out;
+  }
+  .group:hover .pc-primary.has-secondary {
+    opacity: 0;
+  }
+  .group:hover .pc-secondary {
+    opacity: 1;
+  }
 }
 
 /* Estilos para las etiquetas de producto */
@@ -206,16 +223,6 @@ img {
 /* Estilos para el texto tachado */
 .line-through {
   text-decoration-color: #9ca3af;
-}
-
-/* Efecto de hover en toda la tarjeta */
-.router-link {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.router-link:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Mejoras de accesibilidad */

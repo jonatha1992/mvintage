@@ -70,7 +70,7 @@ export function useAddressAutocomplete() {
 
       const response = await fetch(url.toString(), {
         headers: {
-          'User-Agent': 'M-VINTAGE-App/1.0 (mvintageapp@gmail.com)'
+          'User-Agent': 'ShowroomIsabella-App/1.0 (Showroomisabellaa@gmail.com)'
         }
       })
 
@@ -95,7 +95,7 @@ export function useAddressAutocomplete() {
   const parseAddress = (suggestion: AddressSuggestion): ParsedAddress => {
     const { address } = suggestion
 
-    // Construir direccin completa
+    // Construir dirección completa
     let street = ''
     if (address.road) {
       street = address.road

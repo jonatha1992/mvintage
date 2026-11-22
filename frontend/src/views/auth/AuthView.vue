@@ -157,7 +157,7 @@ onMounted(async () => {
         } else if (err.code === 'auth/redirect-operation-pending') {
             error.value = 'Ya hay una operación de redirect pendiente.'
         } else {
-            error.value = `Error de autenticación: ${err.message} (${err.code})`
+            error.value = 'No se pudo iniciar sesión. Intentá de nuevo.'
         }
     }
 })
@@ -195,7 +195,7 @@ const signInWithGoogle = async () => {
         } else if (err.code === 'auth/cancelled-popup-request') {
             error.value = 'Autenticación cancelada'
         } else {
-            error.value = `Error: ${err.message} (${err.code})`
+            error.value = 'No se pudo iniciar sesión. Intentá de nuevo.'
         }
     }
 }

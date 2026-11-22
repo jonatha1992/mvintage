@@ -133,6 +133,12 @@ def create_order(
     order: Order = Body(...),
     user=Depends(get_current_user),
 ):
+    if order.delivery_method != "retiro_local":
+        raise HTTPException(
+            status_code=422,
+            detail="La única modalidad disponible es retiro en el local.",
+        )
+
     # Verificar que el customer existe
     customer = session.get(Customer, order.customer_id)
     if not customer:
@@ -157,10 +163,6 @@ def create_order(
         db_order.payment_status = "pending_payment"
     else:
         db_order.payment_status = "pending"
-
-    # Validar y establecer delivery_method si no viene en el payload
-    if not db_order.delivery_method:
-        db_order.delivery_method = "envio_andreani"  # default
 
     session.add(db_order)
     session.commit()

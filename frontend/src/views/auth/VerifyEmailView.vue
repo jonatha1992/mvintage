@@ -4,7 +4,7 @@
       <div class="text-center">
         <h2 class="text-3xl font-light text-gray-900">Verifica tu Email</h2>
         <p class="mt-2 text-sm text-gray-600">
-          Te hemos enviado un cdigo de verificacin a tu email
+          Te hemos enviado un código de verificación a tu email
         </p>
       </div>
     </div>
@@ -33,7 +33,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </div>
-          <h3 class="mb-2 text-lg font-medium text-gray-900">Error de Verificacin</h3>
+          <h3 class="mb-2 text-lg font-medium text-gray-900">Error de Verificación</h3>
           <p class="mb-4 text-sm text-gray-600">{{ errorMessage }}</p>
           <button 
             @click="showManualForm = true; verificationStatus = 'pending'"
@@ -66,7 +66,7 @@
           </div>
 
           <div>
-            <label for="code" class="block text-sm font-medium text-gray-700">Cdigo de Verificacin</label>
+            <label for="code" class="block text-sm font-medium text-gray-700">Código de Verificación</label>
             <input
               v-model="verificationForm.code"
               type="text"
@@ -77,7 +77,7 @@
               placeholder="123456"
               @input="formatCode"
             >
-            <p class="mt-1 text-xs text-gray-500">Ingresa el cdigo de 6 dígitos que recibiste por email</p>
+            <p class="mt-1 text-xs text-gray-500">Ingresa el código de 6 dígitos que recibiste por email</p>
           </div>
 
           <button
@@ -245,7 +245,7 @@ const resendVerificationEmail = async () => {
       email: verificationForm.value.email
     });
     
-    toast.success('Cdigo de verificacin reenviado');
+    toast.success('Código de verificación reenviado');
     
     // Start cooldown
     resendCooldown.value = 60;
@@ -257,7 +257,7 @@ const resendVerificationEmail = async () => {
     }, 1000);
     
   } catch (error) {
-    toast.error('Error al reenviar el cdigo');
+    toast.error('Error al reenviar el código');
   } finally {
     resending.value = false;
   }

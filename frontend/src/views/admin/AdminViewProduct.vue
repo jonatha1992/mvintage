@@ -3,9 +3,9 @@
     <!-- Header -->
     <div class="bg-white shadow">
       <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between py-6">
+        <div class="flex items-center justify-between py-4">
           <div>
-            <h1 class="text-3xl font-bold text-gray-900">Gestión de Productos</h1>
+            <h1 class="text-xl font-semibold text-gray-900">Gestión de Productos</h1>
             <p class="mt-1 text-sm text-gray-500">Administra el catálogo de productos, variantes y existencias</p>
           </div>
         </div>
@@ -45,17 +45,17 @@
     </div>
 
     <!-- Content -->
-    <div class="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
+    <div class="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
 
     <!-- Layout de dos columnas: Formulario + Vista previa -->
-    <div class="grid grid-cols-1 gap-8 mb-8 lg:grid-cols-12">
+    <div class="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-12">
       <!-- Formulario (8 columnas) -->
       <div class="lg:col-span-8">
-        <form @submit.prevent="confirmSave" class="p-8 bg-white border-2 border-gray-200 shadow-lg rounded-xl">
-          <h2 class="mb-6 text-2xl font-bold text-gray-800">{{ editing ? 'Editar Producto' : 'Nuevo Producto' }}</h2>
+        <form ref="productFormRef" @submit.prevent="confirmSave" class="p-5 bg-white border border-gray-200 rounded-lg sm:p-6">
+          <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ editing ? 'Editar Producto' : 'Nuevo Producto' }}</h2>
 
           <!-- Checkbox para producto único -->
-          <div class="mb-6">
+          <div class="mb-4">
             <label class="flex items-center">
               <input 
                 type="checkbox" 
@@ -80,7 +80,7 @@
                 type="text" 
                 v-model="product.name" 
                 placeholder="Nombre del producto"
-                class="w-full px-4 py-3 mt-1 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                class="w-full px-3 py-2 mt-1 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 required
               >
             </div>
@@ -95,25 +95,35 @@
                   step="0.01" 
                   v-model.number="product.price"
                   placeholder="0.00"
-                  class="w-full py-3 pl-8 pr-3 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500" 
+                  class="w-full py-2 pl-8 pr-3 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500" 
                   required
                 >
               </div>
+            </div>
+            <div>
+              <label for="max_installments" class="block mb-2 text-sm font-semibold text-gray-700">Cuotas máximas</label>
+              <select
+                id="max_installments"
+                v-model.number="product.max_installments"
+                class="w-full py-2 pl-3 pr-3 mt-1 text-sm leading-5 text-gray-900 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+              >
+                <option v-for="n in [1, 3, 6, 12]" :key="n" :value="n">{{ n }}</option>
+              </select>
             </div>
           </div>
 
 
           <!-- Sección de atributos de producto en tres columnas -->
-          <div class="mt-6">
-            <h3 class="mb-4 text-lg font-semibold text-gray-800">Atributos del Producto</h3>
-            <div class="grid items-start grid-cols-1 gap-6 p-6 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 md:grid-cols-3">
+          <div class="mt-4">
+            <h3 class="mb-4 text-base font-semibold text-gray-900">Atributos del Producto</h3>
+            <div class="grid items-start grid-cols-1 gap-4 p-4 border border-gray-200 rounded-lg bg-gray-50 md:grid-cols-3">
               <div>
                 <label for="genero" class="block mb-2 text-sm font-semibold text-gray-700">Género</label>
                 <Combobox v-model="product.genero">
                   <div class="relative mt-1">
-                    <div class="relative w-full overflow-hidden text-left bg-white rounded-lg shadow-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
+                    <div class="relative w-full overflow-hidden text-left bg-white rounded-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                       <ComboboxInput
-                        class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                        class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                         :displayValue="(genero: any) => genero ? genero.charAt(0).toUpperCase() + genero.slice(1) : 'Seleccione el género'"
                         @change="product.genero = $event.target.value"
                         placeholder="Género del producto"
@@ -157,9 +167,9 @@
                 <label for="estado" class="block mb-2 text-sm font-semibold text-gray-700">Estado</label>
                 <Combobox v-model="product.estado">
                   <div class="relative mt-1">
-                    <div class="relative w-full overflow-hidden text-left bg-white rounded-lg shadow-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
+                    <div class="relative w-full overflow-hidden text-left bg-white rounded-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                       <ComboboxInput
-                        class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                        class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                         :displayValue="(estado: any) => estado ? estado.charAt(0).toUpperCase() + estado.slice(1) : 'Seleccione el estado'"
                         @change="product.estado = $event.target.value"
                         placeholder="Estado del producto"
@@ -206,10 +216,10 @@
                 <label for="categoria" class="block mb-2 text-sm font-semibold text-gray-700">Categoría</label>
                 <Combobox v-model="product.categoria">
                   <div class="relative mt-1">
-                    <div class="relative w-full overflow-hidden text-left bg-white rounded-lg shadow-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
+                    <div class="relative w-full overflow-hidden text-left bg-white rounded-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                       <ComboboxInput
                         ref="uniqueCategoryInput"
-                        class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                        class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                         :displayValue="(categoria: any) => categoria && categoria !== 'Seleccione la categoría' ? categoria : ''"
                         @change="updateCategorySearch($event.target.value)"
                         @focus="clearCategorySearch($event.target)"
@@ -254,21 +264,21 @@
                 </Combobox>
               </div>
             </div>
-            <div class="mt-6">
+            <div class="mt-4">
               <label for="description" class="block mb-2 text-sm font-semibold text-gray-700">Descripción</label>
               <textarea 
                 v-model="product.description" 
                 rows="4"
                 placeholder="Describe las características del producto..."
-                class="w-full px-4 py-3 mt-1 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border-2 border-gray-200 rounded-lg shadow-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                class="w-full px-3 py-2 mt-1 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
               ></textarea>
             </div>
           </div>
 
-          <div class="mt-6">
+          <div class="mt-4">
             <label class="block text-sm font-medium text-gray-700">Imágenes</label>
             <input type="file" @change="handleFileSelect" multiple
-              class="block w-full mt-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+              class="block w-full mt-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
             
             <!-- Imágenes existentes -->
             <div v-if="existingImages.length > 0" class="mt-4">
@@ -308,19 +318,19 @@
           </div>
 
           <!-- Sección de atributos únicos -->
-          <div v-if="product.is_unique" class="mt-6">
-            <h3 class="text-lg font-semibold text-gray-800">Atributos del Producto Único</h3>
-            <div class="grid items-start grid-cols-1 gap-6 p-6 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 md:grid-cols-3">
+          <div v-if="product.is_unique" class="mt-4">
+            <h3 class="text-base font-semibold text-gray-900">Atributos del Producto Único</h3>
+            <div class="grid items-start grid-cols-1 gap-4 p-4 border border-gray-200 rounded-lg bg-gray-50 md:grid-cols-3">
               <div>
                 <label class="block mb-2 text-sm font-semibold text-gray-700">Color</label>
                 
                 <!-- Combobox personalizado para colores -->
                 <Combobox v-model="product.color">
                   <div class="relative mt-1">
-                    <div class="relative w-full overflow-hidden text-left bg-white rounded-lg shadow-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
+                    <div class="relative w-full overflow-hidden text-left bg-white rounded-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                       <ComboboxInput
                         ref="uniqueColorInput"
-                        class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                        class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                         :displayValue="(color: any) => color && color !== 'Seleccione el color' ? color : ''"
                         @change="updateColorSearch($event.target.value)"
                         @focus="clearColorSearch($event.target)"
@@ -377,10 +387,10 @@
                 <!-- Combobox personalizado para talles -->
                 <Combobox v-model="product.talle">
                   <div class="relative mt-1">
-                    <div class="relative w-full overflow-hidden text-left bg-white rounded-lg shadow-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
+                    <div class="relative w-full overflow-hidden text-left bg-white rounded-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                       <ComboboxInput
                         ref="uniqueSizeInput"
-                        class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                        class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                         :displayValue="(talle: any) => talle && talle !== 'Seleccione el talle' ? talle : ''"
                         @change="updateSizeSearch($event.target.value)"
                         @focus="clearSizeSearch($event.target)"
@@ -434,7 +444,7 @@
                     min="0"
                     step="1"
                     placeholder="Cantidad en stock"
-                    class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                     required
                   >
                   <div class="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -446,10 +456,10 @@
           </div>
 
           <!-- Sección de variantes múltiples -->
-          <div v-else class="mt-6">
-            <h3 class="text-lg font-semibold text-gray-800">Variantes</h3>
+          <div v-else class="mt-4">
+            <h3 class="text-base font-semibold text-gray-900">Variantes</h3>
             <div v-for="(variant, index) in product.variants" :key="index"
-              class="grid items-end grid-cols-1 gap-6 p-6 mt-4 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 md:grid-cols-7 ">
+              class="grid items-end grid-cols-1 gap-4 p-4 mt-4 border border-gray-200 rounded-lg bg-gray-50 md:grid-cols-7 ">
               
               <div class="md:col-span-2">
                 <label class="block mb-2 text-sm font-semibold text-gray-700">Color</label>
@@ -457,9 +467,9 @@
                 <!-- Combobox personalizado para colores en variantes -->
                 <Combobox v-model="variant.color">
                   <div class="relative mt-1">
-                    <div class="relative w-full overflow-hidden text-left bg-white rounded-lg shadow-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
+                    <div class="relative w-full overflow-hidden text-left bg-white rounded-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                       <ComboboxInput
-                        class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                        class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                         :displayValue="(color: any) => color && color !== 'Seleccione el color' ? color : ''"
                         @change="updateVariantColorSearch($event.target.value, index)"
                         @focus="clearVariantColorSearch($event.target, index)"
@@ -517,9 +527,9 @@
                 <!-- Combobox personalizado para talles en variantes -->
                 <Combobox v-model="variant.talle">
                   <div class="relative mt-1">
-                    <div class="relative w-full overflow-hidden text-left bg-white rounded-lg shadow-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
+                    <div class="relative w-full overflow-hidden text-left bg-white rounded-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
                       <ComboboxInput
-                        class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                        class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                         :displayValue="(talle: any) => talle && talle !== 'Seleccione el talle' ? talle : ''"
                         @change="updateVariantSizeSearch($event.target.value, index)"
                         @focus="clearVariantSizeSearch($event.target, index)"
@@ -574,7 +584,7 @@
                     min="0"
                     step="1"
                     placeholder="Cantidad en stock"
-                    class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border-2 border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    class="w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 transition-all duration-200 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                   >
                   <div class="absolute inset-y-0 right-0 flex items-center pr-3">
                     <span class="text-xs text-gray-400">unidades</span>
@@ -584,7 +594,7 @@
               
               <div class="flex items-start justify-start md:col-span-1">
                 <button type="button" @click="removeVariant(index)"
-                  class="flex items-center px-3 py-2 text-sm font-semibold text-red-600 transition-all duration-200 border-2 border-red-200 rounded-lg bg-red-50 hover:text-red-700 hover:bg-red-100 hover:border-red-300"
+                  class="flex items-center px-3 py-2 text-sm font-semibold text-red-600 transition-all duration-200 border border-red-200 rounded-md bg-red-50 hover:text-red-700 hover:bg-red-100 hover:border-red-300"
                   title="Eliminar variante">
                   <TrashIcon class="w-4 h-4 md:hidden" />
                   <span class="items-center hidden md:flex">
@@ -594,16 +604,16 @@
               </div>
             </div>
             <button type="button" @click="addVariant"
-              class="px-6 py-3 mt-6 text-sm font-semibold text-gray-700 transition-all duration-200 border-2 border-gray-300 rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 hover:border-gray-400">
-              AÃ±adir Variante
+              class="px-4 py-2 mt-4 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+              Añadir Variante
             </button>
           </div>
 
           <div class="flex justify-end mt-6">
             <button type="button" @click="resetForm"
-              class="px-6 py-3 mr-3 text-sm font-semibold text-gray-700 transition-all duration-200 bg-white border-2 border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 hover:border-gray-400">Cancelar</button>
+              class="px-4 py-2 mr-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Cancelar</button>
             <button type="submit"
-              class="px-6 py-3 text-sm font-semibold text-white transition-all duration-200 transform border border-transparent rounded-lg shadow-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 hover:scale-105">{{
+              class="px-4 py-2 text-sm font-medium text-white bg-gray-900 border border-transparent rounded-md hover:bg-gray-800 disabled:opacity-50">{{
                 editing ? 'Actualizar' : 'Guardar' }}</button>
           </div>
         </form>
@@ -612,8 +622,8 @@
       <!-- Vista previa del producto (4 columnas) -->
       <div class="lg:col-span-4">
         <div class="sticky top-4">
-          <div class="p-6 bg-white border rounded-lg shadow-md">
-            <h3 class="mb-4 text-lg font-medium text-gray-800">Vista previa del producto</h3>
+          <div class="p-5 bg-white border border-gray-200 rounded-lg">
+            <h3 class="mb-3 text-base font-semibold text-gray-900">Vista previa del producto</h3>
             <div class="max-w-sm mx-auto">
               <ProductCard :product="previewProduct" />
             </div>
@@ -641,7 +651,7 @@
             <td class="px-4 py-3 text-center border-b">
               <div class="flex justify-center">
                 <img 
-                  :src="p.images && p.images[0] ? p.images[0].image_url : 'https://firebasestorage.googleapis.com/v0/b/m-vintage.firebasestorage.app/o/modelo_card.jpg?alt=media&token=bfeea622-2abf-4d84-b570-96659c605f8a'" 
+                  :src="p.images && p.images[0] ? p.images[0].image_url : '/logo_redondo.jpg'" 
                   :alt="p.name"
                   class="object-cover w-12 h-12 rounded-md shadow-sm"
                 >
@@ -703,10 +713,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, nextTick } from 'vue';
 import { useToast } from 'vue-toastification';
-import { storage } from '../../config/firebase';
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import imageCompression from 'browser-image-compression';
 import { Combobox, ComboboxInput, ComboboxButton, ComboboxOptions, ComboboxOption } from '@headlessui/vue';
 import { ChevronUpDownIcon, CheckIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/solid';
@@ -743,12 +751,15 @@ const product = ref<AdminProductCreate>({
   images: [],
   variants: [],
   has_discount: false,
+  max_installments: 3,
 });
 
 const selectedFiles = ref<File[]>([]);
 const imagePreviews = ref<string[]>([]);
 const existingImages = ref<{ id?: number; image_url: string }[]>([]);
 const showModal = ref(false);
+const editingId = ref<number | null>(null);
+const productFormRef = ref<HTMLFormElement | null>(null);
 const modalTitle = ref('');
 const modalMessage = ref('');
 const confirmAction = ref<(() => void) | null>(null);
@@ -758,7 +769,7 @@ const availableColors = ref<Color[]>([]);
 const availableCategories = ref<Category[]>([]);
 const availableSizes = ref<Size[]>([]);
 
-// === BÃšSQUEDA EN SELECTS ===
+// === BÚSQUEDA EN SELECTS ===
 const colorSearchQuery = ref('');
 const sizeSearchQuery = ref('');
 const categorySearchQuery = ref('');
@@ -788,7 +799,7 @@ const filteredCategories = computed(() => {
   );
 });
 
-// === FUNCIONES DE BÃšSQUEDA ===
+// === FUNCIONES DE BÚSQUEDA ===
 const updateColorSearch = (query: string) => {
   colorSearchQuery.value = query;
   // Si encuentra una coincidencia exacta, asignar al producto
@@ -928,7 +939,7 @@ const previewProduct = computed((): GlobalProduct => {
   if (allImages.length === 0) {
     allImages.push({ 
       id: 0, 
-      image_url: 'https://firebasestorage.googleapis.com/v0/b/m-vintage.firebasestorage.app/o/modelo_card.jpg?alt=media&token=bfeea622-2abf-4d84-b570-96659c605f8a',
+      image_url: '/logo_redondo.jpg',
       is_primary: true
     });
   }
@@ -966,6 +977,7 @@ const previewProduct = computed((): GlobalProduct => {
     discount_percentage: null,
     discounted_price: undefined,
     discount_amount: 0,
+    max_installments: Number(product.value.max_installments ?? 3),
     images: allImages,
     variants: previewVariants,
     // Propiedades opcionales con valores por defecto
@@ -977,7 +989,7 @@ const previewProduct = computed((): GlobalProduct => {
   return previewData;
 });
 
-// === LÃ“GICA DE DATOS MAESTROS ===
+// === LÓGICA DE DATOS MAESTROS ===
 async function loadMasterData() {
   try {
     // Cargar colores, categorías y talles usando la nueva API
@@ -1021,7 +1033,7 @@ async function fetchProducts() {
     // Convertir Product[] a AdminProduct[] para compatibilidad temporal
     products.value = fetchedProducts as any[];
   } catch (error) {
-    toast.error('Error al cargar productos. Verifica que el backend estÃ© funcionando.');
+    toast.error('Error al cargar productos. Verifica que el backend esté funcionando.');
   }
 }
 
@@ -1032,7 +1044,7 @@ async function saveProduct() {
   );
 
   if (!authStore.token) {
-    toast.error('No estás autenticado. Por favor inicia sesin.');
+    toast.error('No estás autenticado. Por favor inicia sesión.');
     hideLoading();
     return;
   }
@@ -1099,7 +1111,7 @@ async function saveProduct() {
     // Asignar todas las imágenes al producto
     product.value.images = finalImageUrls;
 
-    const editingProduct = editing.value ? products.value.find(p => p.name === product.value.name) : null;
+    const editingProduct = editing.value && editingId.value != null ? { id: editingId.value } : null;
 
     // Preparar request para enviar al backend
 
@@ -1199,25 +1211,36 @@ async function compressToWebP(file: File): Promise<File> {
 }
 
 async function uploadImages(): Promise<string[]> {
-
   try {
-    const uploadPromises = selectedFiles.value.map(async (file, index) => {
-      // NUEVO: Comprimir y convertir a WebP
+    if (!config.imgServer.apiKey) {
+      throw new Error('Falta configurar VITE_IMG_API_KEY para subir imágenes');
+    }
+
+    const uploadPromises = selectedFiles.value.map(async (file) => {
       const compressedFile = await compressToWebP(file);
-      
-      // Generar nombre con extensin .webp
-      const originalName = file.name.replace(/\.[^/.]+$/, ''); // Remover extensin original
-      const fileName = `${Date.now()}_${originalName}.webp`;
-      const fileRef = storageRef(storage, `products/${fileName}`);
+      const originalName = file.name.replace(/\.[^/.]+$/, '');
+      const formData = new FormData();
+      formData.append('folder', 'productos');
+      formData.append('file', compressedFile, `${Date.now()}_${originalName}.webp`);
 
-      const snapshot = await uploadBytes(fileRef, compressedFile);
-      const downloadURL = await getDownloadURL(snapshot.ref);
+      const response = await fetch(`${config.imgServer.url}/v1/showroomisabella/upload`, {
+        method: 'POST',
+        headers: {
+          'X-API-Key': config.imgServer.apiKey,
+        },
+        body: formData,
+      });
 
-      return downloadURL;
+      if (!response.ok) {
+        const errText = await response.text().catch(() => '');
+        throw new Error(`HTTP ${response.status} ${errText}`);
+      }
+
+      const data = await response.json();
+      return data.secure_url as string;
     });
 
-    const imageUrls = await Promise.all(uploadPromises);
-    return imageUrls;
+    return await Promise.all(uploadPromises);
   } catch (error) {
     throw new Error(`Error al subir imágenes: ${error instanceof Error ? error.message : 'Error desconocido'}`);
   }
@@ -1226,6 +1249,7 @@ async function uploadImages(): Promise<string[]> {
 // --- Lógica del Formulario ---
 function editProduct(p: any) {
   editing.value = true;
+  editingId.value = p.id ?? null;
   product.value = {
     name: p.name,
     description: p.description,
@@ -1239,7 +1263,8 @@ function editProduct(p: any) {
     stock: p.stock || null,
     images: p.images.map((img: any) => img.image_url),
     variants: p.variants?.map((v: any) => ({ color: v.color || v.size, talle: v.talle || v.size, stock: v.stock })) || [],
-    has_discount: p.has_discount || false
+    has_discount: p.has_discount || false,
+    max_installments: p.max_installments ?? 3
   };
   
   // Separar imágenes existentes de nuevas imágenes
@@ -1251,6 +1276,7 @@ function editProduct(p: any) {
   // Limpiar arrays de nuevas imágenes
   imagePreviews.value = [];
   selectedFiles.value = [];
+  nextTick(() => productFormRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
 }
 
 function addVariant() {
@@ -1306,6 +1332,7 @@ function getProductStock(p: any): number {
 
 function resetForm() {
   editing.value = false;
+  editingId.value = null;
   product.value = { 
     name: '', 
     description: null, 
@@ -1319,7 +1346,8 @@ function resetForm() {
     stock: 1, // Stock por defecto 1
     images: [], 
     variants: [],
-    has_discount: false
+    has_discount: false,
+    max_installments: 3
   };
   
   // Limpiar URLs de objeto para liberar memoria antes de limpiar arrays

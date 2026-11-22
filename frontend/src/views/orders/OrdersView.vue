@@ -41,7 +41,7 @@
                   {{ getShippingStatusText(order.shipping_status || order.status || '') }}
                 </span>
                 <p class="mt-1 text-lg font-medium text-gray-900">
-                  ${{ order.total.toLocaleString() }}
+                  {{ formatPrice(order.total) }}
                 </p>
               </div>
             </div>
@@ -144,13 +144,13 @@
                     
                     <div v-if="order.status === 'approved'" class="space-y-2">
                       <p class="text-sm text-purple-700">
-                        Tu pedido estÃ¡ listo para retirar. Coordina tu horario de retiro:
+                        Tu pedido está listo para retirar. Coordina tu horario de retiro:
                       </p>
                       <div class="p-3 text-sm bg-white rounded">
-                        <div class="mb-1 font-medium text-gray-900">Informacin de contacto:</div>
-                        <div class="text-gray-700">ðŸ“± WhatsApp: +54 9 11 1234-5678</div>
-                        <div class="text-gray-700">ðŸ“ Direccin: Av. Ejemplo 123, CABA</div>
-                        <div class="text-gray-700">ðŸ• Horarios: Lun-Vie 9-18hs, SÃ¡b 9-13hs</div>
+                        <div class="mb-1 font-medium text-gray-900">Información de contacto:</div>
+                        <div class="text-gray-700">📱 WhatsApp: +54 9 11 1234-5678</div>
+                        <div class="text-gray-700">📍 Dirección: Av. Ejemplo 123, CABA</div>
+                        <div class="text-gray-700">🕐 Horarios: Lun-Vie 9-18hs, Sáb 9-13hs</div>
                       </div>
                       <button @click="contactForPickup(order)" 
                         class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700">
@@ -162,7 +162,7 @@
                     </div>
                     
                     <div v-else class="text-sm text-purple-700">
-                      Una vez que tu pago sea confirmado, podrÃ¡s coordinar el retiro.
+                      Una vez que tu pago sea confirmado, podrás coordinar el retiro.
                     </div>
                   </div>
                 </div>
@@ -221,6 +221,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatPrice } from '../../utils/price'
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../store/auth';
@@ -245,7 +246,7 @@ const hasError = ref(false);
 onMounted(async () => {
   // Check authentication
   if (!authStore.isAuthenticated) {
-    toast.warning('Debes iniciar sesin para ver tus pedidos');
+    toast.warning('Debes iniciar sesión para ver tus pedidos');
     router.push('/auth');
     return;
   }

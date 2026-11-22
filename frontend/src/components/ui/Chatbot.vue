@@ -4,7 +4,7 @@
     <button @click="toggleChat"
       class="fixed z-50 flex items-center justify-center w-16 h-16 text-black transition-all duration-300 bg-white border border-black rounded-full shadow-lg bottom-6 right-6 hover:bg-gray-100"
       :class="{ 'rotate-45': isChatOpen }">
-      <img v-if="!isChatOpen" src="/imagen-portada.svg" alt="M-VINTAGE Chat" class="w-14 h-14" />
+      <img v-if="!isChatOpen" src="/logo_redondo.jpg" alt="Chat de Showroom Isabella" class="object-cover w-14 h-14 rounded-full" />
       <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
@@ -15,9 +15,9 @@
       class="fixed z-40 flex flex-col bg-white border border-gray-200 rounded-lg shadow-xl bottom-24 right-6 w-80 h-96">
       <!-- Header del chat -->
       <div class="flex items-center p-4 space-x-3 text-white bg-black rounded-t-lg">
-        <img src="/imagen-portada.svg" alt="M-VINTAGE" class="w-8 h-8" />
+        <img src="/logo_redondo.jpg" alt="Showroom Isabella" class="object-cover w-8 h-8 rounded-full" />
         <div>
-          <h3 class="font-heading font-medium">M-VINTAGE Assistant</h3>
+          <h3 class="font-heading font-medium">Asistente de Showroom Isabella</h3>
           <p class="font-body text-xs text-body-text">¿En qué puedo ayudarte?</p>
         </div>
       </div>
@@ -112,8 +112,8 @@ const quickSuggestions = [
   'Contacto'
 ];
 
-// Número de WhatsApp de M-VINTAGE
-const WHATSAPP_NUMBER = '5491139471826';
+// Número de WhatsApp de Showroom Isabella
+const WHATSAPP_NUMBER = '5491176372876';
 
 // Función para crear enlace de WhatsApp
 const createWhatsAppLink = (message: string) => {
@@ -123,14 +123,14 @@ const createWhatsAppLink = (message: string) => {
 
 // Respuestas predefinidas del bot que redirigen a WhatsApp
 const botResponses: { [key: string]: { text: string; action?: 'whatsapp'; whatsappMessage?: string } } = {
-  'hola': { text: '¡Hola! Bienvenido a M-VINTAGE. Para una atención personalizada, te conectamos con nuestro equipo via WhatsApp ðŸ“±' },
+  'hola': { text: '¡Hola! Bienvenido a Showroom Isabella. Para una atención personalizada, te conectamos con nuestro equipo vía WhatsApp.' },
   'horarios de envío': {
-    text: 'Para consultar horarios de envío específicos, nuestro equipo te ayudará via WhatsApp ðŸ“¦',
+    text: 'Para consultar horarios de envío específicos, nuestro equipo te ayudará via WhatsApp 📦',
     action: 'whatsapp',
     whatsappMessage: 'Hola! Me gustaría consultar sobre los horarios de envío.'
   },
   'tallas disponibles': {
-    text: 'Para verificar tallas disponibles de productos específicos, consulta con nuestro equipo via WhatsApp ðŸ‘•',
+    text: 'Para verificar tallas disponibles de productos específicos, consulta con nuestro equipo via WhatsApp 👕',
     action: 'whatsapp',
     whatsappMessage: 'Hola! Me gustaría consultar sobre tallas disponibles de productos.'
   },
@@ -140,30 +140,30 @@ const botResponses: { [key: string]: { text: string; action?: 'whatsapp'; whatsa
     whatsappMessage: 'Hola! Me gustaría conocer más sobre la política de devoluciones.'
   },
   'métodos de pago': {
-    text: 'Para conocer todos nuestros métodos de pago disponibles, consulta via WhatsApp ðŸ’³',
+    text: 'Para conocer todos nuestros métodos de pago disponibles, consulta via WhatsApp 💳',
     action: 'whatsapp',
     whatsappMessage: 'Hola! Me gustaría conocer los métodos de pago disponibles.'
   },
   'contacto': {
-    text: 'Te conectamos directamente con nuestro equipo de atención al cliente via WhatsApp ðŸ“ž',
+    text: 'Te conectamos directamente con nuestro equipo de atención al cliente via WhatsApp 📞',
     action: 'whatsapp',
-    whatsappMessage: 'Hola! Me gustaría contactarme con el equipo de M-VINTAGE.'
+    whatsappMessage: 'Hola! Me gustaría contactarme con el equipo de Showroom Isabella.'
   },
   'envios': {
-    text: 'Para información sobre envíos y costos según tu ubicación, consulta via WhatsApp ðŸšš',
+    text: 'Las compras se retiran en el showroom. Podemos ayudarte a coordinar por WhatsApp.',
     action: 'whatsapp',
-    whatsappMessage: 'Hola! Me gustaría consultar sobre envíos y costos.'
+    whatsappMessage: 'Hola! Me gustaría consultar cómo coordinar el retiro de mi compra.'
   },
-  'tienda': { text: 'Somos M-VINTAGE, tu tienda de ropa con estilo único. Para conocer más sobre nosotros, ¡contáctanos via WhatsApp! ðŸª' },
+  'tienda': { text: 'Somos Showroom Isabella. Para conocer más, contactanos por WhatsApp.' },
   'productos': {
-    text: 'Para consultar sobre productos específicos y disponibilidad, nuestro equipo te ayudará via WhatsApp ðŸ‘—',
+    text: 'Para consultar sobre productos específicos y disponibilidad, nuestro equipo te ayudará via WhatsApp 👗',
     action: 'whatsapp',
     whatsappMessage: 'Hola! Me gustaría consultar sobre productos disponibles.'
   },
   'ayuda': {
-    text: 'Nuestro equipo está listo para ayudarte con cualquier consulta via WhatsApp ðŸ¤',
+    text: 'Nuestro equipo está listo para ayudarte con cualquier consulta via WhatsApp 🤝',
     action: 'whatsapp',
-    whatsappMessage: 'Hola! Necesito ayuda con una consulta sobre M-VINTAGE.'
+    whatsappMessage: 'Hola! Necesito ayuda con una consulta sobre Showroom Isabella.'
   }
 };
 
@@ -173,7 +173,7 @@ const toggleChat = () => {
   if (isChatOpen.value && messages.value.length === 0) {
     // Mensaje de bienvenida
     setTimeout(() => {
-      addBotMessage({ text: '¡Hola! Soy el asistente virtual de M-VINTAGE. ¿En qué puedo ayudarte hoy?' });
+      addBotMessage({ text: '¡Hola! Soy el asistente virtual de Showroom Isabella. ¿En qué puedo ayudarte hoy?' });
     }, 500);
   }
 };
@@ -203,7 +203,7 @@ const sendQuickMessage = (suggestion: string) => {
     'Tallas disponibles': 'Hola! Me gustaría consultar sobre tallas disponibles de productos.',
     'Política de devolución': 'Hola! Me gustaría conocer más sobre la política de devoluciones.',
     'Métodos de pago': 'Hola! Me gustaría conocer los métodos de pago disponibles.',
-    'Contacto': 'Hola! Me gustaría contactarme con el equipo de M-VINTAGE.'
+    'Contacto': 'Hola! Me gustaría contactarme con el equipo de Showroom Isabella.'
   };
 
   const whatsappMessage = whatsappMessages[suggestion] || `Hola! Tengo una consulta sobre: ${suggestion}`;
@@ -245,7 +245,7 @@ const getBotResponse = (userMessage: string): { text: string; action?: 'whatsapp
   // Respuestas por categorías más amplias
   if (lowerMessage.includes('precio') || lowerMessage.includes('costo') || lowerMessage.includes('cuanto')) {
     return {
-      text: 'Para consultar precios específicos y ofertas disponibles, nuestro equipo te ayudará via WhatsApp ðŸ’°',
+      text: 'Para consultar precios específicos y ofertas disponibles, nuestro equipo te ayudará via WhatsApp 💰',
       action: 'whatsapp',
       whatsappMessage: 'Hola! Me gustaría consultar sobre precios de productos.'
     };
@@ -253,7 +253,7 @@ const getBotResponse = (userMessage: string): { text: string; action?: 'whatsapp
 
   if (lowerMessage.includes('stock') || lowerMessage.includes('disponible')) {
     return {
-      text: 'Para verificar stock en tiempo real, consulta con nuestro equipo via WhatsApp ðŸ“¦',
+      text: 'Para verificar stock en tiempo real, consulta con nuestro equipo via WhatsApp 📦',
       action: 'whatsapp',
       whatsappMessage: 'Hola! Me gustaría consultar sobre stock de productos.'
     };
@@ -267,7 +267,7 @@ const getBotResponse = (userMessage: string): { text: string; action?: 'whatsapp
   return {
     text: 'Para obtener información personalizada y específica, nuestro equipo te atenderá via WhatsApp 📱',
     action: 'whatsapp',
-    whatsappMessage: 'Hola! Tengo una consulta sobre M-VINTAGE.'
+    whatsappMessage: 'Hola! Tengo una consulta sobre Showroom Isabella.'
   };
 };
 
@@ -290,7 +290,7 @@ const handleTyping = () => {
 };
 
 const openWhatsApp = (message?: string) => {
-  const whatsappMessage = message || 'Hola! Me gustaría contactarme con el equipo de M-VINTAGE.';
+  const whatsappMessage = message || 'Hola! Me gustaría contactarme con el equipo de Showroom Isabella.';
   const whatsappUrl = createWhatsAppLink(whatsappMessage);
   window.open(whatsappUrl, '_blank');
 };

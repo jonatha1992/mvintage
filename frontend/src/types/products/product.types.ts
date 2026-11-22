@@ -5,11 +5,19 @@ export interface ProductImage {
 
 export interface ProductVariant {
   id?: number;
-  color_id: number;
-  size_id: number;
-  image_url: string;
-  size: string;
+  color_id?: number;
+  size_id?: number;
+  color?: string;
+  talle?: string;
+  image_url?: string;
+  size?: string;
   stock: number;
+}
+
+export interface VariantOption {
+  id: number | string;
+  name: string;
+  hex_code?: string;
 }
 
 export interface Color {
@@ -64,6 +72,7 @@ export interface Product {
   stock?: number | null;
   has_discount: boolean;
   discount_percentage?: number | null;
+  max_installments?: number;
   discounted_price?: number;
   discount_amount?: number;
   images: ProductImage[];

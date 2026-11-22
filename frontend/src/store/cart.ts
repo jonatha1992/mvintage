@@ -2,8 +2,8 @@
 import type {
   Product,
   ProductVariant,
-  ColorType as Color,
-  SizeType as Size
+  VariantOption as Color,
+  VariantOption as Size
 } from '../types/products';
 import { useCartNotification } from '../composables/useCartNotification';
 import { stockService } from '../services/stockService';
@@ -93,7 +93,7 @@ export const useCartStore = defineStore('cart', {
 
   actions: {
     // Generate unique ID for cart item
-    generateCartItemId(product: Product, variantId?: number, colorId?: number, sizeId?: number): string {
+    generateCartItemId(product: Product, variantId?: number, colorId?: number | string, sizeId?: number | string): string {
       if (product.is_unique) {
         return `${product.id}-${colorId || 'no-color'}-${sizeId || 'no-size'}`;
       } else {
@@ -152,7 +152,7 @@ export const useCartStore = defineStore('cart', {
       // Save to localStorage
       this.saveToStorage();
 
-      // Mostrar notificacin personalizada cuando se agrega producto
+      // Mostrar notificación personalizada cuando se agrega producto
       const { showNotification } = useCartNotification();
       if (variantInfo) {
         showNotification(product, quantity, variantInfo);

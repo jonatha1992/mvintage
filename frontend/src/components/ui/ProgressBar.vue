@@ -22,9 +22,9 @@ const props = defineProps<Props>()
 // Auto-hide cuando llega a 100%
 watch(() => props.progress, (newProgress) => {
   if (newProgress >= 100) {
-    // PequeÃ±o delay para que se vea la completin
+    // Pequeño delay para que se vea la finalización
     setTimeout(() => {
-      // El parent component manejarÃ¡ isVisible
+      // El parent component manejará isVisible
     }, 200)
   }
 })

@@ -1,7 +1,28 @@
 {
   "projects": {
-    "default": "m-vintage"
+    "default": "showroomisabella"
   },
-  "targets": {},
+  "targets": {
+    "showroomisabella": {
+      "hosting": {
+        "prod": [
+          "showroomisabella-ar"
+        ],
+        "test": [
+          "showroomisabella-ar-test"
+        ]
+      }
+    },
+    "tecnofuision-it": {
+      "hosting": {
+        "prod": [
+          "showroomisabella"
+        ],
+        "test": [
+          "showroomisabella-test"
+        ]
+      }
+    }
+  },
   "etags": {}
 }

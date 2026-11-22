@@ -190,3 +190,13 @@ p, span, div, a, button, input, textarea, select {
 .btn-light {
   @apply bg-white text-black border border-black hover:bg-black hover:text-white;
 }
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #111827 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}

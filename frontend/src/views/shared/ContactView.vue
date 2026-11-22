@@ -5,21 +5,21 @@
         <h1 class="mb-6 text-3xl font-bold text-gray-900 font-heading">Contacto</h1>
         
         <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
-          <!-- Informacin de contacto -->
+          <!-- Información de contacto -->
           <div>
-            <h2 class="mb-4 text-xl font-semibold text-gray-800 font-heading">Informaciòn de Contacto</h2>
+            <h2 class="mb-4 text-xl font-semibold text-gray-800 font-heading">Información de Contacto</h2>
             <div class="space-y-4">
               <div class="flex items-center">
                 <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 7.89a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                 </svg>
-                <a href="mailto:mvintageapp@gmail.com" class="transition-colors font-body text-body-text hover:text-gray-900">mvintageapp@gmail.com</a>
+                <a href="mailto:Showroomisabellaa@gmail.com" class="transition-colors font-body text-body-text hover:text-gray-900">Showroomisabellaa@gmail.com</a>
               </div>
               <div class="flex items-center">
                 <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
                 </svg>
-                <a href="tel:+5491139471826" class="transition-colors font-body text-body-text hover:text-gray-900">+54 9 11 3947-1826</a>
+                <a href="tel:+5491176372876" class="transition-colors font-body text-body-text hover:text-gray-900">+54 9 11 7637-2876</a>
               </div>
               <div class="flex items-center">
                 <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,6 +66,6 @@
 </template>
 
 <script setup lang="ts">
-// Funcionalidad bÃ¡sica de contacto
+// Funcionalidad básica de contacto
 </script>
 

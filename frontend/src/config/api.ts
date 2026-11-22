@@ -226,18 +226,18 @@ export const usersApi = {
 
   // Get current user roles
   async getMyRoles(): Promise<Role[]> {
-    const response = await apiClient.get('/me/roles');
+    const response = await apiClient.get('/roles/me/roles');
     return response.data;
   },
 
   // Assign role to user (admin only)
   async assignRole(userId: number, roleId: number): Promise<void> {
-    await apiClient.post(`/users/${userId}/roles`, { roleId });
+    await apiClient.post('/roles/assign', { user_id: userId, role_id: roleId });
   },
 
   // Remove role from user (admin only)
   async removeRole(userId: number, roleId: number): Promise<void> {
-    await apiClient.delete(`/users/${userId}/roles/${roleId}`);
+    await apiClient.delete(`/roles/assign/${userId}/${roleId}`);
   },
 
   // Debug endpoint to check user authentication and permissions
@@ -292,17 +292,17 @@ export const rolesApi = {
 
   // Assign role to user (admin only)
   async assignRole(userId: number, roleId: number): Promise<void> {
-    await apiClient.post(`/users/${userId}/roles`, { roleId });
+    await apiClient.post('/roles/assign', { user_id: userId, role_id: roleId });
   },
 
   // Remove role from user (admin only)  
   async removeRole(userId: number, roleId: number): Promise<void> {
-    await apiClient.delete(`/users/${userId}/roles/${roleId}`);
+    await apiClient.delete(`/roles/assign/${userId}/${roleId}`);
   },
 
   // Get specific user's roles (for role management)
   async getUserRoles(userId: number): Promise<Role[]> {
-    const response = await apiClient.get(`/users/${userId}/roles`);
+    const response = await apiClient.get(`/roles/user/${userId}`);
     return response.data;
   }
 };

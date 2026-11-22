@@ -13,10 +13,10 @@ export function useUserData() {
   const hasCustomerData = computed(() => customerData.value !== null)
 
   /**
-   * Carga automÃ¡ticamente los datos del customer si el usuario estÃ¡ autenticado
+   * Carga automáticamente los datos del customer si el usuario está autenticado
    */
   const loadCustomerData = async (): Promise<Customer | null> => {
-    // Solo cargar si el usuario estÃ¡ autenticado
+    // Solo cargar si el usuario está autenticado
     if (!authStore.isAuthenticated) {
       customerData.value = null
       return null
@@ -92,7 +92,7 @@ export function useUserData() {
   }
 }
 
-// Funcin auxiliar para readonly
+// Función auxiliar para readonly
 function readonly<T>(ref: any) {
   return ref
 }

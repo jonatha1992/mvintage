@@ -19,5 +19,12 @@
                 "ENVIRONMENT": "dev"
             }
         },
+        {
+            "name": "Frontend: Vite dev",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "npm run dev",
+            "cwd": "${workspaceFolder}/frontend"
+        }
     ]
 }

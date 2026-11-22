@@ -1,3 +1,4 @@
+import { nextTick } from 'vue'
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import HomeView from './views/shared/HomeView.vue'
 import CollectionView from './views/products/CollectionView.vue'
@@ -43,7 +44,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/shipping', component: ShippingView },
   { path: '/terms', component: TermsView },
   { path: '/privacy', component: PrivacyView },
-  { path: '/size-guide', component: SizeGuideView },
+  { path: '/size-guide', component: SizeGuideView, alias: '/guia-de-talles' },
   { path: '/test/shipping', component: ShippingTestView },
   // Orders routes
   { path: '/orders', component: OrdersView, meta: { requiresAuth: true } },
@@ -88,14 +89,14 @@ const router = createRouter({
     if (savedPosition) {
       return savedPosition;
     }
-    // Si hay un hash (#section), ir a esa seccin
+    // Si hay un hash (#section), ir a esa sección
     if (to.hash) {
       return {
         el: to.hash,
         behavior: 'smooth'
       };
     }
-    // Por defecto, ir al top de la pÃ¡gina
+    // Por defecto, ir al top de la página
     return { top: 0 };
   }
 });
@@ -122,29 +123,29 @@ router.beforeEach(async (to, from, next) => {
     await authStore.initAuth();
   }
 
-  // Para rutas de admin, asegurar que los roles estÃ©n cargados
+  // Para rutas de admin, asegurar que los roles estén cargados
   if (to.meta.requiresAdmin && authStore.isAuthenticated) {
     // Early return si ya tiene acceso admin y roles cargados
     if (authStore.hasAdminAccess && authStore.userRoles.length > 0) {
       return next();
     }
 
-    // Si no hay roles cargados, intentar cargarlos (con cachÃ©)
+    // Si no hay roles cargados, intentar cargarlos (con caché)
     if (authStore.userRoles.length === 0) {
       try {
-        await authStore.fetchUserRoles(false); // false = usar cachÃ© si estÃ¡ disponible
+        await authStore.fetchUserRoles(false); // false = usar caché si está disponible
       } catch (error) {
       }
     }
 
-    // Verificacin final sin logs innecesarios
+    // Verificación final sin logs innecesarios
     if (!authStore.hasAdminAccess) {
       next('/');
       return;
     }
   }
 
-  // Verificar si la ruta requiere autenticacin
+  // Verificar si la ruta requiere autenticación
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/auth');
   } else if (to.path === '/auth' && authStore.isAuthenticated) {
@@ -159,9 +160,37 @@ router.beforeEach(async (to, from, next) => {
   }
 });
 
+// Transición de ruta con View Transitions (sin soporte o con movimiento reducido: sin transición)
+let terminarTransicion: (() => void) | null = null;
+
+router.beforeResolve((to, from) => {
+  if (
+    !document.startViewTransition ||
+    from.matched.length === 0 ||
+    to.path === from.path ||
+    matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    return;
+  }
+  return new Promise<void>((resolve) => {
+    document.startViewTransition(() => {
+      resolve();
+      return new Promise<void>((fin) => {
+        terminarTransicion = fin;
+        setTimeout(fin, 1000);
+      });
+    }).finished.catch(() => {});
+  });
+});
+
 // Completar progress bar después de navegar
 router.afterEach(() => {
   globalProgressBar.complete();
+  if (terminarTransicion) {
+    const fin = terminarTransicion;
+    terminarTransicion = null;
+    nextTick(fin);
+  }
 });
 
 export default router;

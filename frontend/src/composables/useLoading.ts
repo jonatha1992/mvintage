@@ -48,14 +48,14 @@ export function useLoading() {
     let timeoutId: NodeJS.Timeout | null = null;
     let loadingShown = false;
 
-    // Mostrar loading solo si tarda mÃ¡s del umbral
+    // Mostrar loading solo si tarda más del umbral
     timeoutId = setTimeout(() => {
       showLoading(message);
       loadingShown = true;
     }, threshold);
 
     return promise.finally(() => {
-      // Limpiar timeout si la operacin termin rÃ¡pido
+      // Limpiar timeout si la operación terminó rápido
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
@@ -66,7 +66,7 @@ export function useLoading() {
     });
   };
 
-  // Loading debounced para evitar flicker en operaciones rÃ¡pidas consecutivas
+  // Loading debounced para evitar flicker en operaciones rápidas consecutivas
   const debouncedShowLoading = debounce((message: string, submessage?: string) => {
     showLoading(message, submessage);
   }, 100);

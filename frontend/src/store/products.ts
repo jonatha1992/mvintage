@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { defineStore, storeToRefs } from 'pinia'
 import { ref, computed, readonly } from 'vue'
 import { productsApi, categoriesApi } from '../config/api'
 import type { Product, Category } from '../types/products/product.types'
@@ -239,17 +239,18 @@ export const useProductsStore = defineStore('products', () => {
 // Helper composable for easy usage
 export function useProducts() {
   const store = useProductsStore()
+  const { products, categories, isLoading, error, hasProducts, hasCategories, isCacheValid, isCategoryCacheValid } = storeToRefs(store)
 
   return {
-    // Explicitly expose store properties for proper reactivity
-    products: store.products,
-    categories: store.categories,
-    isLoading: store.isLoading,
-    error: store.error,
-    hasProducts: store.hasProducts,
-    hasCategories: store.hasCategories,
-    isCacheValid: store.isCacheValid,
-    isCategoryCacheValid: store.isCategoryCacheValid,
+    // Refs reactivos: desestructurar el store directamente perdería la reactividad
+    products,
+    categories,
+    isLoading,
+    error,
+    hasProducts,
+    hasCategories,
+    isCacheValid,
+    isCategoryCacheValid,
 
     // Store actions
     fetchProducts: store.fetchProducts,

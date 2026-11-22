@@ -4,9 +4,23 @@
 		{
 			"type": "npm",
 			"script": "dev",
+			"path": "frontend/",
 			"problemMatcher": [],
-			"label": "npm: dev",
-			"detail": "concurrently \"tsc --watch\" \"nodemon dist/index.js\""
+			"label": "frontend: dev"
+		},
+		{
+			"type": "npm",
+			"script": "build:test",
+			"path": "frontend/",
+			"problemMatcher": [],
+			"label": "frontend: build:test"
+		},
+		{
+			"label": "backend: tests",
+			"type": "shell",
+			"command": "python -m pytest",
+			"options": { "cwd": "${workspaceFolder}/backend" },
+			"problemMatcher": []
 		}
 	]
 }

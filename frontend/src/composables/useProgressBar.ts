@@ -17,13 +17,13 @@ export function useProgressBar() {
     progress.value = 0
     isVisible.value = true
 
-    // Progresin realista simulada
-    // Avance rÃ¡pido inicial (simula DNS lookup, conexin)
+    // Progresión realista simulada
+    // Avance rápido inicial (simula DNS lookup, conexión)
     setTimeout(() => progress.value = 10, 50)
     setTimeout(() => progress.value = 25, 100)
     setTimeout(() => progress.value = 40, 200)
 
-    // Avance mÃ¡s lento (simula descarga de recursos)
+    // Avance más lento (simula descarga de recursos)
     setTimeout(() => progress.value = 60, 400)
     setTimeout(() => progress.value = 75, 700)
     setTimeout(() => progress.value = 85, 1000)
@@ -36,13 +36,13 @@ export function useProgressBar() {
     if (progressTimeout) clearTimeout(progressTimeout)
     if (hideTimeout) clearTimeout(hideTimeout)
 
-    // Completar rÃ¡pidamente
+    // Completar rápidamente
     progress.value = 100
 
-    // Auto-hide despuÃ©s de mostrar completin
+    // Auto-hide después de mostrar finalización
     hideTimeout = setTimeout(() => {
       isVisible.value = false
-      // Reset despuÃ©s de hide para prxima vez
+      // Reset después de hide para próxima vez
       setTimeout(() => progress.value = 0, 300)
     }, 200)
   }

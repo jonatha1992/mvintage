@@ -93,14 +93,22 @@ def verify_firebase_token(credentials: HTTPAuthorizationCredentials = Security(s
     token = credentials.credentials
     
     try:
-        # Check if Firebase is initialized
+        # Check if Firebase Admin SDK is initialized
         try:
             firebase_admin.get_app()
+            decoded_token = auth.verify_id_token(token)
         except ValueError:
-            logger.error("Firebase not initialized when verifying token")
-            raise HTTPException(status_code=500, detail="Firebase not initialized")
-        
-        decoded_token = auth.verify_id_token(token)
+            # Fallback: verify Firebase ID token using Google public certs (no service account needed)
+            from google.oauth2 import id_token as google_id_token
+            from google.auth.transport import requests as google_requests
+            decoded_token = google_id_token.verify_firebase_token(
+                token,
+                google_requests.Request(),
+                audience=settings.FIREBASE_PROJECT_ID,
+            )
+            if not decoded_token:
+                raise HTTPException(status_code=401, detail="Invalid Firebase token")
+            decoded_token.setdefault('uid', decoded_token.get('user_id') or decoded_token.get('sub'))
         logger.info(f"Token verified successfully for UID: {decoded_token.get('uid')}")
         return decoded_token
     except auth.InvalidIdTokenError as e:

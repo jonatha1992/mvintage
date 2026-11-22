@@ -30,7 +30,7 @@
           <div class="sticky top-20">
             <!-- Categories Filter -->
             <div class="pb-6 border-b border-gray-200">
-              <h3 class="mb-4 text-lg font-medium text-gray-900">Categorias</h3>
+              <h3 class="mb-4 text-lg font-medium text-gray-900">Categorías</h3>
               <div class="space-y-2">
                 <label v-for="category in categories" :key="category.id" class="flex items-center">
                   <input 
@@ -52,7 +52,7 @@
                     class="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-500"
                   >
                   <span class="ml-3 text-sm text-gray-700">Todas las categorías</span>
-                  <span class="ml-auto text-xs text-gray-500">({{ allProducts?.length || 0 }})</span>
+                  <span class="ml-auto text-xs text-gray-500">({{ products.length }})</span>
                 </label>
               </div>
             </div>
@@ -97,7 +97,7 @@
                 <option value="price-desc">Precio: Mayor a Menor</option>
                 <option value="name-asc">Nombre: A-Z</option>
                 <option value="name-desc">Nombre: Z-A</option>
-                <option value="newest">Mas Nuevos</option>
+                <option value="newest">Más nuevos</option>
               </select>
             </div>
 
@@ -140,21 +140,16 @@
 
           <!-- Loading State -->
           <div v-if="isLoading && products.length === 0" class="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">
-            <div v-for="n in 6" :key="n" class="animate-pulse">
-              <div class="bg-gray-200 rounded-lg aspect-square"></div>
-              <div class="mt-4 space-y-2">
-                <div class="h-4 bg-gray-200 rounded"></div>
-                <div class="w-2/3 h-4 bg-gray-200 rounded"></div>
-              </div>
-            </div>
+            <ProductCardSkeleton v-for="n in 6" :key="n" />
           </div>
 
           <!-- Products Grid -->
           <div v-else class="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">
             <ProductCard
-              v-for="product in paginatedProducts"
+              v-for="(product, i) in paginatedProducts"
               :key="product.id"
               :product="product"
+              :index="i"
             />
           </div>
 
@@ -169,17 +164,26 @@
           </div>
 
           <!-- Empty State -->
-          <div v-if="filteredProducts.length === 0" class="py-16 text-center">
+          <div v-if="!isLoading && filteredProducts.length === 0" class="py-16 text-center">
             <div class="mb-4 text-gray-400">
               <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
               </svg>
             </div>
-            <h3 class="mb-2 text-lg font-medium text-gray-900">No se encontraron productos</h3>
-            <p class="mb-4 text-gray-500">Intenta ajustar los filtros o explorar otras categorías</p>
-            <button @click="clearFilters" class="btn-minimal btn-dark">
-              Limpiar Filtros
-            </button>
+            <template v-if="selectedCategory && getCategoryCount(selectedCategory) === 0">
+              <h3 class="mb-2 text-lg font-medium text-gray-900">No hay productos en la categoría «{{ selectedCategory }}»</h3>
+              <p class="mb-4 text-gray-500">Mirá el resto de la colección.</p>
+              <button @click="clearFilters" class="btn-minimal btn-dark">
+                Ver todos los productos
+              </button>
+            </template>
+            <template v-else>
+              <h3 class="mb-2 text-lg font-medium text-gray-900">No se encontraron productos</h3>
+              <p class="mb-4 text-gray-500">Probá ajustando los filtros o explorando otras categorías</p>
+              <button @click="clearFilters" class="btn-minimal btn-dark">
+                Limpiar Filtros
+              </button>
+            </template>
           </div>
         </div>
       </div>
@@ -225,6 +229,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProductCard from '../../components/products/ProductCard.vue'
+import ProductCardSkeleton from '../../components/products/ProductCardSkeleton.vue'
 import { masterDataApi } from '../../config/index'
 import type { Product, Category } from '../../types'
 import { useProducts } from '../../store/products'
@@ -233,7 +238,7 @@ const route = useRoute()
 const router = useRouter()
 
 // Use products store
-const { products, categories: storeCategories, isLoading, ensureProducts, ensureCategories } = useProducts()
+const { products, isLoading, ensureProducts } = useProducts()
 
 // Data
 const categories = ref<Category[]>([])
@@ -250,10 +255,9 @@ const filters = ref({
 
 // Price ranges
 const priceRanges = [
-  { label: '$0 - $50', value: '0-50' },
-  { label: '$50 - $100', value: '50-100' },
-  { label: '$100 - $200', value: '100-200' },
-  { label: '$200+', value: '200+' }
+  { label: 'Hasta $20.000', value: '0-20000' },
+  { label: '$20.000 - $35.000', value: '20000-35000' },
+  { label: 'Más de $35.000', value: '35000-' }
 ]
 
 // Computed
@@ -269,7 +273,6 @@ const collectionTitle = computed(() => {
 })
 
 const filteredProducts = computed(() => {
-  if (!products.value) return []
   let filteredProducts = [...products.value]
 
   // Filter by category
@@ -308,8 +311,7 @@ const filteredProducts = computed(() => {
         filteredProducts.sort((a, b) => b.name.localeCompare(a.name))
         break
       case 'newest':
-        // Ordenar por ID (asumiendo que IDs mÃ¡s altos = productos mÃ¡s nuevos)
-        // TambiÃ©n priorizar productos marcados como 'new'
+        // Ordenar por ID (IDs más altos = productos más nuevos), priorizando los marcados como 'new'
         filteredProducts.sort((a, b) => {
           if (a.is_new && !b.is_new) return -1
           if (!a.is_new && b.is_new) return 1
@@ -341,8 +343,7 @@ const activeFiltersCount = computed(() => {
 
 // Methods
 const getCategoryCount = (categoryName: string) => {
-  if (!products.value) return 0
-  return products.value.filter(product =>
+  return products.value.filter((product: any) =>
     product.categoria?.toLowerCase() === categoryName.toLowerCase()
   ).length
 }

@@ -1,5 +1,8 @@
 <template>
   <div class="app-container" :class="{ 'app-loaded': appLoaded }">
+    <div v-if="maxInstallments > 1" class="px-4 py-2 text-xs text-center text-white bg-black sm:text-sm">
+      Hasta {{ maxInstallments }} cuotas sin interés · Retiro en el local · Transferencia
+    </div>
     <Navbar />
     <router-view />
     <Footer v-if="shouldShowFooter && footerVisible" class="footer-delayed" />
@@ -51,6 +54,9 @@ const { addElements } = useScrollAnimation()
 const appLoaded = ref(false)
 // Estado para controlar la visibilidad del footer con delay
 const footerVisible = ref(false)
+const maxInstallments = computed(() =>
+  Math.max(1, ...productsStore.products.map(p => p.max_installments ?? 1))
+)
 // Estado para controlar la visibilidad del chatbot con delay
 const chatbotVisible = ref(false)
 
@@ -63,7 +69,6 @@ const shouldShowFooter = computed(() => {
 // Función para inicializar animaciones de scroll
 const initScrollAnimations = () => {
   // Add animations to common elements with stagger effect
-  addElements('.product-card', { delay: 0, once: true })
   addElements('.hero-section h1, .hero-section h2', { delay: 200, once: true })
   addElements('.hero-section p', { delay: 400, once: true })
   addElements('.hero-section .btn', { delay: 600, once: true })
@@ -111,6 +116,7 @@ onUnmounted(() => {
 
 <style scoped>
 .app-container {
+  overflow-x: clip;
   opacity: 0;
   transform: translateY(10px);
   transition: opacity 0.4s ease-out, transform 0.4s ease-out;

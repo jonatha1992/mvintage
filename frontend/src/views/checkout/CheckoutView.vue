@@ -76,10 +76,10 @@
                     
                     <div class="text-right">
                       <p class="text-sm font-medium font-body text-body-text">
-                        ${{ cartStore.getItemTotal(item).toLocaleString() }}
+                        {{ formatPrice(cartStore.getItemTotal(item)) }}
                       </p>
                       <p v-if="item.product.has_discount" class="text-xs line-through font-body text-body-text">
-                        ${{ (item.product.price * item.quantity).toLocaleString() }}
+                        {{ formatPrice((item.product.price * item.quantity)) }}
                       </p>
                     </div>
                   </div>
@@ -92,27 +92,20 @@
               <div class="flex justify-between text-sm">
                 <span class="font-body text-body-text">Subtotal</span>
                 <span class="font-body text-body-text">
-                  ${{ (cartStore.totalSavings > 0 ? cartStore.totalOriginalPrice : cartStore.totalPrice).toLocaleString('es-AR') }}
+                  {{ formatPrice((cartStore.totalSavings > 0 ? cartStore.totalOriginalPrice : cartStore.totalPrice)) }}
                 </span>
               </div>
               
               <div v-if="cartStore.totalSavings > 0" class="flex justify-between text-sm">
                 <span class="text-red-600 font-body">Descuentos</span>
-                <span class="text-red-600 font-body">-${{ cartStore.totalSavings.toLocaleString('es-AR') }}</span>
-              </div>
-              
-              <div v-if="deliveryMethod && deliveryCost > 0" class="flex justify-between text-sm">
-                <span class="font-body text-body-text">Envío</span>
-                <span class="font-body text-body-text">
-                  {{ deliveryCost === 0 ? 'Gratis' : `$${deliveryCost.toLocaleString('es-AR')}` }}
-                </span>
+                <span class="text-red-600 font-body">-{{ formatPrice(cartStore.totalSavings) }}</span>
               </div>
               
               <div class="pt-2 border-t border-gray-200">
                 <div class="flex justify-between">
                   <span class="text-base font-medium font-body text-body-text">Total</span>
                   <span class="text-base font-medium font-body text-body-text">
-                    ${{ (cartStore.totalPrice + (deliveryMethod ? deliveryCost : 0)).toLocaleString('es-AR') }}
+                    {{ formatPrice(cartStore.totalPrice) }}
                   </span>
                 </div>
               </div>
@@ -151,12 +144,7 @@
                 </div>
                 <div class="flex justify-between">
                   <span class="font-medium text-gray-700 font-body">Método de entrega:</span>
-                  <span class="text-gray-900 font-body">
-                    {{ deliveryMethod === 'retiro_local' ? 'Retiro en local' : 
-                       deliveryMethod === 'envio_andreani' ? 'Envío por Andreani' :
-                       deliveryMethod === 'envio_correo' ? 'Envío por Correo Argentino' :
-                       deliveryMethod === 'envio_oca' ? 'Envío por OCA' : 'N/A' }}
-                  </span>
+                  <span class="text-gray-900 font-body">Retiro en el showroom</span>
                 </div>
               </div>
             </div>
@@ -168,42 +156,23 @@
           <form @submit.prevent="processOrder" class="space-y-6">
             <!-- Step 2: Delivery Info (incluye datos de contacto) -->
             <div v-if="currentStep === 2">
+              <ContactInfoStep
+                :first-name="checkoutForm.firstName"
+                :last-name="checkoutForm.lastName"
+                :email="checkoutForm.email"
+                :phone="checkoutForm.phone"
+                :phone-country-code="checkoutForm.phoneCountryCode"
+                :loading-user-data="loadingUserData"
+                :using-previous-data="usingPreviousData"
+                @update:firstName="checkoutForm.firstName = $event"
+                @update:lastName="checkoutForm.lastName = $event"
+                @update:email="checkoutForm.email = $event"
+                @update:phone="checkoutForm.phone = $event"
+                @update:phoneCountryCode="checkoutForm.phoneCountryCode = $event"
+              />
               <DeliveryStep
-                :selected-delivery-method="selectedDeliveryMethod"
-                :address="address"
-                :street-number="streetNumber"
-                :full-address="fullAddress"
-                :city="city"
-                :postal-code="postalCode"
-                :province="province"
-                :country="country"
-                :address-reference="addressReference"
-                :delivery-notes="deliveryNotes"
-                :preferred-delivery-time="preferredDeliveryTime"
-                :total-weight-kg="totalWeightKg"
-                :first-name="firstName"
-                :last-name="lastName"
-                :phone="phone"
-                :street="street"
-                :apartment="apartment"
-                :neighborhood="neighborhood"
-                @update:selectedDeliveryMethod="selectedDeliveryMethod = $event"
-                @update:address="address = $event"
-                @update:streetNumber="streetNumber = $event"
-                @update:fullAddress="fullAddress = $event"
-                @update:city="city = $event"
-                @update:postalCode="postalCode = $event"
-                @update:province="province = $event"
-                @update:country="country = $event"
-                @update:addressReference="addressReference = $event"
-                @update:deliveryNotes="deliveryNotes = $event"
-                @update:preferredDeliveryTime="preferredDeliveryTime = $event"
-                @update:firstName="firstName = $event"
-                @update:lastName="lastName = $event"
-                @update:phone="phone = $event"
-                @update:street="street = $event"
-                @update:apartment="apartment = $event"
-                @update:neighborhood="neighborhood = $event"
+                class="mt-6"
+                :contact-complete="Boolean(isContactInfoComplete)"
                 @delivery-method-changed="handleDeliveryMethodChange"
                 @continue="handleContinueToPayment"
               />
@@ -244,7 +213,7 @@
                     class="w-4 h-4 text-black border-gray-300 focus:ring-black"
                   >
                   <CurrencyDollarIcon class="w-5 h-5 ml-3 text-green-600" />
-                  <span class="ml-2 text-sm font-body">Efectivo contra entrega</span>
+                  <span class="ml-2 text-sm font-body">Efectivo al retirar</span>
                 </label>
               </div>
               
@@ -306,27 +275,27 @@
 </template>
 
 <script setup lang="ts">
+import { formatPrice } from '../../utils/price'
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../../store/cart';
 import { useAuthStore } from '../../store/auth';
 import { useToast } from 'vue-toastification';
-import { ordersApi, customersApi, orderItemsApi, productsApi } from '../../config/api';
+import { ordersApi, customersApi, orderItemsApi } from '../../config/api';
 import { stockService } from '../../services/stockService';
-import { isValidPhone, formatE164, isValidPostalCode, validationMessages } from '../../composables/useValidators';
+import { isValidPhone, formatE164, validationMessages } from '../../composables/useValidators';
 import { useUserData } from '../../composables/useUserData';
-import type { PaymentMethod, Order, CustomerCreate, OrderItem, OrderItemCreate } from '../../types';
+import type { PaymentMethod, Order, CustomerCreate, OrderItemCreate } from '../../types';
 import DeliveryProgress from '../../components/ui/DeliveryProgress.vue';
 import ContactInfoStep from '../../components/checkout/ContactInfoStep.vue';
 import DeliveryStep from '../../components/checkout/DeliveryStep.vue';
-import type { ParsedAddress } from '../../composables/useAddressAutocomplete';
 import { BanknotesIcon, CreditCardIcon, CurrencyDollarIcon } from '@heroicons/vue/24/outline';
 
 const cartStore = useCartStore();
 const authStore = useAuthStore();
 const router = useRouter();
 const toast = useToast();
-const { loadCustomerData, getCheckoutFormData, hasCustomerData } = useUserData();
+const { loadCustomerData, getCheckoutFormData } = useUserData();
 
 // Ref para la sección de método de pago
 const paymentSection = ref<HTMLElement | null>(null);
@@ -355,39 +324,8 @@ const checkoutForm = ref({
   deliveryMethod: ''
 });
 
-// Variables reactivas para los nuevos campos del formulario
-const firstName = ref('');
-const lastName = ref('');
-const phone = ref('');
-const street = ref('');
-const apartment = ref('');
-const neighborhood = ref('');
-const selectedDeliveryMethod = ref('');
-const address = ref('');
-const streetNumber = ref('');
-const fullAddress = ref('');
-const city = ref('');
-const postalCode = ref('');
-const province = ref('');
-const country = ref('AR');
-const addressReference = ref('');
-const deliveryNotes = ref('');
-const preferredDeliveryTime = ref('cualquiera');
-// Calcular peso total del carrito
-const totalWeightKg = computed(() => {
-  if (cartStore.isEmpty) return 0.5; // Peso mínimo por defecto
-  
-  // Calcular peso basado en cantidad de items (estimado)
-  const totalItems = cartStore.items.reduce((sum, item) => sum + item.quantity, 0);
-  const estimatedWeight = Math.max(0.5, totalItems * 0.3); // 300g por item, mínimo 500g
-  
-  return Number(estimatedWeight.toFixed(1));
-});
-
-
 // Delivery method and cost
-const deliveryMethod = ref('');
-const deliveryCost = ref(0);
+const deliveryMethod = ref('retiro_local');
 
 // New 3-step flow state management
 const currentStep = ref(2); // Start at step 2 (Delivery Info)
@@ -401,30 +339,8 @@ const isContactInfoComplete = computed(() => {
 });
 
 const isDeliveryInfoComplete = computed(() => {
-  // Always need delivery method selected
-  if (!deliveryMethod.value) return false;
-  
-  // If local pickup, no address needed
-  if (deliveryMethod.value === 'retiro_local') return true;
-  
-  // For delivery methods, need contact info and address info
-  const hasContactInfo = firstName.value.trim() && lastName.value.trim() && phone.value.trim();
-  const hasAddressInfo = street.value.trim() && city.value.trim() && postalCode.value.trim();
-  
-  return hasContactInfo && hasAddressInfo;
+  return deliveryMethod.value === 'retiro_local' && Boolean(isContactInfoComplete.value);
 });
-
-// Navigation functions for 4-step flow
-const goToContactStep = () => {
-  currentStep.value = 2;
-};
-
-const goToDeliveryStep = () => {
-  if (isContactInfoComplete.value) {
-    currentStep.value = 3;
-  }
-};
-
 
 const goToPaymentStep = () => {
   if (isDeliveryInfoComplete.value) {
@@ -454,18 +370,11 @@ const handleGoToStep = (step: number) => {
 
 // Métodos para manejar eventos del DeliveryStep
 const handleDeliveryMethodChange = (data: { method: string; cost: number }) => {
-  selectedDeliveryMethod.value = data.method;
   deliveryMethod.value = data.method;
-  deliveryCost.value = data.cost;
 };
 
 const handleContinueToPayment = () => {
   goToPaymentStep();
-};
-
-const handleDeliveryMethodChanged = (data: { method: string; cost: number }) => {
-  deliveryMethod.value = data.method;
-  deliveryCost.value = data.cost;
 };
 
 onMounted(async () => {
@@ -496,24 +405,6 @@ onMounted(async () => {
       const formData = getCheckoutFormData();
       Object.assign(checkoutForm.value, formData);
       
-      // También poblar las variables reactivas individuales
-      firstName.value = formData.firstName || '';
-      lastName.value = formData.lastName || '';
-      phone.value = formData.phone || '';
-      street.value = formData.address || '';
-      apartment.value = formData.addressReference || '';
-      neighborhood.value = '';
-      address.value = formData.address || '';
-      streetNumber.value = '';
-      fullAddress.value = formData.address || '';
-      city.value = formData.city || '';
-      postalCode.value = formData.postalCode || '';
-      province.value = formData.province || '';
-      country.value = formData.country || 'AR';
-      addressReference.value = formData.addressReference || '';
-      deliveryNotes.value = formData.deliveryNotes || '';
-      preferredDeliveryTime.value = formData.preferredDeliveryTime || 'cualquiera';
-      
       usingPreviousData.value = true;
       
       toast.success('Datos cargados desde compra anterior', { timeout: 2000 });
@@ -526,9 +417,6 @@ onMounted(async () => {
           checkoutForm.value.firstName = nameParts[0] || '';
           checkoutForm.value.lastName = nameParts.slice(1).join(' ') || '';
           
-          // También poblar las variables reactivas individuales
-          firstName.value = nameParts[0] || '';
-          lastName.value = nameParts.slice(1).join(' ') || '';
         }
       }
     }
@@ -541,9 +429,6 @@ onMounted(async () => {
         checkoutForm.value.firstName = nameParts[0] || '';
         checkoutForm.value.lastName = nameParts.slice(1).join(' ') || '';
         
-        // También poblar las variables reactivas individuales
-        firstName.value = nameParts[0] || '';
-        lastName.value = nameParts.slice(1).join(' ') || '';
       }
     }
   } finally {
@@ -564,7 +449,7 @@ const processOrder = async () => {
 
   // Double-check authentication
   if (!authStore.isAuthenticated) {
-    toast.error('Debes iniciar sesin para completar la compra');
+    toast.error('Debes iniciar sesión para completar la compra');
     router.push('/auth');
     return;
   }
@@ -596,26 +481,19 @@ const processOrder = async () => {
     }
     
     if (cartStore.isEmpty) {
-      toast.error('Algunos productos ya no estÃ¡n disponibles');
+      toast.error('Algunos productos ya no están disponibles');
       router.push('/cart');
       return;
     }
     
-    // Validate form (phone, postal code, required fields)
+    // Retiro local solo requiere datos de contacto válidos.
     const validateForm = () => {
-      // phone
       if (!isValidPhone(checkoutForm.value.phone, checkoutForm.value.phoneCountryCode)) {
         toast.error(validationMessages.phone);
         return false;
       }
-      // postal code
-      if (!isValidPostalCode(checkoutForm.value.postalCode, checkoutForm.value.country)) {
-        toast.error(validationMessages.postal);
-        return false;
-      }
-      // address and city required
-      if (!checkoutForm.value.address || !checkoutForm.value.city) {
-        toast.error('La dirección y la ciudad son obligatorias.');
+      if (!checkoutForm.value.firstName.trim() || !checkoutForm.value.lastName.trim() || !checkoutForm.value.email.trim()) {
+        toast.error('Completá nombre, apellido y email.');
         return false;
       }
       return true;
@@ -649,7 +527,7 @@ const processOrder = async () => {
     // Step 2: Create order with real customer_id
     const orderData: Partial<Order> = {
       customer_id: customer.id,
-      total: cartStore.totalPrice + deliveryCost.value,
+      total: cartStore.totalPrice,
       payment_method: checkoutForm.value.paymentMethod as PaymentMethod,
       delivery_method: deliveryMethod.value,
     };

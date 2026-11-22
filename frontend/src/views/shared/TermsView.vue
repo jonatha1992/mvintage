@@ -12,7 +12,7 @@
           <section>
             <h2 class="text-2xl font-light text-gray-900 mb-4">1. Aceptación de los Términos</h2>
             <p class="text-gray-700 leading-relaxed mb-4">
-              Al acceder y utilizar el sitio web de M-VINTAGE (el "Sitio"), usted acepta estar sujeto a estos 
+              Al acceder y utilizar el sitio web de Showroom Isabella (el "Sitio"), usted acepta estar sujeto a estos
               Términos y Condiciones de uso. Si no está de acuerdo con alguna parte de estos términos, 
               no debe utilizar nuestro sitio web.
             </p>
@@ -26,7 +26,7 @@
           <section>
             <h2 class="text-2xl font-light text-gray-900 mb-4">2. Descripción del Servicio</h2>
             <p class="text-gray-700 leading-relaxed mb-4">
-              M-VINTAGE es una tienda online de ropa vintage y contemporánea. Ofrecemos una plataforma 
+              Showroom Isabella es una tienda online de ropa vintage y contemporánea. Ofrecemos una plataforma
               para la compra de productos de moda, accesorios y artículos relacionados.
             </p>
             <p class="text-gray-700 leading-relaxed">
@@ -83,17 +83,16 @@
             </div>
           </section>
 
-          <!-- 6. Envíos y entrega -->
+          <!-- 6. Retiro -->
           <section>
-            <h2 class="text-2xl font-light text-gray-900 mb-4">6. Envíos y Entrega</h2>
+            <h2 class="text-2xl font-light text-gray-900 mb-4">6. Retiro en el showroom</h2>
             <p class="text-gray-700 leading-relaxed mb-4">
-              Los tiempos de entrega son estimados y pueden variar según la ubicación y disponibilidad del producto. 
-              Los costos de envío se calcularán durante el proceso de checkout.
+              Las compras se retiran en el showroom, sin costo de envío. Confirmaremos por nuestros canales de contacto cuando el pedido esté listo.
             </p>
             <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
-              <li>Realizamos envíos a todo el territorio argentino</li>
-              <li>El riesgo de pérdida pasa al comprador al momento de la entrega</li>
-              <li>Es responsabilidad del comprador proporcionar una dirección correcta</li>
+              <li>No realizamos envíos a domicilio</li>
+              <li>El retiro se coordina previamente</li>
+              <li>Se debe presentar el número de pedido</li>
             </ul>
           </section>
 
@@ -109,7 +108,7 @@
               <ul class="list-disc list-inside text-gray-700 space-y-1">
                 <li>El producto debe estar sin usar y con etiquetas originales</li>
                 <li>Debe incluir el comprobante de compra</li>
-                <li>Los gastos de envío de devolución corren por cuenta del cliente</li>
+                <li>La devolución se coordina en el showroom</li>
                 <li>El reembolso se procesará dentro de 5-10 días hábiles</li>
               </ul>
             </div>
@@ -120,7 +119,7 @@
             <h2 class="text-2xl font-light text-gray-900 mb-4">8. Propiedad Intelectual</h2>
             <p class="text-gray-700 leading-relaxed mb-4">
               Todo el contenido del sitio web, incluyendo textos, gráficos, logos, íconos, imágenes, 
-              clips de audio y software, es propiedad de M-VINTAGE y está protegido por las leyes 
+              clips de audio y software, es propiedad de Showroom Isabella y está protegido por las leyes
               de derechos de autor.
             </p>
             <p class="text-gray-700 leading-relaxed">
@@ -133,7 +132,7 @@
           <section>
             <h2 class="text-2xl font-light text-gray-900 mb-4">9. Limitación de Responsabilidad</h2>
             <p class="text-gray-700 leading-relaxed mb-4">
-              En ningún caso M-VINTAGE será responsable por daños indirectos, incidentales, especiales 
+              En ningún caso Showroom Isabella será responsable por daños indirectos, incidentales, especiales
               o consecuentes que resulten del uso o la imposibilidad de usar el sitio web o los productos.
             </p>
             <p class="text-gray-700 leading-relaxed">
@@ -184,13 +183,13 @@
               </p>
               <div class="space-y-2 text-gray-700">
                 <p><strong>Email:</strong> 
-                  <a href="mailto:mvintageapp@gmail.com" class="text-blue-600 hover:text-blue-800">
-                    mvintageapp@gmail.com
+                  <a href="mailto:Showroomisabellaa@gmail.com" class="text-blue-600 hover:text-blue-800">
+                    Showroomisabellaa@gmail.com
                   </a>
                 </p>
                 <p><strong>Teléfono:</strong> 
-                  <a href="tel:+5491139471826" class="text-blue-600 hover:text-blue-800">
-                    +54 9 11 3947-1826
+                  <a href="tel:+5491176372876" class="text-blue-600 hover:text-blue-800">
+                    +54 9 11 7637-2876
                   </a>
                 </p>
                 <p><strong>Dirección:</strong> Buenos Aires, Argentina</p>

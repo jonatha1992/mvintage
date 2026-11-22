@@ -244,8 +244,8 @@
                 </div>
                 {% endif %}
                 <div class="total-row">
-                    <span>Envío:</span>
-                    <span>{{ "Gratis" if shipping_cost == 0 else "$" + "{:,.0f}".format(shipping_cost) }}</span>
+                    <span>Retiro en showroom:</span>
+                    <span>Sin costo</span>
                 </div>
                 <div class="total-row final">
                     <span>Total:</span>
@@ -255,10 +255,9 @@
 
             <!-- Shipping Information -->
             <div class="shipping-info">
-                <h3>Información de envío</h3>
+                <h3>Retiro en Showroom Isabella</h3>
                 <p><strong>{{ customer_name }}</strong></p>
-                <p>{{ shipping_address }}</p>
-                <p>{{ shipping_city }}, {{ shipping_postal_code }}</p>
+                <p>Te contactaremos cuando el pedido estÃ© listo para coordinar dÃ­a y horario.</p>
                 {% if delivery_notes %}
                 <p><strong>Notas:</strong> {{ delivery_notes }}</p>
                 {% endif %}
@@ -294,7 +293,7 @@
             
             <div class="social-links">
                 <a href="#" title="Facebook">📘</a>
-                <a href="#" title="Instagram">📷</a>
+                <a href="https://www.instagram.com/showroomisabella_/" title="Instagram">📷</a>
                 <a href="#" title="Twitter">🐦</a>
             </div>
             

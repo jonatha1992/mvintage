@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.routes.products import router as products_router
 from app.routes.customers import router as customers_router
 from app.routes.orders import router as orders_router
@@ -86,6 +87,10 @@ app.include_router(admin_shipping_router, prefix="/api/v1")
 app.include_router(email_verification_router, prefix="/api/v1")
 app.include_router(shipping_quotes_router, prefix="/api/v1")
 # Email functionality moved to standard /routes/
+
+uploads_dir = Path(os.environ.get("UPLOADS_DIR", "/app/uploads"))
+uploads_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
 
 @app.get("/health")

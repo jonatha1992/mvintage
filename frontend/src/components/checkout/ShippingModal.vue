@@ -223,10 +223,10 @@ const contactCustomerForPickup = () => {
   
   const message = `Hola ${props.order.customer_name}, tu pedido #${props.order.order_id} está listo para retirar. 
 
-ðŸ“¦ Total: $${props.order.total.toLocaleString()}
+📦 Total: $${props.order.total.toLocaleString()}
 
-ðŸ“ Dirección: Av. Ejemplo 123, CABA
-ðŸ• Horarios: Lun-Vie 9-18hs, Sáb 9-13hs
+📍 Dirección: Av. Ejemplo 123, CABA
+🕐 Horarios: Lun-Vie 9-18hs, Sáb 9-13hs
 
 ¿Cuándo te conviene pasar a retirarlo?`;
 

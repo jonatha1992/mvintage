@@ -86,7 +86,7 @@ class Settings(BaseSettings):
     SMTP_USER: str = ""
     SMTP_PASS: str = ""
     MAIL_FROM: str = ""
-    APP_NAME: str = "M-Vintage"
+    APP_NAME: str = "Showroom Isabella"
     APP_URL: str = "https://m-vintage.web.app"
 
     # Shipping Quotes API Configuration

@@ -12,7 +12,7 @@
         <!-- Pending Message -->
         <h1 class="mb-4 text-3xl font-bold text-gray-900">Pago pendiente</h1>
         <p class="mb-8 text-lg text-gray-600">
-          Tu pago estÃ¡ siendo procesado. Te notificaremos cuando se complete la transaccin.
+          Tu pago está siendo procesado. Te notificaremos cuando se complete la transacción.
         </p>
         
         <!-- Order Details -->
@@ -25,7 +25,7 @@
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600">Total:</span>
-              <span class="font-medium">${{ orderDetails.total?.toLocaleString() }}</span>
+              <span class="font-medium">{{ formatPrice(orderDetails.total) }}</span>
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600">Estado del pago:</span>
@@ -71,6 +71,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatPrice } from '../../utils/price'
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { paymentsApi } from '../../config/api';

@@ -12,7 +12,7 @@
         <!-- Success Message -->
         <h1 class="mb-4 text-3xl font-bold text-gray-900">¡Pago exitoso!</h1>
         <p class="mb-8 text-lg text-gray-600">
-          Tu pago ha sido procesado correctamente. RecibirÃ¡s un email de confirmacin en breve.
+          Tu pago ha sido procesado correctamente. Recibirás un email de confirmación en breve.
         </p>
         
         <!-- Order Details -->
@@ -27,7 +27,7 @@
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">Total pagado:</span>
-                  <span class="font-medium">${{ orderDetails.total?.toLocaleString() }}</span>
+                  <span class="font-medium">{{ formatPrice(orderDetails.total) }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">Estado del pago:</span>
@@ -45,7 +45,7 @@
                   <span class="font-medium">{{ pendingOrderData.customer.email }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-gray-600">MÃ©todo de pago:</span>
+                  <span class="text-gray-600">Método de pago:</span>
                   <span class="font-medium">{{ orderDetails.payment_method === 'mercadopago' ? 'MercadoPago' : orderDetails.payment_method }}</span>
                 </div>
               </div>
@@ -57,7 +57,7 @@
               <div class="space-y-2">
                 <div v-for="item in pendingOrderData.items" :key="item.id" class="flex justify-between text-sm">
                   <span class="text-gray-600">{{ item.product.name }} (x{{ item.quantity }})</span>
-                  <span class="font-medium">${{ (item.product.has_discount && item.product.discounted_price ? item.product.discounted_price * item.quantity : item.product.price * item.quantity).toLocaleString() }}</span>
+                  <span class="font-medium">{{ formatPrice((item.product.has_discount && item.product.discounted_price ? item.product.discounted_price * item.quantity : item.product.price * item.quantity)) }}</span>
                 </div>
               </div>
             </div>
@@ -86,6 +86,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatPrice } from '../../utils/price'
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { paymentsApi } from '../../config/api';

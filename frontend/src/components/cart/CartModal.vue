@@ -1,7 +1,7 @@
 ﻿<template>
   <Teleport to="body">
     <!-- Modal Overlay -->
-    <Transition name="modal">
+    <Transition name="panel">
       <div
         v-if="isCartModalOpen"
         class="fixed inset-0 z-50 overflow-hidden"
@@ -13,7 +13,7 @@
         ></div>
         
         <!-- Modal Panel -->
-        <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl">
+        <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl panel-slide">
           <!-- Close Button -->
           <button
             @click="closeCartModal"
@@ -40,29 +40,3 @@ import ShoppingCart from './ShoppingCart.vue'
 
 const { isCartModalOpen, closeCartModal } = useCartModal()
 </script>
-
-<style scoped>
-.modal-enter-active, .modal-leave-active {
-  transition: all 0.3s ease-in-out;
-}
-
-.modal-enter-active .absolute.right-0 {
-  transition: transform 0.3s ease-in-out;
-}
-
-.modal-leave-active .absolute.right-0 {
-  transition: transform 0.3s ease-in-out;
-}
-
-.modal-enter-from .absolute.right-0 {
-  transform: translateX(100%);
-}
-
-.modal-leave-to .absolute.right-0 {
-  transform: translateX(100%);
-}
-
-.modal-enter-from, .modal-leave-to {
-  opacity: 0;
-}
-</style>

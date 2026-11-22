@@ -66,7 +66,7 @@
                 <h3 class="mb-3 font-medium text-gray-900">Monto a Transferir</h3>
                 <div class="text-center">
                   <div class="text-3xl font-bold text-green-600">
-                    ${{ transferInfo.total_amount.toLocaleString() }}
+                    {{ formatPrice(transferInfo.total_amount) }}
                   </div>
                   <p class="mt-1 text-sm text-gray-600">Monto exacto</p>
                 </div>
@@ -113,7 +113,7 @@
               <div class="space-y-1 text-sm">
                 <p><span class="text-gray-600">Nombre:</span> {{ customerInfo.name }}</p>
                 <p><span class="text-gray-600">Email:</span> {{ customerInfo.email }}</p>
-                <p><span class="text-gray-600">TelÃ©fono:</span> {{ customerInfo.phone }}</p>
+                <p><span class="text-gray-600">Teléfono:</span> {{ customerInfo.phone }}</p>
               </div>
             </div>
             <div>
@@ -168,6 +168,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatPrice } from '../../utils/price'
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
@@ -220,7 +221,7 @@ Banco: ${transferInfo.value.bank_info.bank_name}
 CBU: ${transferInfo.value.bank_info.cbu}
 Alias: ${transferInfo.value.bank_info.alias}
 Titular: ${transferInfo.value.bank_info.holder_name}
-Monto: $${transferInfo.value.total_amount.toLocaleString()}
+Monto: ${formatPrice(transferInfo.value.total_amount)}
 Referencia: ${transferInfo.value.reference}
   `.trim();
   

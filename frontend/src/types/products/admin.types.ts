@@ -26,6 +26,7 @@ export interface AdminProduct {
   stock?: number | null;
   has_discount: boolean;
   discount_percentage?: number | null;
+  max_installments?: number;
   images: AdminProductImage[];
   variants: AdminProductVariant[];
 }
@@ -43,6 +44,7 @@ export interface AdminProductCreate {
   stock?: number | null;
   has_discount: boolean;
   discount_percentage?: number | null;
+  max_installments?: number;
   images: string[];
   variants: Omit<AdminProductVariant, 'id'>[];
 }

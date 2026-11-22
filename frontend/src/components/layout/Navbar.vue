@@ -1,12 +1,12 @@
 ﻿<template>
-  <nav class="sticky top-0 z-50 bg-white border-b border-gray-100">
+  <nav class="sticky top-0 z-50 bg-white border-b border-gray-100 site-nav">
     <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
         <div class="flex-shrink-0">
-          <router-link to="/" class="flex items-center space-x-2 text-2xl font-light tracking-wider text-gray-900 font-heading hover:text-gray-700">
-            <img src="/imagen-portada.svg" alt="MATILDA VINTAGE Logo" class="w-10 h-10" />
-            <span>MATILDA VINTAGE</span>
+          <router-link to="/" class="flex items-center space-x-2 text-lg sm:text-2xl font-light tracking-wider text-gray-900 font-heading hover:text-gray-700">
+            <img src="/logo_redondo.jpg" alt="Showroom Isabella" class="object-cover w-10 h-10 rounded-full" />
+            <span>SHOWROOM ISABELLA</span>
           </router-link>
         </div>
 
@@ -57,12 +57,12 @@
             
             <router-link to="/contact" class="px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">CONTACTO</router-link>
             <router-link to="/how-to-shop" class="px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">CÓMO COMPRAR</router-link>
-            <router-link to="/shipping" class="px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">ENVÍOS</router-link>
+            <router-link to="/shipping" class="px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">RETIRO</router-link>
           </div>
 
           <!-- Desktop Auth & Cart -->
           <div class="flex items-center space-x-4">
-            <button @click="openCartModal" class="relative p-2 text-gray-900 transition-colors hover:text-gray-600 focus:outline-none">
+            <button @click="openCartModal" class="relative p-2 text-gray-900 hover:text-gray-600 focus:outline-none" :class="{ 'cart-bump': cartBump }" @animationend="cartBump = false">
               <span class="sr-only">Carrito</span>
               <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -107,7 +107,7 @@
 
         <!-- Mobile Menu Button -->
         <div class="flex items-center md:hidden">
-          <button @click="openCartModal" class="relative p-2 mr-4 text-gray-900 transition-colors hover:text-gray-600 focus:outline-none">
+          <button @click="openCartModal" class="relative p-2 mr-4 text-gray-900 hover:text-gray-600 focus:outline-none" :class="{ 'cart-bump': cartBump }" @animationend="cartBump = false">
             <span class="sr-only">Carrito</span>
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -130,6 +130,7 @@
     </div>
 
     <!-- Mobile Menu -->
+    <Transition name="menu">
     <div v-if="isMobileMenuOpen" class="bg-white border-t border-gray-100 md:hidden">
       <div class="px-4 pt-4 pb-6 space-y-2">
         <button @click.stop="toggleMobileShopMenu" class="block w-full px-3 py-3 text-sm font-normal tracking-wide text-left text-gray-900 uppercase transition-colors font-body hover:text-gray-600">SHOP</button>
@@ -181,7 +182,7 @@
         
         <router-link to="/contact" @click="closeMenus" class="block px-3 py-3 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">CONTACTO</router-link>
         <router-link to="/how-to-shop" @click="closeMenus" class="block px-3 py-3 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">CÓMO COMPRAR</router-link>
-        <router-link to="/shipping" @click="closeMenus" class="block px-3 py-3 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">ENVÍOS</router-link>
+        <router-link to="/shipping" @click="closeMenus" class="block px-3 py-3 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">RETIRO</router-link>
         
         <div class="pt-4 mt-4 border-t border-gray-200">
           <div v-if="authStore.isAuthenticated" class="flex items-center px-3 mb-3">
@@ -205,11 +206,12 @@
         </div>
       </div>
     </div>
+    </Transition>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from '../../store/auth';
 import { useCartStore } from '../../store/cart';
 import { useCartModal } from '../../composables/useCartModal';
@@ -229,6 +231,11 @@ const cartStore = useCartStore();
 const router = useRouter();
 const { openCartModal } = useCartModal();
 const categories = ref<Category[]>([]);
+const cartBump = ref(false);
+
+watch(() => cartStore.itemCount, (nuevo, anterior) => {
+  if (nuevo > anterior) cartBump.value = true;
+});
 
 // Computed memoizado para admin access (evitar múltiples evaluaciones)
 const isAdmin = computed(() => authStore.hasAdminAccess);
