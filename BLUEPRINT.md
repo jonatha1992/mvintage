@@ -20,6 +20,7 @@
 - Identificadores técnicos existentes de Firebase, dominios y correos no se renombran sin infraestructura aprobada.
 
 - Cuotas máximas por producto (`Product.max_installments`, 1/3/6/12, default 3; migración `add_product_max_installments`); `order_max_installments` en `backend/app/services/payment_installments.py` = mínimo del pedido. Aún sin integrar a Mercado Pago/PayAlert.
+- Correos transaccionales (pedidos, bienvenida y verificación de email): unificados en `correo-central` (`CorreoCentralClient`, plantillas `aviso`, `bienvenida`, `codigo`). Se eliminó `backend/app/core/mailer.py` y las variables SMTP de `config.py`.
 
 ## Pendiente
 

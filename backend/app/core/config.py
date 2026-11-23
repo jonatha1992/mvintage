@@ -93,12 +93,7 @@ class Settings(BaseSettings):
     NOTIFY_WHATSAPP_NUMBER: str = "5491176372876"
     STORE_PUBLIC_URL: str = "https://showroomisabella-ar.web.app"
 
-    # Legacy SMTP Configuration (unused)
-    SMTP_HOST: str = "smtp.gmail.com"
-    SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASS: str = ""
-    MAIL_FROM: str = ""
+    # App branding
     APP_NAME: str = "Showroom Isabella"
     APP_URL: str = "https://showroomisabella-ar.web.app"
 
@@ -116,6 +111,7 @@ class Settings(BaseSettings):
         env_file = ENV_FILE_MAP.get(RAW_ENV, ".env.dev")
         env_file_encoding = "utf-8"
         case_sensitive = False
+        extra = "ignore"
 
     # ----------------- Validaciones -----------------
     @field_validator("SECRET_KEY")

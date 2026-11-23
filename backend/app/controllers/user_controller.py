@@ -1,3 +1,4 @@
+import logging
 from typing import List, Optional
 import threading
 import asyncio
@@ -7,123 +8,127 @@ from app.models.user import User, UserCreate
 from app.models.role import Role
 from app.models.user_role import UserRole
 from sqlalchemy import or_, func
-from app.core.mailer import send_email, render_template
 from app.core.config import settings
 from app.models.email_verification import EmailVerificationToken
+from app.services.notificaciones import CorreoCentralError, notificaciones_service
 from fastapi import HTTPException
 
+logger = logging.getLogger(__name__)
 
-def send_welcome_email_async(user_email: str, display_name: str = None):
-    """Send welcome email asynchronously in background"""
+
+def send_welcome_email_async(user_email: str, display_name: Optional[str] = None, client=None):
+    """Send welcome email asynchronously in background via correo-central"""
+    correo = client or notificaciones_service.client
+    nombre = (display_name or user_email.split("@")[0]).strip() or "cliente"
+    store_url = (settings.STORE_PUBLIC_URL or settings.APP_URL or "").strip().rstrip("/")
+    boton = {"texto": "Ir a la tienda", "url": store_url} if store_url.startswith("https://") else None
     try:
-        # Render welcome email template
-        html_content = render_template(
-            'email_welcome.html',
-            display_name=display_name,
-            app_name=settings.APP_NAME,
-            app_url=settings.APP_URL
-        )
-        
-        # Send email
-        success = send_email(
+        msg_id = correo.send_bienvenida(
             to=user_email,
-            subject=f'¡Bienvenido a {settings.APP_NAME}!',
-            html_content=html_content
+            subject=f"¡Bienvenido a {settings.APP_NAME}!",
+            nombre=nombre,
+            mensaje=f"Tu cuenta en {settings.APP_NAME} ya está lista. Ya podés explorar el catálogo y seguir tus pedidos.",
+            boton=boton,
+            idempotency_key=f"mvintage:welcome:{user_email.lower().strip()}",
         )
-        
-        if success:
-            print(f"✅ Email de bienvenida enviado a {user_email}")
+        if msg_id:
+            logger.info("Email de bienvenida enviado a %s (id=%s)", user_email, msg_id)
         else:
-            print(f"❌ Error enviando email de bienvenida a {user_email}")
-            
-    except Exception as e:
-        print(f"❌ Error procesando email de bienvenida: {str(e)}")
+            logger.warning("Email de bienvenida omitido para %s (correo-central no configurado)", user_email)
+    except (CorreoCentralError, Exception) as exc:
+        logger.error("Error enviando email de bienvenida a %s: %s", user_email, exc)
 
 
-def trigger_welcome_email(user_email: str, display_name: str = None):
+def trigger_welcome_email(user_email: str, display_name: Optional[str] = None):
     """Trigger welcome email in background thread"""
     try:
         email_thread = threading.Thread(
             target=send_welcome_email_async,
-            args=(user_email, display_name)
+            args=(user_email, display_name),
+            daemon=True,
         )
         email_thread.start()
-    except Exception as e:
-        print(f"❌ Error iniciando envío de email de bienvenida: {str(e)}")
+    except Exception as exc:
+        logger.error("Error iniciando envío de email de bienvenida a %s: %s", user_email, exc)
 
 
-def send_verification_email_async(user_id: int, user_email: str, display_name: str = None):
-    """Send verification email asynchronously in background"""
+def send_verification_email_async(
+    user_id: int,
+    user_email: str,
+    display_name: Optional[str] = None,
+    client=None,
+    db: Optional[Session] = None,
+):
+    """Send verification email asynchronously in background via correo-central"""
+    owns_session = db is None
+    session: Optional[Session] = db
     try:
-        from app.db.session import get_session
-        
-        # We need to create a new session for the thread
-        db = next(get_session())
-        
-        # Invalidate existing tokens
-        existing_tokens = db.exec(
+        if session is None:
+            from app.db.session import get_session
+
+            session = next(get_session())
+        assert session is not None
+
+        existing_tokens = session.exec(
             select(EmailVerificationToken).where(
                 EmailVerificationToken.email == user_email,
-                EmailVerificationToken.used_at.is_(None)
+                EmailVerificationToken.used_at == None,  # noqa: E711
             )
         ).all()
-        
+
         for token in existing_tokens:
             token.mark_as_used()
-            db.add(token)
-        
-        # Generate new verification token
+            session.add(token)
+
         verification_token = EmailVerificationToken.generate_verification_token(
             user_id=user_id,
-            email=user_email
+            email=user_email,
         )
-        db.add(verification_token)
-        db.commit()
-        db.refresh(verification_token)
-        
-        # Create verification URL
-        verification_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token.token}"
-        
-        # Render verification email template
-        html_content = render_template(
-            'email_verification.html',
-            display_name=display_name,
-            app_name=settings.APP_NAME,
-            app_url=settings.APP_URL,
-            verification_code=verification_token.code,
-            verification_url=verification_url,
-            expire_hours=24,
-            support_email=settings.MAIL_FROM
+        session.add(verification_token)
+        session.commit()
+        session.refresh(verification_token)
+
+        frontend_url = (settings.FRONTEND_URL or settings.STORE_PUBLIC_URL or "").strip().rstrip("/")
+        verification_url = f"{frontend_url}/verify-email?token={verification_token.token}"
+        saludo = f"Hola {display_name.strip()}," if display_name and display_name.strip() else "Hola,"
+        mensaje = (
+            f"{saludo}\n\n"
+            f"Ingresá este código para verificar tu cuenta en {settings.APP_NAME}.\n"
+            f"También podés verificar tu email abriendo este enlace:\n{verification_url}"
         )
-        
-        # Send email
-        success = send_email(
+
+        correo = client or notificaciones_service.client
+        msg_id = correo.send_codigo(
             to=user_email,
-            subject=f'Verifica tu email - {settings.APP_NAME}',
-            html_content=html_content
+            subject=f"Verificá tu email - {settings.APP_NAME}",
+            codigo=verification_token.code,
+            vencimiento="24 horas",
+            titulo="Verificá tu email",
+            mensaje=mensaje,
+            idempotency_key=f"mvintage:verify:{verification_token.id or verification_token.code}",
         )
-        
-        if success:
-            print(f"✅ Email de verificación enviado a {user_email}")
+        if msg_id:
+            logger.info("Email de verificación enviado a %s (id=%s)", user_email, msg_id)
         else:
-            print(f"❌ Error enviando email de verificación a {user_email}")
-        
-        db.close()
-            
-    except Exception as e:
-        print(f"❌ Error procesando email de verificación: {str(e)}")
+            logger.warning("Email de verificación omitido para %s (correo-central no configurado)", user_email)
+    except (CorreoCentralError, Exception) as exc:
+        logger.error("Error enviando email de verificación a %s: %s", user_email, exc)
+    finally:
+        if owns_session and session is not None:
+            session.close()
 
 
-def trigger_verification_email(user_id: int, user_email: str, display_name: str = None):
+def trigger_verification_email(user_id: int, user_email: str, display_name: Optional[str] = None):
     """Trigger verification email in background thread"""
     try:
         email_thread = threading.Thread(
             target=send_verification_email_async,
-            args=(user_id, user_email, display_name)
+            args=(user_id, user_email, display_name),
+            daemon=True,
         )
         email_thread.start()
-    except Exception as e:
-        print(f"❌ Error iniciando envío de email de verificación: {str(e)}")
+    except Exception as exc:
+        logger.error("Error iniciando envío de email de verificación a %s: %s", user_email, exc)
 
 def get_user_by_username(db: Session, username: str) -> Optional[User]:
     return db.exec(select(User).where(User.username == username)).first()
