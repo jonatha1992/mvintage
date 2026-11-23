@@ -72,6 +72,9 @@ class Settings(BaseSettings):
     # Alternativa: lista separada por comas, tiene prioridad si se define
     CORS_ORIGINS: Optional[str] = None
 
+    IMG_SERVER_URL: str = "https://img.tecnofusion.dev"
+    IMG_SERVER_API_KEY: str = ""
+
     # PayAlert (Mercado Pago) Configuration
     PAYALERT_URL: str = "https://payalert.tecnofusion.dev"
     PAYALERT_API_KEY: str = ""

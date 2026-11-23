@@ -50,8 +50,8 @@ class TransferController:
                 "account_type": "",
                 "account_number": "",
                 "cbu": "",
-                "alias": "Primoyanoo",
-                "holder_name": "",
+                "alias": "SHOWROOMISABELLAA",
+                "holder_name": "Priscila Moyano",
                 "cuit": "",
                 "instructions": "Incluí como referencia el número de pedido y enviá el comprobante por WhatsApp"
             }
