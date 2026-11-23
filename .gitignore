@@ -227,3 +227,6 @@ secrets.json
 config.production.json
 
 **/.env.**
+# Artefactos de build (rompian el deploy automatico)
+frontend/.firebase/
+*.tsbuildinfo
