@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import HTTPException
+from fastapi import BackgroundTasks, HTTPException
 from sqlmodel import Session, select
 
 from app.core.config import settings
@@ -11,6 +11,7 @@ from app.models.order import Order
 from app.models.order_item import OrderItem
 from app.models.product import Product
 from app.routes.inventory import release_order_stock_once
+from app.services.notificaciones import build_order_snapshot, notificaciones_service
 from app.services.payalert_client import (
     PayAlertClient,
     PayAlertError,
@@ -164,6 +165,7 @@ class PaymentsController:
         order: Order,
         session: Session,
         now: Optional[datetime] = None,
+        background_tasks: Optional[BackgroundTasks] = None,
     ) -> str:
         if order.payment_status in ("approved", "paid"):
             return order.payment_status
@@ -191,7 +193,8 @@ class PaymentsController:
                 order.payment_expires_at = _parse_iso_utc(charge.get("expiresAt"))
 
             if remote_status == "approved":
-                if order.payment_status != "approved":
+                just_approved = order.payment_status not in ("approved", "paid")
+                if just_approved:
                     if order.stock_released:
                         logger.warning(
                             f"Orden {order.id} aprobada en PayAlert pero su stock ya había sido liberado"
@@ -200,6 +203,12 @@ class PaymentsController:
                 session.add(order)
                 session.commit()
                 session.refresh(order)
+                if just_approved:
+                    snapshot = build_order_snapshot(order, session)
+                    if background_tasks is not None:
+                        background_tasks.add_task(notificaciones_service.notificar_pago_confirmado, snapshot)
+                    else:
+                        notificaciones_service.notificar_pago_confirmado(snapshot)
                 return order.payment_status
 
             if remote_status == "needs_refund":
@@ -240,7 +249,12 @@ class PaymentsController:
 
         return order.payment_status
 
-    def get_payment_status(self, order_id: int, session: Session) -> Dict[str, Any]:
+    def get_payment_status(
+        self,
+        order_id: int,
+        session: Session,
+        background_tasks: Optional[BackgroundTasks] = None,
+    ) -> Dict[str, Any]:
         order = session.get(Order, order_id)
         if not order:
             raise HTTPException(status_code=404, detail="Orden no encontrada")
@@ -248,7 +262,7 @@ class PaymentsController:
         sync_warning: Optional[str] = None
         if order.payment_method == "mercadopago" and order.payment_status == "pending_payment":
             try:
-                self.sync_order_payment(order, session)
+                self.sync_order_payment(order, session, background_tasks=background_tasks)
             except PayAlertError as exc:
                 logger.warning(f"No se pudo consultar PayAlert para orden {order.id}: {exc}")
                 sync_warning = str(exc)
@@ -275,6 +289,7 @@ class PaymentsController:
         self,
         session: Session,
         now: Optional[datetime] = None,
+        background_tasks: Optional[BackgroundTasks] = None,
     ) -> Dict[str, int]:
         pending_orders = session.exec(
             select(Order).where(
@@ -296,7 +311,9 @@ class PaymentsController:
 
         for order in pending_orders:
             try:
-                status = self.sync_order_payment(order, session, now=now)
+                status = self.sync_order_payment(
+                    order, session, now=now, background_tasks=background_tasks
+                )
                 if status in summary:
                     summary[status] += 1
                 else:

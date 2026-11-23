@@ -5,7 +5,7 @@ y obtener estadísticas del panel admin.
 """
 from typing import List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlmodel import Session, select, func
 
 from app.db.session import get_session
@@ -14,6 +14,7 @@ from app.models.order import Order
 from app.models.customer import Customer
 from app.controllers.transfer_controller import transfer_controller
 from app.controllers.cash_controller import cash_controller
+from app.services.notificaciones import build_order_snapshot, notificaciones_service
 
 router = APIRouter()
 
@@ -78,6 +79,7 @@ def get_admin_orders(
 def admin_verify_transfer(
     order_id: int,
     verified: bool,
+    background_tasks: BackgroundTasks,
     notes: str = "",
     session: Session = Depends(get_session),
     user=Depends(get_current_admin_user)
@@ -86,7 +88,12 @@ def admin_verify_transfer(
     Verificación manual de transferencia bancaria por parte del administrador.
     """
     try:
+        existing = session.get(Order, order_id)
+        prev_payment_status = existing.payment_status if existing else None
         updated_order = transfer_controller.verify_transfer(order_id, verified, notes, session)
+        if verified and prev_payment_status not in ("paid", "approved"):
+            snapshot = build_order_snapshot(updated_order, session)
+            background_tasks.add_task(notificaciones_service.notificar_pago_confirmado, snapshot)
         
         return {
             "status": "success",
