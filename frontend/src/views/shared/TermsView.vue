@@ -85,29 +85,31 @@
           <section>
             <h2 class="text-2xl font-light text-gray-900 mb-4">6. Retiro en el local</h2>
             <p class="text-gray-700 leading-relaxed mb-4">
-              Todas las compras se retiran en el local, sin costo adicional. No realizamos envíos. Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.
+              Todas las compras se retiran sin costo adicional en nuestro local de
+              <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">{{ STORE_PICKUP_ADDRESS }}</a>.
+              No realizamos envíos. Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.
             </p>
             <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
               <li>Modalidad exclusiva de retiro en el local (sin envíos)</li>
-              <li>El retiro se coordina previamente por WhatsApp</li>
+              <li>{{ STORE_PICKUP_HOURS }}</li>
               <li>Se debe presentar el número de pedido</li>
             </ul>
           </section>
 
           <!-- 7. Devoluciones y cambios -->
           <section>
-            <h2 class="text-2xl font-light text-gray-900 mb-4">7. Devoluciones y Cambios</h2>
+            <h2 class="text-2xl font-light text-gray-900 mb-4">7. Cambios</h2>
             <p class="text-gray-700 leading-relaxed mb-4">
-              Aceptamos devoluciones dentro de los 30 días posteriores a la recepción del producto, 
-              siempre que el artículo esté en condiciones originales.
+              Aceptamos cambios dentro de los 7 días hábiles posteriores al retiro del producto,
+              siempre que la prenda esté en condiciones originales.
             </p>
             <div class="bg-blue-50 p-4 rounded-lg mb-4">
-              <h3 class="font-medium text-gray-900 mb-2">Condiciones para Devoluciones:</h3>
+              <h3 class="font-medium text-gray-900 mb-2">Condiciones para Cambios:</h3>
               <ul class="list-disc list-inside text-gray-700 space-y-1">
+                <li>Plazo: dentro de los 7 días hábiles posteriores al retiro</li>
                 <li>El producto debe estar sin usar y con etiquetas originales</li>
                 <li>Debe incluir el comprobante de compra</li>
-                <li>La devolución se coordina en el showroom</li>
-                <li>El reembolso se procesará dentro de 5-10 días hábiles</li>
+                <li>El cambio se coordina por WhatsApp para realizarlo en el local ({{ STORE_PICKUP_ADDRESS }})</li>
               </ul>
             </div>
           </section>
@@ -195,7 +197,12 @@
                     @showroomisabella_
                   </a>
                 </p>
-                <p><strong>Dirección del local:</strong> A confirmar al coordinar el retiro por WhatsApp.</p>
+                <p><strong>Dirección del local:</strong> 
+                  <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">
+                    {{ STORE_PICKUP_ADDRESS }}
+                  </a>
+                </p>
+                <p><strong>Horarios:</strong> {{ STORE_PICKUP_HOURS }}.</p>
               </div>
             </div>
           </section>
@@ -207,6 +214,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store'
 
 const lastUpdated = computed(() => {
   return new Date().toLocaleDateString('es-AR', {

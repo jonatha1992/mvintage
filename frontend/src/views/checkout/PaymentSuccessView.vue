@@ -64,6 +64,15 @@
           </div>
         </div>
         
+        <!-- Pickup Info -->
+        <div class="p-4 mb-8 text-sm text-gray-700 rounded-lg bg-gray-50">
+          <p class="font-medium text-gray-900">Retiro en el local</p>
+          <p class="mt-1">
+            <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="underline text-gray-900 hover:text-gray-600">{{ STORE_PICKUP_ADDRESS }}</a>
+          </p>
+          <p class="mt-1 text-gray-600">{{ STORE_PICKUP_HOURS }} cuando tu pedido esté listo para retirar.</p>
+        </div>
+
         <!-- Actions -->
         <div class="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
           <router-link
@@ -87,6 +96,7 @@
 
 <script setup lang="ts">
 import { formatPrice } from '../../utils/price'
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store'
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { paymentsApi } from '../../config/api';

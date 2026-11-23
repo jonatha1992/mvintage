@@ -16,9 +16,9 @@
 
       <div v-if="transferInfo" class="space-y-6">
         <!-- Datos de Transferencia -->
-        <div v-if="hasValidBankInfo" class="p-6 bg-white rounded-lg shadow">
+        <div class="p-6 bg-white rounded-lg shadow">
           <h2 class="flex items-center mb-6 text-xl font-medium text-gray-900">
-            <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
             Datos para Transferencia
@@ -28,32 +28,51 @@
             <div class="space-y-4">
               <div class="p-4 border border-gray-200 rounded">
                 <h3 class="mb-3 font-medium text-gray-900">Información Bancaria</h3>
-                <div class="space-y-2 text-sm">
-                  <div class="flex justify-between">
+                <div class="space-y-3 text-sm">
+                  <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-md bg-gray-50">
+                    <div>
+                      <span class="block text-xs text-gray-600">Alias</span>
+                      <span id="transfer-alias" class="font-mono text-lg font-semibold text-gray-900">{{ displayAlias }}</span>
+                    </div>
+                    <span class="copy-control">
+                      <button
+                        type="button"
+                        class="copy-button inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white transition-colors bg-gray-900 rounded-md hover:bg-gray-700"
+                        command="--copy"
+                        commandfor="transfer-alias"
+                      >
+                        <svg class="w-4 h-4 icon-copy" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <svg class="w-4 h-4 icon-check" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Copiar alias</span>
+                      </button>
+                      <span class="copy-tip" role="status"></span>
+                    </span>
+                  </div>
+                  <div v-if="hasValidBankInfo && transferInfo.bank_info.bank_name?.trim()" class="flex justify-between">
                     <span class="text-gray-600">Banco:</span>
                     <span class="font-medium">{{ transferInfo.bank_info.bank_name }}</span>
                   </div>
-                  <div class="flex justify-between">
+                  <div v-if="hasValidBankInfo && transferInfo.bank_info.account_type?.trim()" class="flex justify-between">
                     <span class="text-gray-600">Tipo de cuenta:</span>
                     <span class="font-medium">{{ transferInfo.bank_info.account_type }}</span>
                   </div>
-                  <div class="flex justify-between">
+                  <div v-if="hasValidBankInfo && transferInfo.bank_info.account_number?.trim()" class="flex justify-between">
                     <span class="text-gray-600">Número de cuenta:</span>
                     <span class="font-mono font-medium">{{ transferInfo.bank_info.account_number }}</span>
                   </div>
-                  <div class="flex justify-between">
+                  <div v-if="hasValidBankInfo && transferInfo.bank_info.cbu?.trim()" class="flex justify-between">
                     <span class="text-gray-600">CBU:</span>
                     <span class="font-mono font-medium">{{ transferInfo.bank_info.cbu }}</span>
                   </div>
-                  <div class="flex justify-between">
-                    <span class="text-gray-600">Alias:</span>
-                    <span class="font-medium">{{ transferInfo.bank_info.alias }}</span>
-                  </div>
-                  <div class="flex justify-between">
+                  <div v-if="hasValidBankInfo && transferInfo.bank_info.holder_name?.trim()" class="flex justify-between">
                     <span class="text-gray-600">Titular:</span>
                     <span class="font-medium">{{ transferInfo.bank_info.holder_name }}</span>
                   </div>
-                  <div class="flex justify-between">
+                  <div v-if="hasValidBankInfo && transferInfo.bank_info.cuit?.trim()" class="flex justify-between">
                     <span class="text-gray-600">CUIT:</span>
                     <span class="font-medium">{{ transferInfo.bank_info.cuit }}</span>
                   </div>
@@ -85,27 +104,26 @@
           </div>
         </div>
 
-        <!-- Datos por WhatsApp si falta información bancaria real -->
-        <div v-if="!hasValidBankInfo" class="p-6 text-center bg-white rounded-lg shadow">
-          <h2 class="mb-2 text-xl font-medium text-gray-900">Último paso: pedí los datos para transferir</h2>
-          <p class="mb-3 text-sm text-gray-600">Tocá el botón y se abre WhatsApp con tu pedido ya escrito. Isabella te responde con el CBU o alias.</p>
+        <!-- Enviar comprobante por WhatsApp -->
+        <div class="p-6 text-center bg-white rounded-lg shadow">
+          <h2 class="mb-2 text-xl font-medium text-gray-900">Enviá el comprobante por WhatsApp</h2>
           <p class="mb-4 text-sm text-gray-600">
-            Monto a transferir: <strong class="text-gray-900">{{ formatPrice(transferInfo.total_amount) }}</strong>
+            Una vez realizada la transferencia al alias <strong class="font-mono text-gray-900">{{ displayAlias }}</strong>, envianos el comprobante para confirmar tu pedido.
           </p>
           <a
             :href="whatsappTransferUrl"
             target="_blank"
-            rel="noopener"
+            rel="noopener noreferrer"
             class="inline-flex items-center justify-center px-6 py-3 font-medium text-white transition-colors bg-green-600 rounded-md hover:bg-green-700"
           >
-            Abrir WhatsApp y pedir los datos
+            Enviar comprobante por WhatsApp
           </a>
         </div>
 
         <!-- Instrucciones -->
-        <div v-if="hasValidBankInfo" class="p-6 bg-white rounded-lg shadow">
+        <div v-if="transferInfo.instructions?.length" class="p-6 bg-white rounded-lg shadow">
           <h2 class="flex items-center mb-4 text-xl font-medium text-gray-900">
-            <svg class="w-6 h-6 mr-2 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-6 h-6 mr-2 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Instrucciones Importantes
@@ -135,8 +153,13 @@
             </div>
             <div>
               <h3 class="mb-2 font-medium text-gray-900">Retiro en el local</h3>
-              <div class="text-sm text-gray-700">
-                <p>Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.</p>
+              <div class="space-y-1 text-sm text-gray-700">
+                <p>
+                  <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="underline text-gray-900 hover:text-gray-600">
+                    {{ STORE_PICKUP_ADDRESS }}
+                  </a>
+                </p>
+                <p>{{ STORE_PICKUP_HOURS }}. Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.</p>
                 <p v-if="customerInfo.delivery_notes" class="mt-1 text-gray-600">
                   Notas: {{ customerInfo.delivery_notes }}
                 </p>
@@ -149,17 +172,18 @@
         <div class="p-6 bg-white rounded-lg shadow">
           <div class="flex flex-col gap-4 sm:flex-row">
             <button
-              v-if="hasValidBankInfo"
+              type="button"
               @click="copyTransferData"
-              class="flex items-center justify-center flex-1 px-4 py-3 font-medium text-white transition-colors bg-gray-500 rounded-md hover:bg-gray-700"
+              class="flex items-center justify-center flex-1 px-4 py-3 font-medium text-white transition-colors bg-gray-700 rounded-md hover:bg-gray-900"
             >
-              <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
               Copiar Datos
             </button>
             
             <button
+              type="button"
               @click="goHome"
               class="flex-1 px-4 py-3 font-medium text-gray-700 transition-colors border border-gray-300 rounded-md hover:bg-gray-50"
             >
@@ -185,7 +209,8 @@
 <script setup lang="ts">
 import { formatPrice } from '../../utils/price'
 import { WHATSAPP_NUMBER } from '../../config/payments'
-import { ref, onMounted, computed } from 'vue';
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS, TRANSFER_ALIAS } from '../../config/store'
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import type { TransferInfo, Customer } from '../../types';
@@ -197,7 +222,67 @@ const orderData = ref<any>(null);
 const transferInfo = ref<TransferInfo | null>(null);
 const customerInfo = ref<Customer | any>({});
 
+const copyTimers = new WeakMap<HTMLElement, number>();
+let lastCopyMessage = '';
+
+const reportCopy = (button: HTMLElement, ok: boolean) => {
+  const tip = button.nextElementSibling as HTMLElement | null;
+  const existing = copyTimers.get(button);
+  if (existing) clearTimeout(existing);
+  button.removeAttribute('data-copied');
+  button.removeAttribute('data-failed');
+  let message = ok ? 'Copiado' : 'No se pudo copiar';
+  if (message === lastCopyMessage) message += '\u00A0';
+  lastCopyMessage = message;
+  if (tip) tip.textContent = '';
+  void button.offsetWidth;
+  button.setAttribute(ok ? 'data-copied' : 'data-failed', '');
+  requestAnimationFrame(() => {
+    if (tip) tip.textContent = message;
+  });
+  copyTimers.set(button, window.setTimeout(() => {
+    button.removeAttribute('data-copied');
+    button.removeAttribute('data-failed');
+    if (tip) tip.textContent = '';
+  }, 2000));
+};
+
+const copyFromTarget = async (button: HTMLElement, target: HTMLElement) => {
+  const text = target.innerText.trim();
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    reportCopy(button, true);
+  } catch {
+    reportCopy(button, false);
+  }
+};
+
+const handleCommandCopy = (event: Event) => {
+  const cmdEvent = event as Event & { command?: string; source?: HTMLElement | null; target?: EventTarget | null };
+  if (cmdEvent.command === '--copy' && cmdEvent.source && cmdEvent.target instanceof HTMLElement) {
+    copyFromTarget(cmdEvent.source, cmdEvent.target);
+  }
+};
+
+const handleFallbackClickCopy = (event: MouseEvent) => {
+  if (event.defaultPrevented) return;
+  const el = event.target instanceof Element ? event.target.closest<HTMLElement>('button[command="--copy"]') : null;
+  if (!el) return;
+  const targetId = el.getAttribute('commandfor');
+  const target = targetId ? document.getElementById(targetId) : null;
+  if (target) copyFromTarget(el, target);
+};
+
+const supportsCommandEvent = typeof window !== 'undefined' && 'CommandEvent' in window;
+
 onMounted(() => {
+  if (supportsCommandEvent) {
+    document.addEventListener('command', handleCommandCopy, true);
+  } else {
+    document.addEventListener('click', handleFallbackClickCopy);
+  }
+
   const storedData = localStorage.getItem('transfer_order');
   if (storedData) {
     try {
@@ -206,7 +291,6 @@ onMounted(() => {
       transferInfo.value = data.transfer_info;
       customerInfo.value = data.customer;
       
-      // Clear stored data to prevent reuse
       localStorage.removeItem('transfer_order');
     } catch (error) {
       toast.error('Error cargando datos de transferencia');
@@ -218,36 +302,54 @@ onMounted(() => {
   }
 });
 
+onUnmounted(() => {
+  if (supportsCommandEvent) {
+    document.removeEventListener('command', handleCommandCopy, true);
+  } else {
+    document.removeEventListener('click', handleFallbackClickCopy);
+  }
+});
+
 const hasValidBankInfo = computed(() => {
   const bank = transferInfo.value?.bank_info;
-  if (!bank?.cbu?.trim()) return false;
-  if (bank.alias?.trim().toLowerCase() === 'mvintage') return false;
-  if (bank.holder_name?.toLowerCase().includes('m-vintage')) return false;
+  const alias = bank?.alias?.trim() || '';
+  const cbu = bank?.cbu?.trim() || '';
+  if (!alias && !cbu) return false;
+  const lowerAlias = alias.toLowerCase();
+  if (lowerAlias === 'mvintage' || lowerAlias.includes('matilda')) return false;
+  const lowerHolder = (bank?.holder_name || '').toLowerCase();
+  if (lowerHolder.includes('m-vintage') || lowerHolder.includes('matilda')) return false;
   return true;
+});
+
+const displayAlias = computed(() => {
+  const alias = hasValidBankInfo.value ? transferInfo.value?.bank_info?.alias?.trim() : '';
+  return alias || TRANSFER_ALIAS;
 });
 
 const whatsappTransferUrl = computed(() => {
   const orderId = orderData.value?.order_id ?? '';
   const total = transferInfo.value?.total_amount ? ` por ${formatPrice(transferInfo.value.total_amount)}` : '';
-  const message = `Hola! Hice el pedido #${orderId}${total} en la tienda online y quiero pagar por transferencia. ¿Me pasás los datos?`;
+  const message = `Hola! Hice el pedido #${orderId}${total} y realicé la transferencia al alias ${displayAlias.value}. Te envío el comprobante.`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 });
 
 const copyTransferData = () => {
   if (!transferInfo.value) return;
-  
-  const data = `
-Datos de Transferencia - Orden #${orderData.value.order_id}
+  const bank = hasValidBankInfo.value ? transferInfo.value.bank_info : null;
+  const lines = [
+    `Datos de Transferencia - Orden #${orderData.value.order_id}`,
+    '',
+    `Alias: ${displayAlias.value}`,
+    bank?.bank_name?.trim() ? `Banco: ${bank.bank_name.trim()}` : '',
+    bank?.cbu?.trim() ? `CBU: ${bank.cbu.trim()}` : '',
+    bank?.holder_name?.trim() ? `Titular: ${bank.holder_name.trim()}` : '',
+    bank?.cuit?.trim() ? `CUIT: ${bank.cuit.trim()}` : '',
+    `Monto: ${formatPrice(transferInfo.value.total_amount)}`,
+    `Referencia: ${transferInfo.value.reference}`,
+  ].filter((line, idx) => idx === 1 || Boolean(line));
 
-Banco: ${transferInfo.value.bank_info.bank_name}
-CBU: ${transferInfo.value.bank_info.cbu}
-Alias: ${transferInfo.value.bank_info.alias}
-Titular: ${transferInfo.value.bank_info.holder_name}
-Monto: ${formatPrice(transferInfo.value.total_amount)}
-Referencia: ${transferInfo.value.reference}
-  `.trim();
-  
-  navigator.clipboard.writeText(data).then(() => {
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
     toast.success('Datos copiados al portapapeles');
   }).catch(() => {
     toast.error('Error copiando los datos');
@@ -258,3 +360,47 @@ const goHome = () => {
   router.push('/');
 };
 </script>
+
+<style scoped>
+.copy-control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.copy-button {
+  min-inline-size: 24px;
+  min-block-size: 36px;
+}
+.copy-button .icon-check {
+  display: none;
+}
+.copy-button[data-copied] .icon-copy {
+  display: none;
+}
+.copy-button[data-copied] .icon-check {
+  display: block;
+}
+.copy-tip {
+  position: absolute;
+  inset-block-end: calc(100% + 6px);
+  inset-inline-end: 0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #111827;
+  color: #fff;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+.copy-button[data-copied] + .copy-tip,
+.copy-button[data-failed] + .copy-tip {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .copy-tip {
+    transition: opacity 150ms linear;
+  }
+}
+</style>

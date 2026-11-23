@@ -5,7 +5,9 @@
 
       <div v-if="pickupInfo" class="mt-6">
         <p class="text-base text-gray-700 font-body">
-          Te contactaremos cuando el pedido esté listo para coordinar el retiro en Showroom Isabella.
+          Retiro en el local:
+          <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="underline text-gray-900 hover:text-gray-600">{{ STORE_PICKUP_ADDRESS }}</a>.
+          {{ STORE_PICKUP_HOURS }} cuando tu pedido esté listo.
         </p>
         <dl class="p-4 mt-5 space-y-2 rounded-md bg-gray-50">
           <div class="flex justify-between gap-4">
@@ -35,6 +37,7 @@
 
 <script setup lang="ts">
 import { formatPrice } from '../../utils/price'
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store'
 import { onMounted, ref } from 'vue'
 
 interface PickupInfo {
