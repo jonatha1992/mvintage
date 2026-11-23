@@ -72,7 +72,13 @@ class Settings(BaseSettings):
     # Alternativa: lista separada por comas, tiene prioridad si se define
     CORS_ORIGINS: Optional[str] = None
 
-    # MercadoPago Configuration
+    # PayAlert (Mercado Pago) Configuration
+    PAYALERT_URL: str = "https://payalert.tecnofusion.dev"
+    PAYALERT_API_KEY: str = ""
+    PAYALERT_ORIGIN: str = "https://showroomisabella-api.tecnofusion.dev"
+    PAYMENT_RETURN_URL: Optional[str] = None
+
+    # MercadoPago Configuration (legacy, unused)
     MERCADOPAGO_ACCESS_TOKEN: str = ""
     MERCADOPAGO_PUBLIC_KEY: str = ""
     MERCADOPAGO_WEBHOOK_SECRET: str = ""

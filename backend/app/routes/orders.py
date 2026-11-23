@@ -1,6 +1,6 @@
 from typing import List, Optional
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import logging
 from fastapi import APIRouter, Depends, HTTPException
@@ -23,7 +23,7 @@ from app.controllers.transfer_controller import transfer_controller
 from app.controllers.cash_controller import cash_controller
 from app.core.mailer import send_email, render_template
 from app.core.config import settings
-from app.routes.inventory import reduce_stock, restore_stock
+from app.routes.inventory import reduce_stock, release_order_stock_once, restore_stock
 
 # Configurar logger
 logger = logging.getLogger(__name__)
@@ -161,6 +161,8 @@ def create_order(
     # Establecer estado inicial según método de pago
     if db_order.payment_method == "mercadopago":
         db_order.payment_status = "pending_payment"
+        if db_order.payment_expires_at is None:
+            db_order.payment_expires_at = datetime.utcnow() + timedelta(minutes=15)
     else:
         db_order.payment_status = "pending"
 
@@ -172,27 +174,17 @@ def create_order(
     response = {"order": db_order}
 
     try:
-        if db_order.payment_method == "mercadopago":
-            # MercadoPago: Crear preferencia automáticamente
-            preference_data = payments_controller.create_preference(
-                db_order.id, session
-            )
-            response["payment_preference"] = preference_data
-
-        elif db_order.payment_method == "transfer":
-            # Transferencia: Configurar y obtener datos bancarios
+        if db_order.payment_method == "transfer":
             transfer_data = transfer_controller.create_transfer_order(
                 db_order.id, session
             )
             response["transfer_info"] = transfer_data
 
         elif db_order.payment_method == "cash":
-            # Efectivo: Calcular entrega y costos
             cash_data = cash_controller.create_cash_order(db_order.id, session)
             response["delivery_info"] = cash_data
 
     except Exception as e:
-        # Si falla la configuración específica, mantener la orden pero informar el error
         response["payment_error"] = str(e)
 
     # Send order confirmation email asynchronously
@@ -545,15 +537,17 @@ def update_order_status(
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
-    # Update payment status ONLY - do not touch shipping status
     if "status" in status_data:
         new_status = status_data["status"]
         if new_status in ["pending", "paid", "cancelled"]:
             logger.info(
                 f"Updating payment_status for order {order.id} from {order.payment_status} to {new_status}"
             )
+            if new_status == "cancelled":
+                release_order_stock_once(
+                    order, session, new_payment_status="cancelled", commit=False
+                )
             order.payment_status = new_status
-            # NOTE: We do NOT update order.status here - that's for shipping status only
         else:
             raise HTTPException(status_code=400, detail="Invalid payment status")
 
@@ -708,12 +702,7 @@ def delete_order(
         try:
             logger.info(f"Attempting to delete order {order_id}")
 
-            # Restaurar el stock de cada producto
-            for item in order_items:
-                if not restore_stock(item.product_id, item.quantity, session):
-                    logger.warning(
-                        f"No se pudo restaurar el stock para el producto {item.product_id}"
-                    )
+            release_order_stock_once(order, session, commit=False)
 
             # Eliminar la orden (los order_items se eliminarán en cascada)
             session.delete(order)

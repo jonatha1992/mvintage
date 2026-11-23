@@ -16,6 +16,9 @@ class Order(SQLModel, table=True):
     payment_status: str = Field(default="pending", max_length=20)
     mercadopago_payment_id: Optional[str] = Field(default=None)
     mercadopago_preference_id: Optional[str] = Field(default=None)
+    mercadopago_checkout_url: Optional[str] = Field(default=None)
+    payment_expires_at: Optional[datetime] = Field(default=None)
+    stock_released: bool = Field(default=False)
     
     # Delivery method
     delivery_method: Optional[str] = Field(

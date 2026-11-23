@@ -348,6 +348,16 @@ export const paymentsApi = {
   async getPaymentStatus(orderId: number): Promise<any> {
     const response = await apiClient.get(`/payments/status/${orderId}`);
     return response.data;
+  },
+
+  async getAdminConnectionStatus(): Promise<{ configured: boolean; connected: boolean; detail?: string; deposit_default?: number | null }> {
+    const response = await apiClient.get('/payments/admin/connection-status');
+    return response.data;
+  },
+
+  async reconcilePendingPayments(): Promise<Record<string, number>> {
+    const response = await apiClient.post('/payments/admin/reconcile');
+    return response.data;
   }
 };
 

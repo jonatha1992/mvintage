@@ -283,7 +283,7 @@ import { useRouter } from 'vue-router';
 import { useCartStore } from '../../store/cart';
 import { useAuthStore } from '../../store/auth';
 import { useToast } from 'vue-toastification';
-import { ordersApi, customersApi, orderItemsApi } from '../../config/api';
+import { ordersApi, customersApi, orderItemsApi, paymentsApi } from '../../config/api';
 import { COMPRAS_HABILITADAS, MERCADOPAGO_HABILITADO } from '../../config/payments';
 import { stockService } from '../../services/stockService';
 import { isValidPhone, formatE164, validationMessages } from '../../composables/useValidators';
@@ -593,6 +593,7 @@ const processOrder = async () => {
       const orderItemData: OrderItemCreate = {
         order_id: response.order.id,
         product_id: item.product.id,
+        variant_id: item.variant?.variant.id,
         quantity: item.quantity,
         price: itemPrice
       };
@@ -607,20 +608,25 @@ const processOrder = async () => {
     
     // Step 4: Handle different payment methods
     if (checkoutForm.value.paymentMethod === 'mercadopago') {
-      if (!response.payment_preference?.init_point) {
-        toast.error('El pago con Mercado Pago no está disponible en este momento. Probá con transferencia o escribinos por WhatsApp.');
+      try {
+        const preference = await paymentsApi.createPreference(response.order.id);
+        const checkoutUrl = preference?.checkoutUrl || preference?.checkout_url || preference?.init_point;
+        if (!checkoutUrl) {
+          toast.error('No se pudo obtener el enlace de pago de Mercado Pago. Tu carrito sigue guardado.');
+          return;
+        }
+        localStorage.setItem('pending_order', JSON.stringify({
+          order_id: response.order.id,
+          customer: customer,
+          total: cartStore.totalPrice,
+          items: cartStore.items
+        }));
+        window.location.href = checkoutUrl;
+      } catch (mpError: any) {
+        const detail = mpError?.response?.data?.detail;
+        toast.error(detail || 'El pago con Mercado Pago no está disponible en este momento. Tu carrito sigue guardado.');
         return;
       }
-      // Store order info for success page
-      localStorage.setItem('pending_order', JSON.stringify({
-        order_id: response.order.id,
-        customer: customer,
-        total: cartStore.totalPrice,
-        items: cartStore.items
-      }));
-      
-      // Redirect to MercadoPago
-      window.location.href = response.payment_preference.init_point;
     } else if (checkoutForm.value.paymentMethod === 'transfer') {
       // Clear cart and redirect to transfer instructions
       cartStore.clearCart();

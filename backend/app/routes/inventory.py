@@ -1,15 +1,18 @@
-from typing import List
+from typing import Any, Dict, List, Optional
 from datetime import datetime
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import Body
 from app.core.security import get_current_user
-from sqlmodel import Session, select
+from sqlalchemy import update
+from sqlmodel import Session, col, select
 
 from app.db.session import get_session
 from app.models.inventory import Inventory
-from app.models.product import Product
+from app.models.order import Order
+from app.models.order_item import OrderItem
+from app.models.product import Product, ProductVariant
 
 # Configurar logger
 logger = logging.getLogger(__name__)
@@ -88,122 +91,192 @@ def delete_inventory(*, session: Session = Depends(get_session), inventory_id: i
     return {"ok": True}
 
 
-def restore_stock(product_id: int, quantity: int, session: Session) -> bool:
-    """
-    Restaura el stock de un producto específico en la tabla products.
-    
-    Args:
-        product_id: ID del producto
-        quantity: Cantidad a restaurar
-        session: Sesión de base de datos
-        
-    Returns:
-        True si se restauró correctamente, False si hubo un error
-    """
+def restore_stock(
+    product_id: int,
+    quantity: int,
+    session: Session,
+    variant_id: Optional[int] = None,
+    commit: bool = True,
+) -> bool:
+    if quantity <= 0:
+        return False
     try:
-        # Obtener el producto
+        if variant_id is not None:
+            stmt = (
+                update(ProductVariant)
+                .where(
+                    ProductVariant.id == variant_id,
+                    ProductVariant.product_id == product_id,
+                )
+                .values(stock=ProductVariant.stock + quantity)
+            )
+            result = session.exec(stmt)
+            if result.rowcount != 1:
+                logger.error(f"Variante {variant_id} del producto {product_id} no encontrada")
+                return False
+            if commit:
+                session.commit()
+            else:
+                session.flush()
+            variant = session.get(ProductVariant, variant_id)
+            if variant is not None:
+                session.refresh(variant)
+            return True
+
         product = session.get(Product, product_id)
         if not product:
             logger.error(f"Producto con ID {product_id} no encontrado")
             return False
-            
-        # Actualizar el stock
+
         if product.stock is not None:
-            product.stock += quantity
+            stmt = (
+                update(Product)
+                .where(col(Product.id) == product_id)
+                .values(stock=col(Product.stock) + quantity)
+            )
+            session.exec(stmt)
         else:
             product.stock = quantity
-            
-        session.add(product)
-        session.commit()
-        logger.info(f"Stock restaurado para producto {product_id}. Nuevo stock: {product.stock}")
+            session.add(product)
+
+        if commit:
+            session.commit()
+        else:
+            session.flush()
+        session.refresh(product)
         return True
-        
     except Exception as e:
-        session.rollback()
+        if commit:
+            session.rollback()
         logger.error(f"Error al restaurar stock para producto {product_id}: {str(e)}")
         return False
 
 
-def reduce_stock(product_id: int, quantity: int, session: Session) -> bool:
-    """
-    Reduce el stock de un producto específico desde la tabla products.
-    
-    Args:
-        product_id: ID del producto
-        quantity: Cantidad a reducir
-        session: Sesión de base de datos
-        
-    Returns:
-        True si se redujo correctamente, False si no hay suficiente stock
-    """
-    try:
-        # Buscar el producto
-        product = session.get(Product, product_id)
-        
-        if not product:
-            print(f"❌ Producto {product_id} no encontrado")
-            return False
-        
-        # Para productos únicos, verificar stock en product.stock
-        if product.is_unique:
-            current_stock = product.stock or 0
-            
-            if current_stock < quantity:
-                print(f"❌ Stock insuficiente para producto único {product_id}. Disponible: {current_stock}, Solicitado: {quantity}")
-                return False
-            
-            # Reducir el stock del producto único
-            product.stock = current_stock - quantity
-            session.add(product)
-            session.commit()
-            
-            print(f"✅ Stock reducido para producto único {product_id}: -{quantity}. Stock restante: {product.stock}")
-            return True
-            
-        else:
-            # Para productos con variantes, necesitamos más información
-            # Por ahora, busquemos si hay inventario general
-            inventory_item = session.exec(
-                select(Inventory).where(Inventory.product_id == product_id)
-            ).first()
-            
-            if not inventory_item:
-                # Si no existe inventario, verificar stock total de variants
-                if not product.variants:
-                    print(f"❌ Producto {product_id} no tiene variantes ni inventario")
-                    return False
-                    
-                total_variant_stock = sum(variant.stock or 0 for variant in product.variants)
-                if total_variant_stock < quantity:
-                    print(f"❌ Stock insuficiente en variantes para producto {product_id}. Disponible: {total_variant_stock}, Solicitado: {quantity}")
-                    return False
-                else:
-                    # Crear registro de inventario para seguimiento futuro
-                    inventory_item = Inventory(
-                        product_id=product_id,
-                        quantity=total_variant_stock - quantity,
-                        last_update=datetime.now()
-                    )
-                    session.add(inventory_item)
-                    session.commit()
-                    print(f"✅ Stock reducido para producto con variantes {product_id}: -{quantity}. Inventario creado: {inventory_item.quantity}")
-                    return True
-            else:
-                # Si existe inventario, usar esa lógica
-                if inventory_item.quantity < quantity:
-                    print(f"❌ Stock insuficiente para producto {product_id}. Disponible: {inventory_item.quantity}, Solicitado: {quantity}")
-                    return False
-                
-                # Reducir el stock
-                inventory_item.quantity -= quantity
-                inventory_item.last_update = datetime.now()
-                session.add(inventory_item)
-                session.commit()
-                
-                print(f"✅ Stock reducido para producto {product_id}: -{quantity}. Stock restante: {inventory_item.quantity}")
-                return True
-        
-    except Exception as e:
-        print(f"❌ Error reduciendo stock para producto {product_id}: {str(e)}")
-        session.rollback()
+def reduce_stock(
+    product_id: int,
+    quantity: int,
+    session: Session,
+    variant_id: Optional[int] = None,
+    commit: bool = True,
+) -> bool:
+    if quantity <= 0:
         return False
+    try:
+        product = session.get(Product, product_id)
+        if not product:
+            return False
+
+        if variant_id is not None:
+            stmt = (
+                update(ProductVariant)
+                .where(
+                    ProductVariant.id == variant_id,
+                    ProductVariant.product_id == product_id,
+                    ProductVariant.stock >= quantity,
+                )
+                .values(stock=ProductVariant.stock - quantity)
+            )
+            result = session.exec(stmt)
+            if result.rowcount != 1:
+                return False
+            if commit:
+                session.commit()
+            else:
+                session.flush()
+            variant = session.get(ProductVariant, variant_id)
+            if variant is not None:
+                session.refresh(variant)
+            return True
+
+        if product.is_unique:
+            stmt = (
+                update(Product)
+                .where(
+                    col(Product.id) == product_id,
+                    col(Product.stock).is_not(None),
+                    col(Product.stock) >= quantity,
+                )
+                .values(stock=col(Product.stock) - quantity)
+            )
+            result = session.exec(stmt)
+            if result.rowcount != 1:
+                return False
+            if commit:
+                session.commit()
+            else:
+                session.flush()
+            session.refresh(product)
+            return True
+
+        inventory_item = session.exec(
+            select(Inventory).where(Inventory.product_id == product_id)
+        ).first()
+
+        if not inventory_item:
+            if not product.variants:
+                return False
+            total_variant_stock = sum(variant.stock or 0 for variant in product.variants)
+            if total_variant_stock < quantity:
+                return False
+            inventory_item = Inventory(
+                product_id=product_id,
+                quantity=total_variant_stock - quantity,
+                last_update=datetime.now(),
+            )
+            session.add(inventory_item)
+        else:
+            if inventory_item.quantity < quantity:
+                return False
+            inventory_item.quantity -= quantity
+            inventory_item.last_update = datetime.now()
+            session.add(inventory_item)
+
+        if commit:
+            session.commit()
+        else:
+            session.flush()
+        return True
+    except Exception as e:
+        logger.error(f"Error reduciendo stock para producto {product_id}: {str(e)}")
+        if commit:
+            session.rollback()
+        return False
+
+
+def release_order_stock_once(
+    order: Order,
+    session: Session,
+    new_payment_status: Optional[str] = None,
+    commit: bool = True,
+) -> bool:
+    values: Dict[str, Any] = {"stock_released": True}
+    if new_payment_status is not None:
+        values["payment_status"] = new_payment_status
+
+    stmt = (
+        update(Order)
+        .where(col(Order.id) == order.id, col(Order.stock_released).is_(False))
+        .values(**values)
+    )
+    result = session.exec(stmt)
+    if result.rowcount != 1:
+        return False
+
+    order_items = session.exec(
+        select(OrderItem).where(OrderItem.order_id == order.id)
+    ).all()
+    for item in order_items:
+        restore_stock(
+            item.product_id,
+            item.quantity,
+            session,
+            variant_id=item.variant_id,
+            commit=False,
+        )
+
+    if commit:
+        session.commit()
+    else:
+        session.flush()
+    session.refresh(order)
+    return True

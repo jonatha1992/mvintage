@@ -68,7 +68,16 @@
                     {{ order.items?.map((item: OrderItem) => item.product?.name).filter(Boolean).join(', ') || 'Sin productos' }}
                   </p>
                 </div>
-                <div class="flex-shrink-0">
+                <div class="flex items-center space-x-2 flex-shrink-0">
+                  <button
+                    v-if="canPayNow(order)"
+                    type="button"
+                    :disabled="payingOrderId === order.id"
+                    @click="payOrderNow(order)"
+                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-black border border-transparent rounded-md shadow-sm hover:bg-gray-800 disabled:opacity-60"
+                  >
+                    {{ payingOrderId === order.id ? 'Redirigiendo...' : 'Pagar ahora' }}
+                  </button>
                   <router-link
                     :to="{ path: `/orders/${order.id}`, state: { order } }"
                     class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50"
@@ -166,9 +175,9 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../store/auth';
 import { useToast } from 'vue-toastification';
-import { ordersApi } from '../../config/api';
+import { ordersApi, paymentsApi } from '../../config/api';
 import type { Order, OrderItem } from '../../types';
-import { WHATSAPP_NUMBER } from '../../config/payments';
+import { MERCADOPAGO_HABILITADO, WHATSAPP_NUMBER } from '../../config/payments';
 import { 
   getOrderPickupStatusConfig,
   getDeliveryMethodClass,
@@ -182,6 +191,36 @@ const toast = useToast();
 const orders = ref<Order[]>([]);
 const loading = ref(true);
 const hasError = ref(false);
+const payingOrderId = ref<number | null>(null);
+
+const canPayNow = (order: any) => {
+  if (!MERCADOPAGO_HABILITADO) return false;
+  if (order.payment_method !== 'mercadopago' || order.payment_status !== 'pending_payment') return false;
+  if (order.payment_expires_at && new Date(order.payment_expires_at).getTime() <= Date.now()) return false;
+  return true;
+};
+
+const payOrderNow = async (order: any) => {
+  if (!canPayNow(order)) return;
+  if (order.mercadopago_checkout_url) {
+    window.location.href = order.mercadopago_checkout_url;
+    return;
+  }
+  payingOrderId.value = order.id;
+  try {
+    const pref = await paymentsApi.createPreference(order.id);
+    const url = pref?.checkoutUrl || pref?.checkout_url || pref?.init_point;
+    if (!url) {
+      toast.error('No se pudo generar el enlace de pago.');
+      return;
+    }
+    window.location.href = url;
+  } catch (error: any) {
+    toast.error(error?.response?.data?.detail || 'No se pudo iniciar el pago con Mercado Pago.');
+  } finally {
+    payingOrderId.value = null;
+  }
+};
 
 onMounted(async () => {
   // Check authentication

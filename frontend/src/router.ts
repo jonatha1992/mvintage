@@ -12,6 +12,7 @@ import AdminOrdersView from './views/admin/AdminOrdersView.vue'
 import PaymentSuccessView from './views/checkout/PaymentSuccessView.vue'
 import PaymentFailureView from './views/checkout/PaymentFailureView.vue'
 import PaymentPendingView from './views/checkout/PaymentPendingView.vue'
+import PaymentReturnView from './views/checkout/PaymentReturnView.vue'
 import TransferInstructionsView from './views/checkout/TransferInstructionsView.vue'
 import CashConfirmationView from './views/checkout/CashConfirmationView.vue'
 import { useAuthStore } from './store/auth';
@@ -50,6 +51,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/orders/:id', component: OrderDetailView, meta: { requiresAuth: true } },
   { path: '/profile', component: ProfileView, meta: { requiresAuth: true } },
   // Payment result routes
+  { path: '/payment/return', component: PaymentReturnView },
   { path: '/payment/success', component: PaymentSuccessView },
   { path: '/payment/failure', component: PaymentFailureView },
   { path: '/payment/pending', component: PaymentPendingView },
