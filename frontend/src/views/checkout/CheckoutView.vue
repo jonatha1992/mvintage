@@ -286,7 +286,7 @@ import { useToast } from 'vue-toastification';
 import { ordersApi, customersApi, orderItemsApi, paymentsApi } from '../../config/api';
 import { COMPRAS_HABILITADAS, MERCADOPAGO_HABILITADO } from '../../config/payments';
 import { stockService } from '../../services/stockService';
-import { isValidPhone, formatE164, validationMessages } from '../../composables/useValidators';
+import { isValidPhone, formatE164, splitStoredPhone, validationMessages } from '../../composables/useValidators';
 import { useUserData } from '../../composables/useUserData';
 import type { PaymentMethod, Order, CustomerCreate, OrderItemCreate } from '../../types';
 import DeliveryProgress from '../../components/ui/DeliveryProgress.vue';
@@ -412,6 +412,9 @@ onMounted(async () => {
       // User has previous purchase data - auto-populate form
       const formData = getCheckoutFormData();
       Object.assign(checkoutForm.value, formData);
+      const storedPhone = splitStoredPhone(checkoutForm.value.phone, checkoutForm.value.phoneCountryCode || 'AR');
+      checkoutForm.value.phone = storedPhone.national;
+      checkoutForm.value.phoneCountryCode = storedPhone.country;
       
       usingPreviousData.value = true;
       

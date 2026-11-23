@@ -16,6 +16,17 @@ export function isValidPhone(phone: string, country: string = 'AR') {
     }
 }
 
+// "+5491159910666" -> { country: 'AR', national: '1159910666' } para mostrar en el campo con el prefijo aparte
+export function splitStoredPhone(phone: string, fallbackCountry: string = 'AR') {
+    if (!phone) return { country: fallbackCountry, national: '' };
+    const parsed = parsePhoneNumberFromString(phone, fallbackCountry as CountryCode);
+    if (!parsed) return { country: fallbackCountry, national: phone.replace(/\D/g, '') };
+    const country = parsed.country || fallbackCountry;
+    let national = String(parsed.nationalNumber);
+    if (country === 'AR' && national.length === 11 && national.startsWith('9')) national = national.slice(1);
+    return { country, national };
+}
+
 export function formatE164(phone: string, country: string = 'AR') {
     if (!phone) return phone;
     try {

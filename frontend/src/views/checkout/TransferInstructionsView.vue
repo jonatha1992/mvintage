@@ -87,7 +87,8 @@
 
         <!-- Datos por WhatsApp si falta información bancaria real -->
         <div v-if="!hasValidBankInfo" class="p-6 text-center bg-white rounded-lg shadow">
-          <h2 class="mb-3 text-xl font-medium text-gray-900">Te enviamos los datos para transferir por WhatsApp</h2>
+          <h2 class="mb-2 text-xl font-medium text-gray-900">Último paso: pedí los datos para transferir</h2>
+          <p class="mb-3 text-sm text-gray-600">Tocá el botón y se abre WhatsApp con tu pedido ya escrito. Isabella te responde con el CBU o alias.</p>
           <p class="mb-4 text-sm text-gray-600">
             Monto a transferir: <strong class="text-gray-900">{{ formatPrice(transferInfo.total_amount) }}</strong>
           </p>
@@ -97,7 +98,7 @@
             rel="noopener"
             class="inline-flex items-center justify-center px-6 py-3 font-medium text-white transition-colors bg-green-600 rounded-md hover:bg-green-700"
           >
-            Pedir datos por WhatsApp
+            Abrir WhatsApp y pedir los datos
           </a>
         </div>
 
@@ -227,7 +228,8 @@ const hasValidBankInfo = computed(() => {
 
 const whatsappTransferUrl = computed(() => {
   const orderId = orderData.value?.order_id ?? '';
-  const message = `Hola! Realicé el pedido #${orderId} y necesito los datos para transferir.`;
+  const total = transferInfo.value?.total_amount ? ` por ${formatPrice(transferInfo.value.total_amount)}` : '';
+  const message = `Hola! Hice el pedido #${orderId}${total} en la tienda online y quiero pagar por transferencia. ¿Me pasás los datos?`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 });
 
