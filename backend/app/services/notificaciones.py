@@ -51,6 +51,31 @@ class CorreoSender(Protocol):
         reply_to: Optional[str] = None,
     ) -> Optional[str]: ...
 
+    def send_bienvenida(
+        self,
+        *,
+        to: str,
+        subject: str,
+        nombre: str,
+        mensaje: Optional[str] = None,
+        boton: Optional[Dict[str, str]] = None,
+        idempotency_key: Optional[str] = None,
+        reply_to: Optional[str] = None,
+    ) -> Optional[str]: ...
+
+    def send_codigo(
+        self,
+        *,
+        to: str,
+        subject: str,
+        codigo: str,
+        vencimiento: str,
+        titulo: Optional[str] = None,
+        mensaje: Optional[str] = None,
+        idempotency_key: Optional[str] = None,
+        reply_to: Optional[str] = None,
+    ) -> Optional[str]: ...
+
 
 class CorreoCentralClient:
     def __init__(
@@ -79,34 +104,27 @@ class CorreoCentralClient:
     def is_configured(self) -> bool:
         return bool(self.api_key and self.base_url)
 
-    def send_aviso(
+    def _send_template(
         self,
         *,
+        template_id: str,
+        template_data: Dict[str, Any],
         to: str,
         subject: str,
-        titulo: str,
-        mensaje: str,
-        idempotency_key: str,
-        boton: Optional[Dict[str, str]] = None,
+        idempotency_key: Optional[str] = None,
         reply_to: Optional[str] = None,
     ) -> Optional[str]:
         if not self.is_configured:
             logger.warning("Notificaciones por correo desactivadas: falta CORREO_CENTRAL_API_KEY")
             return None
 
-        template_data: Dict[str, Any] = {
-            "titulo": titulo,
-            "mensaje": mensaje,
-        }
-        if boton:
-            template_data["boton"] = boton
-
         payload: Dict[str, Any] = {
             "to": to,
             "subject": subject,
-            "idempotencyKey": idempotency_key,
-            "template": {"id": "aviso", "data": template_data},
+            "template": {"id": template_id, "data": template_data},
         }
+        if idempotency_key:
+            payload["idempotencyKey"] = idempotency_key
         if reply_to:
             payload["replyTo"] = reply_to
 
@@ -142,6 +160,86 @@ class CorreoCentralClient:
         if not isinstance(message_id, str) or not message_id:
             raise CorreoCentralError("correo-central devolvió respuesta sin id")
         return message_id
+
+    def send_aviso(
+        self,
+        *,
+        to: str,
+        subject: str,
+        titulo: str,
+        mensaje: str,
+        idempotency_key: str,
+        boton: Optional[Dict[str, str]] = None,
+        reply_to: Optional[str] = None,
+    ) -> Optional[str]:
+        template_data: Dict[str, Any] = {
+            "titulo": titulo,
+            "mensaje": mensaje,
+        }
+        if boton:
+            template_data["boton"] = boton
+        return self._send_template(
+            template_id="aviso",
+            template_data=template_data,
+            to=to,
+            subject=subject,
+            idempotency_key=idempotency_key,
+            reply_to=reply_to,
+        )
+
+    def send_bienvenida(
+        self,
+        *,
+        to: str,
+        subject: str,
+        nombre: str,
+        mensaje: Optional[str] = None,
+        boton: Optional[Dict[str, str]] = None,
+        idempotency_key: Optional[str] = None,
+        reply_to: Optional[str] = None,
+    ) -> Optional[str]:
+        template_data: Dict[str, Any] = {"nombre": nombre}
+        if mensaje:
+            template_data["mensaje"] = mensaje
+        if boton:
+            template_data["boton"] = boton
+        return self._send_template(
+            template_id="bienvenida",
+            template_data=template_data,
+            to=to,
+            subject=subject,
+            idempotency_key=idempotency_key,
+            reply_to=reply_to,
+        )
+
+    def send_codigo(
+        self,
+        *,
+        to: str,
+        subject: str,
+        codigo: str,
+        vencimiento: str,
+        titulo: Optional[str] = None,
+        mensaje: Optional[str] = None,
+        idempotency_key: Optional[str] = None,
+        reply_to: Optional[str] = None,
+    ) -> Optional[str]:
+        template_data: Dict[str, Any] = {
+            "codigo": codigo,
+            "vencimiento": vencimiento,
+        }
+        if titulo:
+            template_data["titulo"] = titulo
+        if mensaje:
+            template_data["mensaje"] = mensaje
+        return self._send_template(
+            template_id="codigo",
+            template_data=template_data,
+            to=to,
+            subject=subject,
+            idempotency_key=idempotency_key,
+            reply_to=reply_to,
+        )
 
 
 @dataclass(frozen=True)
