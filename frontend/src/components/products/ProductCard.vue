@@ -2,24 +2,39 @@
   <router-link v-reveal="index" :to="`/product/${product.id}/${product.name}`" class="block h-full">
     <div class="flex flex-col h-full overflow-hidden transition-shadow duration-200 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-md group product-card">
       <!-- Imagen del producto -->
-      <div class="relative overflow-hidden aspect-square bg-gray-50">
+      <div
+        class="relative overflow-hidden aspect-square bg-gray-50"
+        @pointerenter="onPointerEnter"
+      >
         <!-- Imagen principal -->
-        <div class="absolute inset-0 pc-primary" :class="{ 'has-secondary': secondaryImage }">
+        <div class="absolute inset-0 pc-primary" :class="{ 'has-secondary': secondaryImage && shouldLoadHover }">
           <img
-            :src="primaryImage"
+            :src="primaryImageSrc"
+            :srcset="primaryImageSrcset"
+            :sizes="CARD_IMAGE_SIZES"
             :alt="product.name"
-            loading="lazy"
+            :loading="isFirstRow ? 'eager' : 'lazy'"
+            :fetchpriority="isPriorityCard ? 'high' : undefined"
+            :decoding="isFirstRow ? undefined : 'async'"
+            width="400"
+            height="400"
             class="object-cover w-full h-full"
             @error="handleImageError"
           />
         </div>
 
-        <!-- Imagen secundaria (hover) -->
-        <div v-if="secondaryImage" class="absolute inset-0 opacity-0 pc-secondary">
+        <!-- Imagen secundaria (hover: solo en dispositivos con hover fino, cargada en pointerenter) -->
+        <div v-if="secondaryImage && shouldLoadHover" class="absolute inset-0 opacity-0 pc-secondary">
           <img
-            :src="secondaryImage"
+            :src="secondaryImageSrc"
+            :srcset="secondaryImageSrcset"
+            :sizes="CARD_IMAGE_SIZES"
             :alt="product.name"
             loading="lazy"
+            decoding="async"
+            fetchpriority="low"
+            width="400"
+            height="400"
             class="object-cover w-full h-full"
             @error="handleImageError"
           />
@@ -89,53 +104,69 @@
 <script setup lang="ts">
 import { formatPrice } from '../../utils/price'
 import { vReveal } from '../../composables/useReveal'
+import { buildImageVariantUrl, buildImageSrcset } from '../../utils/imageUrl'
 import { defineProps, computed, ref } from 'vue';
 import type { Product } from '../../types/products/product.types';
 
-// Local SVG image from public directory
 const defaultImage = '/imagen-portada.svg';
+const CARD_IMAGE_SIZES = '(max-width: 639px) 46vw, (max-width: 1023px) 45vw, (max-width: 1279px) 30vw, 23vw';
 
 const props = defineProps<{
   product: Product;
   index?: number;
 }>();
 
-// Ref to track if primary image failed to load
 const primaryImageFailed = ref(false);
+const shouldLoadHover = ref(false);
 
-// Handle image load errors
+const isFirstRow = computed(() => (props.index ?? 0) < 4);
+const isPriorityCard = computed(() => (props.index ?? 0) < 2);
+
+const canHover = (): boolean =>
+  typeof window !== 'undefined' &&
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+const onPointerEnter = (event: PointerEvent) => {
+  if (shouldLoadHover.value || event.pointerType === 'touch' || !canHover()) return;
+  shouldLoadHover.value = true;
+};
+
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement;
   if (img.src !== defaultImage) {
     primaryImageFailed.value = true;
+    img.srcset = '';
     img.src = defaultImage;
   }
 };
 
-// Simplified image selection
 const primaryImage = computed(() => {
-  // If image failed, always use default
   if (primaryImageFailed.value) {
     return defaultImage;
   }
-
-  // Check if product has images and first image exists
   if (props.product.images && props.product.images[0] && props.product.images[0].image_url) {
     return props.product.images[0].image_url;
   }
-
-  // Default fallback
   return defaultImage;
 });
 
+const primaryImageSrc = computed(() => buildImageVariantUrl(primaryImage.value, 800));
+const primaryImageSrcset = computed(() => buildImageSrcset(primaryImage.value, [400, 800]));
+
 const secondaryImage = computed(() => {
-  // Return second image if available, otherwise null
   if (props.product.images && props.product.images[1] && props.product.images[1].image_url) {
     return props.product.images[1].image_url;
   }
-
   return null;
 });
+
+const secondaryImageSrc = computed(() =>
+  secondaryImage.value ? buildImageVariantUrl(secondaryImage.value, 800) : ''
+);
+const secondaryImageSrcset = computed(() =>
+  secondaryImage.value ? buildImageSrcset(secondaryImage.value, [400, 800]) : undefined
+);
 
 
 // Determinar si el producto está sin stock

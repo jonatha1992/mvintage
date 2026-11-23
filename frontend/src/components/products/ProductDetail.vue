@@ -49,11 +49,13 @@
               @click="openImageGallery(index)"
             >
               <img
-                :src="image.image_url"
+                :src="buildImageVariantUrl(image.image_url, 800)"
+                :srcset="buildImageSrcset(image.image_url, [400, 800])"
+                sizes="(max-width: 1023px) 100vw, 50vw"
                 :alt="`${product.name} - imagen ${index + 1}`"
                 :loading="index === 0 ? 'eager' : 'lazy'"
                 :fetchpriority="index === 0 ? 'high' : undefined"
-                decoding="async"
+                :decoding="index === 0 ? undefined : 'async'"
                 width="800"
                 height="1000"
                 class="object-cover object-center w-full h-full"
@@ -88,7 +90,7 @@
             :aria-label="`Ir a la imagen ${index + 1}`"
             @click="goToImage(index)"
           >
-            <img :src="image.image_url" alt="" loading="lazy" decoding="async" width="80" height="80" class="object-cover w-full h-full" />
+            <img :src="buildImageVariantUrl(image.image_url, 400)" alt="" loading="lazy" decoding="async" width="80" height="80" class="object-cover w-full h-full" />
           </button>
         </div>
       </section>
@@ -365,6 +367,7 @@
 
 <script setup lang="ts">
 import { formatPrice } from '../../utils/price'
+import { buildImageVariantUrl, buildImageSrcset } from '../../utils/imageUrl'
 import { ref, onMounted, computed, watch } from 'vue';
 import ImageGalleryModal from '../ui/ImageGalleryModal.vue';
 import { useRoute } from 'vue-router';
