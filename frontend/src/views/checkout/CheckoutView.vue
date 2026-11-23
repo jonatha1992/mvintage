@@ -607,7 +607,12 @@ const processOrder = async () => {
         throw error; // Re-throw to be caught by outer try-catch
       }
     }
-    
+
+    try {
+      await ordersApi.notifyOrderCreated(response.order.id);
+    } catch (notifyError) {
+      console.warn('No se pudo enviar la notificación del pedido:', notifyError);
+    }
     
     // Step 4: Handle different payment methods
     if (checkoutForm.value.paymentMethod === 'mercadopago') {

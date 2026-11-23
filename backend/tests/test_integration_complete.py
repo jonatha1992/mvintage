@@ -133,6 +133,7 @@ class TestCompleteEcommerceFlow:
             "customer_id": customer_id,
             "status": "pending",
             "total": 0.0,  # Se calculará con los items
+            "delivery_method": "retiro_local",
         }
         order_response = client.post(
             "/api/v1/orders/", json=order_data, headers=auth_cookie
@@ -395,6 +396,7 @@ class TestCompleteEcommerceFlow:
             "customer_id": customer_id,
             "status": "pending",
             "total": 80.0,  # 2 unidades
+            "delivery_method": "retiro_local",
         }
         order_response = client.post(
             "/api/v1/orders/", json=order_data, headers=auth_cookie
@@ -597,6 +599,7 @@ class TestBusinessRules:
             "customer_id": customer_id,
             "status": "pending",
             "total": 75.0,  # 3 × $25
+            "delivery_method": "retiro_local",
         }
         order_response = client.post(
             "/api/v1/orders/", json=order_data, headers=auth_cookie

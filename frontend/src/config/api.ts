@@ -369,6 +369,11 @@ export const ordersApi = {
     return response.data;
   },
 
+  async notifyOrderCreated(id: number): Promise<any> {
+    const response = await apiClient.post(`/orders/${id}/notify-created`);
+    return response.data;
+  },
+
   // Get all orders
   async getOrders(): Promise<any[]> {
     const response = await apiClient.get('/orders/');

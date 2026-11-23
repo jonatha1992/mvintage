@@ -126,7 +126,8 @@ class TestOrdersCRUD:
         order_data = {
             "customer_id": customer_id,
             "status": "pending",
-            "total": 100.0
+            "total": 100.0,
+            "delivery_method": "retiro_local"
         }
         response = client.post("/api/v1/orders/", json=order_data, headers=auth_cookie)
         assert response.status_code == 200
@@ -156,7 +157,8 @@ class TestOrdersCRUD:
         order_data = {
             "customer_id": customer_id,
             "status": "processing",
-            "total": 75.0
+            "total": 75.0,
+            "delivery_method": "retiro_local"
         }
         order_response = client.post("/api/v1/orders/", json=order_data, headers=auth_cookie)
         order_id = order_response.json()["order"]["id"]
@@ -220,7 +222,8 @@ class TestOrderItemsCRUD:
         order_data = {
             "customer_id": customer_id,
             "status": "pending",
-            "total": 50.0
+            "total": 50.0,
+            "delivery_method": "retiro_local"
         }
         order_response = client.post("/api/v1/orders/", json=order_data, headers=auth_cookie)
         order_id = order_response.json()["order"]["id"]
@@ -334,7 +337,8 @@ class TestEcommerceWorkflows:
         order_data = {
             "customer_id": customer_id,
             "status": "pending",
-            "total": 105.0  # 30 + 45*2 - se calculará con los items
+            "total": 105.0,  # 30 + 45*2 - se calculará con los items
+            "delivery_method": "retiro_local"
         }
         order_response = client.post("/api/v1/orders/", json=order_data, headers=auth_cookie)
         order_id = order_response.json()["order"]["id"]
@@ -436,7 +440,8 @@ class TestEcommerceValidation:
             order_data = {
                 "customer_id": customer_id,
                 "status": "pending",
-                "total": total
+                "total": total,
+                "delivery_method": "retiro_local"
             }
             response = client.post("/api/v1/orders/", json=order_data, headers=auth_cookie)
             assert response.status_code == 422, f"Should fail validation with total: {total}"
@@ -460,7 +465,8 @@ class TestEcommerceValidation:
         order_data = {
             "customer_id": customer_id,
             "status": "pending",
-            "total": 10.0
+            "total": 10.0,
+            "delivery_method": "retiro_local"
         }
         order_response = client.post("/api/v1/orders/", json=order_data, headers=auth_cookie)
         order_id = order_response.json()["order"]["id"]
@@ -510,7 +516,8 @@ class TestEcommerceErrorHandling:
         order_data = {
             "customer_id": 99999,
             "status": "pending",
-            "total": 50.0
+            "total": 50.0,
+            "delivery_method": "retiro_local"
         }
         response = client.post("/api/v1/orders/", json=order_data, headers=auth_cookie)
         assert response.status_code in [400, 422, 404]
@@ -546,7 +553,8 @@ class TestEcommerceErrorHandling:
         order_data = {
             "customer_id": customer_id,
             "status": "pending",
-            "total": 30.0
+            "total": 30.0,
+            "delivery_method": "retiro_local"
         }
         order_response = client.post("/api/v1/orders/", json=order_data, headers=auth_cookie)
         order_id = order_response.json()["order"]["id"]
