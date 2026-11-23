@@ -30,6 +30,18 @@
                 +54 9 11 7637-2876
               </a>
             </div>
+            <div class="flex items-start space-x-3">
+              <svg class="w-4 h-4 mt-0.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <div class="text-sm text-gray-300 font-body">
+                <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="underline transition-colors underline-offset-2 hover:text-white">
+                  {{ STORE_PICKUP_ADDRESS }}
+                </a>
+                <p class="text-xs text-gray-400">{{ STORE_PICKUP_HOURS }}</p>
+              </div>
+            </div>
           </div>
           
           <!-- Social Media -->
@@ -106,6 +118,7 @@
 
 <script setup lang="ts">
 import { MERCADOPAGO_HABILITADO } from '../../config/payments'
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store'
 
 const categories = ['BLUSA', 'BODY', 'CONJUNTO', 'PANTALON', 'REMERA', 'TOP', 'VESTIDO']
 </script>

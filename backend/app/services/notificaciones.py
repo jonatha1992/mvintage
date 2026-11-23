@@ -20,6 +20,7 @@ DEFAULT_CORREO_URL = "https://correo.tecnofusion.dev"
 DEFAULT_OWNER_EMAIL = "Showroomisabella@gmail.com"
 DEFAULT_WHATSAPP_NUMBER = "5491176372876"
 DEFAULT_STORE_PUBLIC_URL = "https://showroomisabella-ar.web.app"
+DEFAULT_STORE_PICKUP_ADDRESS = "Alonso Pareja 6542, González Catán (Buenos Aires)"
 DEFAULT_TIMEOUT_SECONDS = 5.0
 
 PAYMENT_METHOD_LABELS = {
@@ -358,11 +359,13 @@ class NotificacionesService:
         owner_email: Optional[str] = None,
         site_url: Optional[str] = None,
         whatsapp_number: Optional[str] = None,
+        pickup_address: Optional[str] = None,
     ):
         self.client: CorreoSender = client or CorreoCentralClient()
         self._owner_email = owner_email
         self._site_url = site_url
         self._whatsapp_number = whatsapp_number
+        self._pickup_address = pickup_address
 
     @property
     def owner_email(self) -> str:
@@ -378,6 +381,11 @@ class NotificacionesService:
     def whatsapp_number(self) -> str:
         raw = self._whatsapp_number if self._whatsapp_number is not None else settings.NOTIFY_WHATSAPP_NUMBER
         return (raw or DEFAULT_WHATSAPP_NUMBER).strip()
+
+    @property
+    def pickup_address(self) -> str:
+        raw = self._pickup_address if self._pickup_address is not None else settings.STORE_PICKUP_ADDRESS
+        return (raw or DEFAULT_STORE_PICKUP_ADDRESS).strip()
 
     def _safe_send(
         self,
@@ -454,18 +462,20 @@ class NotificacionesService:
                 f"Total: {total_str}",
                 f"Método de pago: {metodo_str}",
                 "Entrega: Retiro en el local",
+                f"Dirección: {self.pickup_address}",
+                "Coordiná el horario por WhatsApp cuando tu pedido esté listo.",
             ]
             if snapshot.payment_method == "transfer":
                 lines.extend([
                     "",
-                    "Para pagar pedí los datos por WhatsApp indicando tu número de pedido.",
+                    "Para pagar, transferí al alias Primoyanoo indicando tu número de pedido y enviá el comprobante por WhatsApp.",
                 ])
                 wa_text = (
-                    f"Hola! Quiero pedir los datos bancarios para pagar mi pedido #{snapshot.order_id} "
-                    f"en Showroom Isabella."
+                    f"Hola! Hice la transferencia del pedido #{snapshot.order_id} "
+                    f"en Showroom Isabella. Te envío el comprobante."
                 )
                 boton = {
-                    "texto": "Pedir datos por WhatsApp",
+                    "texto": "Enviar comprobante por WhatsApp",
                     "url": build_whatsapp_url(wa_text, self.whatsapp_number),
                 }
             else:
@@ -572,13 +582,14 @@ class NotificacionesService:
         items_lines = _format_items_lines(snapshot.items)
         lines = [
             f"Hola {snapshot.customer_name}, tu pedido #{snapshot.order_id} ya está listo para retirar en el local.",
+            f"Dirección: {self.pickup_address}",
         ]
         if items_lines:
             lines.extend(["", "Prendas:", *items_lines])
         lines.extend([
             "",
             f"Total: {total_str}",
-            "Escribinos por WhatsApp para coordinar el horario de retiro.",
+            "Coordiná el horario por WhatsApp para pasar a retirarlo.",
         ])
         wa_text = f"Hola! Recibí el aviso de que mi pedido #{snapshot.order_id} está listo para retirar."
         self._safe_send(

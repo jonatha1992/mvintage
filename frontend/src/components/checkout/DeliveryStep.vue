@@ -6,8 +6,13 @@
         <h3 id="pickup-title" class="text-lg font-medium text-gray-900 font-heading">
           Retiro en el local
         </h3>
+        <p class="mt-1 text-sm text-gray-700 font-body">
+          <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-900">
+            {{ STORE_PICKUP_ADDRESS }}
+          </a>
+        </p>
         <p class="mt-1 text-sm text-gray-600 font-body">
-          Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.
+          {{ STORE_PICKUP_HOURS }}. Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.
         </p>
       </div>
     </div>
@@ -31,6 +36,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { MapPinIcon } from '@heroicons/vue/24/outline'
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store'
 
 defineProps<{
   contactComplete: boolean

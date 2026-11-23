@@ -246,7 +246,11 @@
           <h2 class="mb-4 text-lg font-medium text-gray-900">Información de retiro</h2>
           <div class="space-y-1 text-sm text-gray-600">
             <p class="font-medium text-gray-900">{{ order.customer_name }}</p>
-            <p>Retiro en el local. Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.</p>
+            <p>
+              Retiro en el local:
+              <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="underline text-gray-900 hover:text-gray-600">{{ STORE_PICKUP_ADDRESS }}</a>.
+              {{ STORE_PICKUP_HOURS }} cuando tu pedido esté listo para retirar.
+            </p>
             <p v-if="order.delivery_notes" class="mt-2">
               <span class="font-medium">Notas:</span> {{ order.delivery_notes }}
             </p>
@@ -281,6 +285,7 @@ import { useAuthStore } from '../../store/auth';
 import { useToast } from 'vue-toastification';
 import { ordersApi, paymentsApi } from '../../config/api';
 import { MERCADOPAGO_HABILITADO } from '../../config/payments';
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store';
 import { 
   getOrderPickupStatusConfig,
   getPaymentStatusText 

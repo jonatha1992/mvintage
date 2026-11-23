@@ -92,6 +92,7 @@ class Settings(BaseSettings):
     NOTIFY_OWNER_EMAIL: str = "Showroomisabella@gmail.com"
     NOTIFY_WHATSAPP_NUMBER: str = "5491176372876"
     STORE_PUBLIC_URL: str = "https://showroomisabella-ar.web.app"
+    STORE_PICKUP_ADDRESS: str = "Alonso Pareja 6542, González Catán (Buenos Aires)"
 
     # App branding
     APP_NAME: str = "Showroom Isabella"

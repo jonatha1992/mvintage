@@ -63,7 +63,9 @@
             <div>
               <h2 class="mb-2 text-xl font-semibold text-gray-800 font-heading">Completa tus datos para el retiro</h2>
               <p class="font-body text-body-text">
-                Completá tus datos de contacto. Todas las compras se retiran en el local sin costo y te avisamos por WhatsApp cuando tu pedido esté listo para retirar.
+                Completá tus datos de contacto. Todas las compras se retiran sin costo en
+                <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="underline text-gray-900 hover:text-gray-600">{{ STORE_PICKUP_ADDRESS }}</a>.
+                {{ STORE_PICKUP_HOURS }} cuando tu pedido esté listo para retirar.
               </p>
             </div>
           </div>
@@ -132,6 +134,6 @@
 </template>
 
 <script setup lang="ts">
-// Información sobre cómo comprar
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store'
 </script>
 

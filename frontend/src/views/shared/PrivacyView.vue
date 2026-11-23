@@ -244,7 +244,12 @@
                     @showroomisabella_
                   </a>
                 </p>
-                <p><strong>Dirección del local:</strong> A confirmar al coordinar el retiro por WhatsApp.</p>
+                <p><strong>Dirección del local:</strong> 
+                  <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">
+                    {{ STORE_PICKUP_ADDRESS }}
+                  </a>
+                </p>
+                <p><strong>Horarios:</strong> {{ STORE_PICKUP_HOURS }}.</p>
               </div>
               
               <div class="mt-4 pt-4 border-t border-gray-300">
@@ -263,6 +268,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store'
 
 const lastUpdated = computed(() => {
   return new Date().toLocaleDateString('es-AR', {

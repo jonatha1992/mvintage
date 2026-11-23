@@ -150,6 +150,11 @@
                   <span class="font-medium text-gray-700 font-body">Modalidad:</span>
                   <span class="text-gray-900 font-body">Retiro en el local</span>
                 </div>
+                <div class="flex justify-between gap-4">
+                  <span class="font-medium text-gray-700 font-body">Dirección:</span>
+                  <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="text-right text-gray-900 underline font-body hover:text-gray-600">{{ STORE_PICKUP_ADDRESS }}</a>
+                </div>
+                <p class="text-xs text-gray-600 font-body">{{ STORE_PICKUP_HOURS }}.</p>
               </div>
             </div>
           </div>
@@ -284,7 +289,8 @@ import { useCartStore } from '../../store/cart';
 import { useAuthStore } from '../../store/auth';
 import { useToast } from 'vue-toastification';
 import { ordersApi, customersApi, orderItemsApi, paymentsApi } from '../../config/api';
-import { COMPRAS_HABILITADAS, MERCADOPAGO_HABILITADO } from '../../config/payments';
+import { COMPRAS_HABILITADAS, MERCADOPAGO_HABILITADO } from '../../config/payments'
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store'
 import { stockService } from '../../services/stockService';
 import { isValidPhone, formatE164, splitStoredPhone, validationMessages } from '../../composables/useValidators';
 import { useUserData } from '../../composables/useUserData';

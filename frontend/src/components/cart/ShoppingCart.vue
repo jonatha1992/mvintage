@@ -132,6 +132,9 @@
               <span class="text-gray-600 font-body">Retiro en el local</span>
               <span class="text-gray-900 font-body">Gratis</span>
             </div>
+            <p class="text-xs text-gray-500 font-body">
+              <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-800">{{ STORE_PICKUP_ADDRESS }}</a> · {{ STORE_PICKUP_HOURS }}.
+            </p>
 
             <!-- Total -->
             <div class="pt-2 border-t border-gray-200">
@@ -228,6 +231,7 @@ import { useAuthStore } from '../../store/auth';
 import { useToast } from 'vue-toastification';
 import { useCartModal } from '../../composables/useCartModal';
 import { COMPRAS_HABILITADAS, WHATSAPP_NUMBER } from '../../config/payments';
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store';
 
 // Props
 interface Props {
