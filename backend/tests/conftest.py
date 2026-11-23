@@ -18,6 +18,7 @@ os.environ["ENVIRONMENT"] = "dev"
 os.environ["DATABASE_URL"] = "sqlite://"
 
 from app.core.auth_firebase import verify_firebase_token
+from app.core.rate_limit import default_rate_limiter
 from app.db.session import get_session
 from app.main import app
 from app.models.role import Role
@@ -57,6 +58,7 @@ def db_session(setup_database):
 
 @pytest.fixture()
 def client(db_session):
+    default_rate_limiter.reset()
     def override_get_session():
         yield db_session
 

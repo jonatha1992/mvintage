@@ -70,7 +70,7 @@ export function useAddressAutocomplete() {
 
       const response = await fetch(url.toString(), {
         headers: {
-          'User-Agent': 'ShowroomIsabella-App/1.0 (Showroomisabellaa@gmail.com)'
+          'User-Agent': 'ShowroomIsabella-App/1.0 (Showroomisabella@gmail.com)'
         }
       })
 

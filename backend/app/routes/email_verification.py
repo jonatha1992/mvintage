@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from app.core.rate_limit import rate_limit
 from app.db.session import get_session
 from app.models.email_verification import (
     EmailVerificationToken, 
@@ -16,7 +17,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/email-verification", tags=["Email Verification"])
 
 
-@router.post("/verify", response_model=EmailVerificationResponse)
+@router.post(
+    "/verify",
+    response_model=EmailVerificationResponse,
+    dependencies=[Depends(rate_limit("email_verify", limit=10, window_seconds=60))],
+)
 def verify_email(
     request: EmailVerificationRequest,
     db: Session = Depends(get_session)
@@ -96,7 +101,11 @@ def verify_email(
         raise HTTPException(status_code=500, detail="Error interno del servidor")
 
 
-@router.post("/resend", response_model=EmailVerificationResponse)
+@router.post(
+    "/resend",
+    response_model=EmailVerificationResponse,
+    dependencies=[Depends(rate_limit("email_resend", limit=5, window_seconds=60))],
+)
 def resend_verification_email(
     email: str,
     db: Session = Depends(get_session)

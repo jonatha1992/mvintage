@@ -124,7 +124,7 @@ class EmailService {
         payment_method: this.getPaymentMethodText(data.payment_method),
         failure_message: 'Tu pago no pudo ser procesado correctamente.',
         retry_instructions: 'Puedes intentar nuevamente o contactarnos para asistencia.',
-        support_email: 'Showroomisabellaa@gmail.com',
+        support_email: 'Showroomisabella@gmail.com',
         ...data.additional_data
       };
 

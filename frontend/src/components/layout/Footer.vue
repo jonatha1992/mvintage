@@ -18,8 +18,8 @@
               <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
               </svg>
-              <a href="mailto:Showroomisabellaa@gmail.com" class="text-sm text-gray-300 transition-colors font-body hover:text-white">
-                Showroomisabellaa@gmail.com
+              <a href="mailto:Showroomisabella@gmail.com" class="text-sm text-gray-300 transition-colors font-body hover:text-white">
+                Showroomisabella@gmail.com
               </a>
             </div>
             <div class="flex items-center space-x-3">
