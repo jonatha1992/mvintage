@@ -3,9 +3,9 @@
     <div class="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
       <!-- Header -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 font-heading">Gestión de Envíos</h1>
-        <p class="mt-2 text-sm text-gray-600 font-body">
-          Administra pedidos, asigna números de seguimiento y controla el estado de los envíos
+        <h1 class="text-3xl font-bold text-gray-900 font-heading">Gestión de Retiros</h1>
+        <p class="mt-2 text-gray-600 font-body">
+          Administrá pedidos y controlá el estado de los retiros en el local
         </p>
       </div>
 
@@ -45,7 +45,7 @@
               </div>
               <div class="flex-1 w-0 ml-5">
                 <dl>
-                  <dt class="text-sm font-medium text-gray-600 truncate font-body">Pendientes de Envío</dt>
+                  <dt class="text-sm font-medium text-gray-600 truncate font-body">Pendientes de Retiro</dt>
                   <dd class="text-lg font-medium text-gray-900 font-body">{{ statistics.pending_shipment }}</dd>
                 </dl>
               </div>
@@ -81,7 +81,7 @@
               </div>
               <div class="flex-1 w-0 ml-5">
                 <dl>
-                  <dt class="text-sm font-medium text-gray-600 truncate font-body">Tasa de Envío</dt>
+                  <dt class="text-sm font-medium text-gray-600 truncate font-body">Tasa de Retiro</dt>
                   <dd class="text-lg font-medium text-gray-900 font-body">{{ statistics.shipping_rate_percent }}%</dd>
                 </dl>
               </div>
@@ -257,9 +257,9 @@
                   </span>
                 </td>
                 <td class="px-2 py-3 whitespace-nowrap">
-                  <span :class="getShippingStatusClass(order.shipping_status || order.status)" 
+                  <span :class="getOrderPickupStatusConfig(order).class" 
                     class="inline-flex px-1 py-0.5 text-xs font-medium rounded">
-                    {{ getShippingStatusText(order.shipping_status || order.status) }}
+                    {{ getOrderPickupStatusConfig(order).text }}
                   </span>
                 </td>
                 <td class="px-2 py-3 whitespace-nowrap">
@@ -332,30 +332,30 @@
                   </div>
                   <div class="w-full mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <h3 class="text-lg font-medium leading-6 text-gray-900">
-                      Gestionar Envío - Pedido #{{ selectedOrder?.order_id }}
+                      Gestionar retiro - Pedido #{{ selectedOrder?.order_id }}
                     </h3>
                     <div class="grid grid-cols-1 gap-4">
                       <!-- Current Status Display -->
                       <div class="p-3 rounded-md bg-gray-50">
                         <label class="block text-sm font-medium text-gray-700">Estado Actual:</label>
-                        <span :class="getShippingStatusClass(selectedOrder?.shipping_status || selectedOrder?.status)" class="inline-flex px-2 py-1 text-xs font-medium rounded">
-                          {{ getShippingStatusText(selectedOrder?.shipping_status || selectedOrder?.status) }}
+                        <span :class="getOrderPickupStatusConfig(selectedOrder).class" class="inline-flex px-2 py-1 text-xs font-medium rounded">
+                          {{ getOrderPickupStatusConfig(selectedOrder).text }}
                         </span>
                       </div>
                       
                       <!-- Status Change Selector -->
                       <div>
                         <label for="shippingStatusSelect" class="block mb-1 text-sm font-medium text-gray-700">
-                          Cambiar Estado de Envío
+                          Cambiar estado del pedido
                         </label>
                         <select 
                           id="shippingStatusSelect" 
                           v-model="newShippingStatus" 
                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                           <option value="">Mantener estado actual</option>
-                          <option value="pending">🟡 Pendiente (pedido creado)</option>
-                          <option value="prepared">🔵 Preparado (listo para enviar)</option>
-                          <option value="shipped">🟣 Enviado (llevado al correo)</option>
+                          <option value="pending">Pendiente de pago</option>
+                          <option value="prepared">Listo para retirar</option>
+                          <option value="delivered">Retirado</option>
                         </select>
                       </div>
                       
@@ -555,9 +555,9 @@
                   <div class="space-y-2">
                     <div>
                       <span class="text-xs text-gray-500">Estado del Pago:</span>
-                      <span  
+                      <span :class="getPaymentStatusClass(selectedOrder.payment_status)"
                         class="inline-flex px-2 py-1 ml-1 text-xs font-semibold rounded-full">
-                        {{ getShippingStatusText(selectedOrder.payment_status) }}
+                        {{ getPaymentStatusText(selectedOrder.payment_status) }}
                       </span>
                     </div>
                     <div>
@@ -575,42 +575,23 @@
                   </div>
                 </div>
 
-                <!-- Shipping Information -->
+                <!-- Pickup Information -->
                 <div class="p-4 rounded-lg bg-gray-50 md:col-span-2">
-                  <h4 class="mb-3 text-sm font-semibold text-gray-900">Información de Envío</h4>
+                  <h4 class="mb-3 text-sm font-semibold text-gray-900">Información de Retiro</h4>
                   <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <span class="text-xs text-gray-500">Dirección de Envío:</span>
-                      <p class="text-sm text-gray-900">
-                        {{ getFormattedAddress(selectedOrder) || 'No especificada' }}
-                      </p>
-                    </div>
-                    <div>
-                      <span class="text-xs text-gray-500">Método de Entrega:</span>
+                      <span class="text-xs text-gray-500">Modalidad:</span>
                       <span :class="getDeliveryMethodClass(selectedOrder.delivery_method)" 
                         class="inline-flex px-2 py-1 ml-1 text-xs font-semibold rounded-full">
                         {{ getDeliveryMethodText(selectedOrder.delivery_method) }}
                       </span>
                     </div>
                     <div>
-                      <span class="text-xs text-gray-500">Estado de Envío:</span>
-                      <span :class="getShippingStatusClass(selectedOrder.shipping_status)" 
+                      <span class="text-xs text-gray-500">Estado del Retiro:</span>
+                      <span :class="getOrderPickupStatusConfig(selectedOrder).class" 
                         class="inline-flex px-2 py-1 ml-1 text-xs font-semibold rounded-full">
-                        {{ getShippingStatusText(selectedOrder.shipping_status) }}
+                        {{ getOrderPickupStatusConfig(selectedOrder).text }}
                       </span>
-                    </div>
-                    <div v-if="selectedOrder.tracking_number">
-                      <span class="text-xs text-gray-500">Número de Seguimiento:</span>
-                      <p class="font-mono text-sm text-gray-900">{{ selectedOrder.tracking_number }}</p>
-                      <p v-if="selectedOrder.provider_name" class="text-xs text-gray-500">{{ selectedOrder.provider_name }}</p>
-                    </div>
-                  </div>
-                  <div v-if="selectedOrder.shipped_at" class="mt-4">
-                    <span class="text-xs text-gray-500">Fecha de Envío:</span>
-                    <p class="text-sm text-gray-900">{{ formatDate(selectedOrder.shipped_at) }}</p>
-                    <div v-if="selectedOrder.estimated_delivery" class="mt-1">
-                      <span class="text-xs text-gray-500">Fecha Estimada de Entrega:</span>
-                      <p class="text-sm text-gray-900">{{ formatDate(selectedOrder.estimated_delivery) }}</p>
                     </div>
                   </div>
                 </div>
@@ -655,8 +636,7 @@ import { ordersApi } from '../../config/api';
 import { 
   getPaymentStatusClass, 
   getPaymentStatusText,
-  getShippingStatusClass, 
-  getShippingStatusText,
+  getOrderPickupStatusConfig,
   getDeliveryMethodClass,
   getDeliveryMethodText 
 } from '../../utils/orderStatusUtils';
@@ -707,9 +687,9 @@ const getCustomerPhone = (order: Order | null): string => {
 const getPaymentMethodText = (method: string | undefined): string => {
   if (!method) return 'No especificado';
   const methodTexts: Record<string, string> = {
-    'transfer': 'Transferencia Bancaria',
-    'mercadopago': 'MercadoPago',
-    'cash': 'Efectivo Contra Entrega'
+    'transfer': 'Transferencia bancaria',
+    'mercadopago': 'Mercado Pago',
+    'cash': 'Efectivo'
   };
   return methodTexts[method.toLowerCase()] || method;
 };
@@ -935,15 +915,16 @@ const saveTrackingInfo = async () => {
       toast.success(`Estado cambiado a ${statusMessages[newShippingStatus.value] || newShippingStatus.value} y tracking agregado`);
     } else if (newShippingStatus.value) {
       const statusMessages: Record<string, string> = {
-        'pending': 'Estado cambiado a Pendiente',
-        'prepared': 'Estado cambiado a Preparado',
-        'shipped': 'Estado cambiado a Enviado'
+        'pending': 'Estado cambiado a Pendiente de pago',
+        'prepared': 'Estado cambiado a Listo para retirar',
+        'shipped': 'Estado cambiado a Listo para retirar',
+        'delivered': 'Estado cambiado a Retirado'
       };
       toast.success(statusMessages[newShippingStatus.value] || `Estado cambiado a ${newShippingStatus.value}`);
     } else if (trackingForm.value.trackingNumber) {
-      toast.success('Número de seguimiento agregado - El pedido ahora está marcado como enviado');
+      toast.success('Estado de retiro actualizado');
     } else {
-      toast.success('Información de envío actualizada');
+      toast.success('Información de retiro actualizada');
     }
     
     // Reset form
@@ -953,7 +934,7 @@ const saveTrackingInfo = async () => {
     };
     newShippingStatus.value = '';
   } catch (error) {
-    toast.error('Error al guardar la información de envío');
+    toast.error('Error al guardar la información de retiro');
   } finally {
     trackingLoading.value = false;
   }
@@ -1126,11 +1107,11 @@ const updateOrderShipping = async (orderId: number, shippingData: any) => {
   try {
     await ordersApi.updateOrderShipping(orderId, shippingData);
     
-    toast.success('Información de envío actualizada exitosamente');
+    toast.success('Información de retiro actualizada exitosamente');
     closeShippingModal();
     await loadOrders();
   } catch (error) {
-    toast.error('Error al actualizar la información de envío');
+    toast.error('Error al actualizar la información de retiro');
   }
 };
 

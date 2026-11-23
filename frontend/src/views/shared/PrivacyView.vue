@@ -33,7 +33,7 @@
               <li>Nombre completo</li>
               <li>Dirección de correo electrónico</li>
               <li>Número de teléfono</li>
-              <li>Dirección de entrega y facturación</li>
+              <li>Datos de facturación y contacto</li>
               <li>Información de pago (procesada de forma segura)</li>
               <li>Historial de compras</li>
             </ul>

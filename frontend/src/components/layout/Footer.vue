@@ -70,7 +70,7 @@
           <h4 class="mb-4 text-sm font-medium tracking-wide text-white uppercase font-body">Ayuda</h4>
           <ul class="space-y-3">
             <li><router-link to="/contact" class="text-sm text-gray-300 transition-colors duration-200 font-body hover:text-white">Contacto</router-link></li>
-            <li><router-link to="/shipping" class="text-sm text-gray-300 transition-colors duration-200 font-body hover:text-white">Retiro y devoluciones</router-link></li>
+            <li><router-link to="/shipping" class="text-sm text-gray-300 transition-colors duration-200 font-body hover:text-white">Retiro en el local</router-link></li>
             <li><router-link to="/how-to-shop" class="text-sm text-gray-300 transition-colors duration-200 font-body hover:text-white">Guía de Compra</router-link></li>
             <li><router-link to="/size-guide" class="text-sm text-gray-300 transition-colors duration-200 font-body hover:text-white">Guía de Talles</router-link></li>
           </ul>
@@ -78,7 +78,9 @@
       </div>
 
       <!-- Payment Methods -->
-      <p class="pt-6 mt-8 text-sm text-center text-gray-400 border-t border-gray-800 font-body">Medios de pago: Mercado Pago y transferencia bancaria. Retiro en el local.</p>
+      <p class="pt-6 mt-8 text-sm text-center text-gray-400 border-t border-gray-800 font-body">
+        {{ MERCADOPAGO_HABILITADO ? 'Medios de pago: Mercado Pago y transferencia bancaria. Retiro en el local.' : 'Medios de pago: transferencia bancaria. Retiro en el local.' }}
+      </p>
 
       <!-- Bottom Section -->
       <div class="pt-6 mt-6 border-t border-gray-800">
@@ -103,5 +105,7 @@
 </template>
 
 <script setup lang="ts">
+import { MERCADOPAGO_HABILITADO } from '../../config/payments'
+
 const categories = ['BLUSA', 'BODY', 'CONJUNTO', 'PANTALON', 'REMERA', 'TOP', 'VESTIDO']
 </script>

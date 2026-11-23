@@ -24,7 +24,7 @@
         ></div>
       </div>
 
-      <!-- Step 2: Entrega -->
+      <!-- Step 2: Retiro -->
       <div class="flex flex-col items-center">
         <button 
           @click="$emit('go-to-step', 2)"
@@ -36,15 +36,10 @@
             currentStep === 2 ? 'ring-2 ring-gray-800 ring-offset-2' : ''
           ]"
         >
-          <svg v-if="currentStep > 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-slot="icon" class="w-4 h-4">
-            <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd" />
-          </svg>
-          <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-slot="icon" class="w-4 h-4">
-            <path d="M3.375 4.5C2.339 4.5 1.5 5.34 1.5 6.375V13.5h12V6.375c0-1.036-.84-1.875-1.875-1.875h-8.25ZM13.5 15h-12v2.625c0 1.035.84 1.875 1.875 1.875h.375a3 3 0 1 1 6 0h3a.75.75 0 0 0 .75-.75V15Z" />
-            <path d="M8.25 19.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0ZM15.75 6.75a.75.75 0 0 0-.75.75v11.25c0 .087.015.17.042.248a3 3 0 0 1 5.958.464c.853-.175 1.522-.935 1.538-1.85l.8-8.566a.75.75 0 0 0-.729-.796h-6.109ZM21 18.75a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" />
-          </svg>
+          <CheckIcon v-if="currentStep > 2" class="w-4 h-4" />
+          <MapPinIcon v-else class="w-4 h-4" />
         </button>
-        <span class="mt-2 text-xs font-body text-body-text">Entrega</span>
+        <span class="mt-2 text-xs font-body text-body-text">Retiro</span>
       </div>
 
       <!-- Progress Line 2 -->
@@ -84,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { CheckIcon, ShoppingCartIcon, TruckIcon, CreditCardIcon, UserIcon } from '@heroicons/vue/24/solid'
+import { CheckIcon, ShoppingCartIcon, MapPinIcon } from '@heroicons/vue/24/solid'
 
 interface Props {
   currentStep: number

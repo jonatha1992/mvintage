@@ -228,9 +228,6 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium font-body text-body-text">${{ order.total?.toLocaleString() }}</div>
-                  <div v-if="order.delivery_cost" class="text-xs font-body text-body-text">
-                    Envío: ${{ order.delivery_cost.toLocaleString() }}
-                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class="font-body inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"

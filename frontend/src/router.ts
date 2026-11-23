@@ -15,6 +15,7 @@ import PaymentPendingView from './views/checkout/PaymentPendingView.vue'
 import TransferInstructionsView from './views/checkout/TransferInstructionsView.vue'
 import CashConfirmationView from './views/checkout/CashConfirmationView.vue'
 import { useAuthStore } from './store/auth';
+import { COMPRAS_HABILITADAS } from './config/payments';
 import { auth } from './config/index'; // Importar auth
 import { globalProgressBar } from './composables/useProgressBar';
 import ContactView from './views/shared/ContactView.vue';
@@ -29,7 +30,6 @@ import VerifyEmailView from './views/auth/VerifyEmailView.vue';
 import ProfileView from './views/profile/ProfileView.vue';
 import AdminViewProduct from './views/admin/AdminViewProduct.vue';
 import SizeGuideView from './views/shared/SizeGuideView.vue';
-import ShippingTestView from './views/test/ShippingTestView.vue';
 
 const routes: RouteRecordRaw[] = [
   { path: '/', component: HomeView },
@@ -41,11 +41,10 @@ const routes: RouteRecordRaw[] = [
   { path: '/verify-email', component: VerifyEmailView },
   { path: '/contact', component: ContactView },
   { path: '/how-to-shop', component: HowToShopView },
-  { path: '/shipping', component: ShippingView },
+  { path: '/shipping', component: ShippingView, alias: '/retiro' },
   { path: '/terms', component: TermsView },
   { path: '/privacy', component: PrivacyView },
   { path: '/size-guide', component: SizeGuideView, alias: '/guia-de-talles' },
-  { path: '/test/shipping', component: ShippingTestView },
   // Orders routes
   { path: '/orders', component: OrdersView, meta: { requiresAuth: true } },
   { path: '/orders/:id', component: OrderDetailView, meta: { requiresAuth: true } },
@@ -143,6 +142,12 @@ router.beforeEach(async (to, from, next) => {
       next('/');
       return;
     }
+  }
+
+  // Si las compras online están deshabilitadas, redirigir /checkout al carrito
+  if (!COMPRAS_HABILITADAS && to.path === '/checkout') {
+    next('/cart');
+    return;
   }
 
   // Verificar si la ruta requiere autenticación

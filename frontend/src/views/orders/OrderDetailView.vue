@@ -45,8 +45,8 @@
               </p>
             </div>
             <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full"
-              :class="getShippingStatusClass(order.shipping_status || order.status)">
-              {{ getShippingStatusText(order.shipping_status || order.status) }}
+              :class="getOrderPickupStatusConfig(order).class">
+              {{ getOrderPickupStatusConfig(order).text }}
             </span>
           </div>
         </div>
@@ -118,23 +118,23 @@
                 </div>
               </li>
 
-              <!-- Step 3: Shipping Preparation -->
+              <!-- Step 3: Ready for Pickup -->
               <li class="relative flex items-start">
                 <div class="relative flex items-center justify-center flex-none w-8 h-8">
                   <div class="h-1.5 w-1.5 rounded-full ring-4 ring-white border-2"
-                    :class="getShippingPreparationClass(order)"></div>
+                    :class="getReadyForPickupClass(order)"></div>
                 </div>
                 <div class="flex-1 min-w-0 ml-4">
                   <div class="flex items-center">
-                    <p class="text-sm font-medium text-gray-900">Preparación del Envío</p>
+                    <p class="text-sm font-medium text-gray-900">Listo para retirar</p>
                     <div class="flex ml-auto">
-                      <svg v-if="order.tracking_number" class="w-5 h-5 text-green-600" viewBox="0 0 20 20"
+                      <svg v-if="isReadyOrPickedUp(order)" class="w-5 h-5 text-green-600" viewBox="0 0 20 20"
                         fill="currentColor">
                         <path fill-rule="evenodd"
                           d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                           clip-rule="evenodd" />
                       </svg>
-                      <svg v-else-if="order.status === 'approved' && order.payment_status === 'approved'"
+                      <svg v-else-if="order.status === 'approved' || order.payment_status === 'approved'"
                         class="w-5 h-5 text-yellow-500 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
                         </circle>
@@ -145,67 +145,18 @@
                       <div v-else class="w-5 h-5 bg-gray-300 rounded-full"></div>
                     </div>
                   </div>
-                  <p v-if="order.tracking_updated_at" class="text-sm text-gray-500">{{
-                    formatDateTime(order.tracking_updated_at) }}</p>
                   <p class="mt-1 text-xs text-gray-400">{{ getPreparationDescription(order) }}</p>
                 </div>
               </li>
 
-              <!-- Step 4: Shipped -->
-              <li class="relative flex items-start">
-                <div class="relative flex items-center justify-center flex-none w-8 h-8">
-                  <div class="h-1.5 w-1.5 rounded-full ring-4 ring-white border-2"
-                    :class="getShippedTimelineClass(order)"></div>
-                </div>
-                <div class="flex-1 min-w-0 ml-4">
-                  <div class="flex items-center">
-                    <p class="text-sm font-medium text-gray-900">Enviado</p>
-                    <div class="flex ml-auto">
-                      <svg v-if="order.shipped_at" class="w-5 h-5 text-green-600" viewBox="0 0 20 20"
-                        fill="currentColor">
-                        <path fill-rule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clip-rule="evenodd" />
-                      </svg>
-                      <div v-else class="w-5 h-5 bg-gray-300 rounded-full"></div>
-                    </div>
-                  </div>
-                  <p v-if="order.shipped_at" class="text-sm text-gray-500">{{ formatDateTime(order.shipped_at) }}</p>
-                  <div v-if="order.tracking_number" class="p-3 mt-2 rounded-md bg-blue-50">
-                    <div class="flex items-center justify-between">
-                      <div>
-                        <p class="text-sm font-medium text-blue-900">Número de Seguimiento</p>
-                        <p class="font-mono text-sm text-blue-700">{{ order.tracking_number }}</p>
-                        <p v-if="order.shipping_provider" class="mt-1 text-xs text-blue-600">
-                          Proveedor: {{ getProviderName(order.shipping_provider) }}
-                        </p>
-                      </div>
-                      <a v-if="getTrackingUrl(order.tracking_number, order.shipping_provider)"
-                        :href="getTrackingUrl(order.tracking_number, order.shipping_provider) || undefined"
-                        target="_blank"
-                        class="inline-flex items-center px-3 py-1 text-xs font-medium text-white bg-blue-600 border border-transparent rounded hover:bg-blue-700">
-                        Rastrear
-                        <svg class="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      </a>
-                    </div>
-                  </div>
-                  <p v-if="order.estimated_delivery" class="mt-1 text-xs text-gray-400">
-                    Entrega estimada: {{ formatDate(order.estimated_delivery) }}
-                  </p>
-                </div>
-              </li>
-
-              <!-- Step 5: Delivered -->
-              <li v-if="order.status === 'delivered'" class="relative flex items-start">
+              <!-- Step 4: Picked up -->
+              <li v-if="order.shipping_status === 'delivered' || order.status === 'delivered'" class="relative flex items-start">
                 <div class="relative flex items-center justify-center flex-none w-8 h-8">
                   <div class="h-1.5 w-1.5 rounded-full bg-green-600 ring-4 ring-white border-2 border-green-600"></div>
                 </div>
                 <div class="flex-1 min-w-0 ml-4">
                   <div class="flex items-center">
-                    <p class="text-sm font-medium text-gray-900">Entregado</p>
+                    <p class="text-sm font-medium text-gray-900">Retirado</p>
                     <div class="flex ml-auto">
                       <svg class="w-5 h-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd"
@@ -216,15 +167,15 @@
                   </div>
                   <p v-if="order.delivered_at" class="text-sm text-gray-500">{{ formatDateTime(order.delivered_at) }}
                   </p>
-                  <p class="mt-1 text-xs text-gray-400">Tu pedido ha sido entregado exitosamente</p>
+                  <p class="mt-1 text-xs text-gray-400">Tu pedido fue retirado en el local</p>
                 </div>
               </li>
             </ul>
           </div>
 
-          <!-- Additional Shipping Notes -->
+          <!-- Additional Pickup Notes -->
           <div v-if="order.delivery_notes_shipping" class="p-4 mt-6 rounded-md bg-gray-50">
-            <h3 class="mb-2 text-sm font-medium text-gray-900">Notas del Envío</h3>
+            <h3 class="mb-2 text-sm font-medium text-gray-900">Notas del retiro</h3>
             <p class="text-sm text-gray-600">{{ order.delivery_notes_shipping }}</p>
           </div>
         </div>
@@ -242,9 +193,14 @@
                     <h3 class="text-sm font-medium text-gray-900">{{ item.product.name }}</h3>
                     <p class="text-sm text-gray-500">Cantidad: {{ item.quantity }}</p>
                   </div>
-                  <p class="text-sm font-medium text-gray-900">
-                    {{ formatPrice((item.price * item.quantity)) }}
-                  </p>
+                  <div class="text-right">
+                    <p class="text-sm font-medium text-gray-900">
+                      {{ formatPrice((item.price * item.quantity)) }}
+                    </p>
+                    <p v-if="item.quantity > 1" class="text-xs text-gray-500">
+                      {{ formatPrice(item.price) }} c/u
+                    </p>
+                  </div>
                 </div>
               </div>
             </li>
@@ -264,8 +220,8 @@
               <dd class="text-sm font-medium text-green-600">-{{ formatPrice(order.discount) }}</dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-gray-600">Envío</dt>
-              <dd class="text-sm font-medium text-gray-900">{{ formatPrice(order.shipping_cost) }}</dd>
+              <dt class="text-sm text-gray-600">Retiro en el local</dt>
+              <dd class="text-sm font-medium text-green-700">Gratis</dd>
             </div>
             <div class="flex justify-between pt-3 border-t">
               <dt class="text-base font-medium text-gray-900">Total</dt>
@@ -274,13 +230,12 @@
           </dl>
         </div>
 
-        <!-- Shipping Information -->
+        <!-- Pickup Information -->
         <div class="p-6 bg-white rounded-lg shadow">
-          <h2 class="mb-4 text-lg font-medium text-gray-900">Información de Retiro</h2>
-          <div class="text-sm text-gray-600">
+          <h2 class="mb-4 text-lg font-medium text-gray-900">Información de retiro</h2>
+          <div class="space-y-1 text-sm text-gray-600">
             <p class="font-medium text-gray-900">{{ order.customer_name }}</p>
-            <p>{{ order.shipping_address }}</p>
-            <p>{{ order.shipping_city }}, {{ order.shipping_postal_code }}</p>
+            <p>Retiro en el local. Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.</p>
             <p v-if="order.delivery_notes" class="mt-2">
               <span class="font-medium">Notas:</span> {{ order.delivery_notes }}
             </p>
@@ -315,9 +270,7 @@ import { useAuthStore } from '../../store/auth';
 import { useToast } from 'vue-toastification';
 import { ordersApi } from '../../config/api';
 import { 
-  getShippingStatusClass, 
-  getShippingStatusText,
-  getPaymentStatusClass,
+  getOrderPickupStatusConfig,
   getPaymentStatusText 
 } from '../../utils/orderStatusUtils';
 
@@ -502,68 +455,45 @@ const getPaymentTimelineClass = (paymentStatus: string) => {
 };
 
 const getPaymentDescription = (paymentMethod: string, paymentStatus: string) => {
-  if (paymentStatus === 'approved') {
-    return 'Tu pago ha sido confirmado y procesado';
+  if (paymentStatus === 'approved' || paymentStatus === 'paid') {
+    return 'Tu pago fue confirmado';
   } else if (paymentStatus === 'pending_payment') {
     switch (paymentMethod) {
       case 'mercadopago':
-        return 'Completa el pago en MercadoPago para continuar';
+        return 'Completá el pago en Mercado Pago para continuar';
       case 'transfer':
-        return 'Realiza la transferencia para confirmar tu pedido';
-      case 'cash':
-        return 'Tendrás que pagar en efectivo al recibir';
+        return 'Realizá la transferencia para confirmar tu pedido';
       default:
         return 'Pago pendiente de confirmación';
     }
   } else if (paymentStatus === 'pending') {
     return 'Estamos verificando tu pago';
   }
-  return 'Verifica el estado de tu pago';
+  return 'Verificá el estado de tu pago';
 };
 
-const getShippingPreparationClass = (order: any) => {
-  if (order.tracking_number) {
+const isReadyOrPickedUp = (order: any) => {
+  const s = (order?.shipping_status || '').toLowerCase();
+  return ['prepared', 'ready_for_pickup', 'ready_to_ship', 'shipped', 'in_transit', 'out_for_delivery', 'delivered'].includes(s) || order?.status === 'delivered';
+};
+
+const getReadyForPickupClass = (order: any) => {
+  if (isReadyOrPickedUp(order)) {
     return 'bg-green-600 border-green-600';
-  } else if (order.status === 'approved' && order.payment_status === 'approved') {
+  } else if (order.status === 'approved' || order.payment_status === 'approved') {
     return 'bg-yellow-500 border-yellow-500';
   }
   return 'bg-gray-300 border-gray-300';
 };
 
 const getPreparationDescription = (order: any) => {
-  if (order.tracking_number) {
-    return 'Tu pedido está listo y tiene número de seguimiento asignado';
-  } else if (order.status === 'approved' && order.payment_status === 'approved') {
-    return 'Estamos preparando tu pedido para el envío';
+  if (order.shipping_status === 'delivered' || order.status === 'delivered') {
+    return 'Pedido retirado en el local';
+  } else if (isReadyOrPickedUp(order)) {
+    return 'Tu pedido está listo para retirar en el local';
+  } else if (order.status === 'approved' || order.payment_status === 'approved') {
+    return 'Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.';
   }
-  return 'Esperando confirmación de pago para preparar envío';
-};
-
-const getShippedTimelineClass = (order: any) => {
-  if (order.shipped_at) {
-    return 'bg-green-600 border-green-600';
-  }
-  return 'bg-gray-300 border-gray-300';
-};
-
-const getProviderName = (provider: string) => {
-  const providers = {
-    'correo-argentino': 'Correo Argentino',
-    'oca': 'OCA',
-    'andreani': 'Andreani'
-  };
-  return providers[provider as keyof typeof providers] || provider;
-};
-
-const getTrackingUrl = (trackingNumber: string, provider: string) => {
-  if (!trackingNumber || !provider) return null;
-
-  const trackingUrls = {
-    'correo-argentino': `https://www.correoargentino.com.ar/formularios/e-commerce?id=${trackingNumber}`,
-    'oca': `https://www1.oca.com.ar/OcaEpakNet/Tracking.aspx?numeroenvio=${trackingNumber}`,
-    'andreani': `https://www.andreani.com/seguimiento?codigo=${trackingNumber}`
-  };
-
-  return trackingUrls[provider as keyof typeof trackingUrls] || null;
+  return 'Esperando confirmación de pago';
 };
 </script>

@@ -105,7 +105,7 @@ const messagesContainer = ref<HTMLElement>();
 const messages = ref<ChatMessage[]>([]);
 
 const quickSuggestions = [
-  '¿Horarios de envío?',
+  '¿Cómo retiro mi pedido?',
   'Tallas disponibles',
   'Política de devolución',
   'Métodos de pago',
@@ -124,10 +124,10 @@ const createWhatsAppLink = (message: string) => {
 // Respuestas predefinidas del bot que redirigen a WhatsApp
 const botResponses: { [key: string]: { text: string; action?: 'whatsapp'; whatsappMessage?: string } } = {
   'hola': { text: '¡Hola! Bienvenido a Showroom Isabella. Para una atención personalizada, te conectamos con nuestro equipo vía WhatsApp.' },
-  'horarios de envío': {
-    text: 'Para consultar horarios de envío específicos, nuestro equipo te ayudará via WhatsApp 📦',
+  'retiro': {
+    text: 'Todas las compras se retiran en el local, sin costo. Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.',
     action: 'whatsapp',
-    whatsappMessage: 'Hola! Me gustaría consultar sobre los horarios de envío.'
+    whatsappMessage: 'Hola! Me gustaría consultar cómo coordinar el retiro de mi pedido.'
   },
   'tallas disponibles': {
     text: 'Para verificar tallas disponibles de productos específicos, consulta con nuestro equipo via WhatsApp 👕',
@@ -199,7 +199,7 @@ const sendMessage = async () => {
 const sendQuickMessage = (suggestion: string) => {
   // Mapear sugerencias a mensajes de WhatsApp específicos
   const whatsappMessages: { [key: string]: string } = {
-    '¿Horarios de envío?': 'Hola! Me gustaría consultar sobre los horarios de envío.',
+    '¿Cómo retiro mi pedido?': 'Hola! Me gustaría consultar cómo coordinar el retiro de mi pedido.',
     'Tallas disponibles': 'Hola! Me gustaría consultar sobre tallas disponibles de productos.',
     'Política de devolución': 'Hola! Me gustaría conocer más sobre la política de devoluciones.',
     'Métodos de pago': 'Hola! Me gustaría conocer los métodos de pago disponibles.',

@@ -103,7 +103,7 @@
             <span class="text-lg text-gray-500 line-through">{{ formatPrice(product.price) }}</span>
           </div>
           <span v-else class="text-3xl font-medium text-gray-900">{{ formatPrice(finalPrice) }}</span>
-          <p v-if="installments > 1" class="mt-1 text-sm text-gray-700">
+          <p v-if="MERCADOPAGO_HABILITADO && installments > 1" class="mt-1 text-sm text-gray-700">
             {{ installments }} x {{ formatPrice(Math.round(finalPrice / installments)) }} sin interés
           </p>
         </div>
@@ -224,7 +224,7 @@
               </div>
               <h3 class="mt-2 text-sm text-gray-900 truncate">{{ similar.name }}</h3>
               <p class="text-sm font-medium text-gray-900">{{ formatPrice(similar.discounted_price ?? similar.price) }}</p>
-              <p v-if="(similar.max_installments ?? 1) > 1" class="text-xs text-gray-600">
+              <p v-if="MERCADOPAGO_HABILITADO && (similar.max_installments ?? 1) > 1" class="text-xs text-gray-600">
                 {{ similar.max_installments }} x {{ formatPrice(Math.round((similar.discounted_price ?? similar.price) / (similar.max_installments ?? 1))) }} sin interés
               </p>
             </router-link>
@@ -249,15 +249,15 @@
     <dialog ref="paymentDialog" closedby="any" aria-labelledby="pago-titulo" class="info-dialog" @click="closeOnBackdrop">
       <h2 id="pago-titulo" class="text-lg font-medium text-gray-900">Medios de pago</h2>
       <ul class="mt-3 space-y-3 text-sm text-gray-700">
-        <li><strong>Mercado Pago:</strong> tarjetas de crédito y débito, dinero en cuenta<span v-if="installments > 1"> y hasta {{ installments }} cuotas sin interés</span>.</li>
-        <li><strong>Transferencia bancaria:</strong> al finalizar la compra te mostramos los datos para transferir.</li>
+        <li v-if="MERCADOPAGO_HABILITADO"><strong>Mercado Pago:</strong> tarjetas de crédito y débito, dinero en cuenta<span v-if="installments > 1"> y hasta {{ installments }} cuotas sin interés</span>.</li>
+        <li><strong>Transferencia bancaria:</strong> al finalizar la compra te enviamos los datos para transferir.</li>
       </ul>
       <form method="dialog" class="mt-5"><button class="dialog-close" autofocus>Cerrar</button></form>
     </dialog>
 
     <dialog ref="pickupDialog" closedby="any" aria-labelledby="retiro-titulo" class="info-dialog" @click="closeOnBackdrop">
       <h2 id="retiro-titulo" class="text-lg font-medium text-gray-900">Retiro en el local</h2>
-      <p class="mt-3 text-sm text-gray-700">Por el momento no hacemos envíos: las compras se retiran en el local. Coordinamos día y horario por WhatsApp una vez realizada la compra.</p>
+      <p class="mt-3 text-sm text-gray-700">Todas las compras se retiran en el local, sin costo. Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.</p>
       <a :href="whatsappUrl" target="_blank" rel="noopener" class="block mt-3 text-sm underline text-gray-900">Coordinar por WhatsApp</a>
       <form method="dialog" class="mt-5"><button class="dialog-close" autofocus>Cerrar</button></form>
     </dialog>
@@ -401,7 +401,7 @@ const paymentDialog = ref<HTMLDialogElement | null>(null);
 const pickupDialog = ref<HTMLDialogElement | null>(null);
 const shareDialog = ref<HTMLDialogElement | null>(null);
 
-const WHATSAPP_NUMBER = '5491176372876';
+import { MERCADOPAGO_HABILITADO, WHATSAPP_NUMBER } from '../../config/payments';
 
 const finalPrice = computed(() => product.value?.has_discount && product.value.discounted_price ? product.value.discounted_price : product.value?.price ?? 0);
 const installments = computed(() => product.value?.max_installments ?? 1);

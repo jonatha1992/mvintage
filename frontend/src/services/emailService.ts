@@ -253,7 +253,7 @@ class EmailService {
     const methodTexts: Record<string, string> = {
       'mercadopago': 'MercadoPago',
       'transfer': 'Transferencia Bancaria',
-      'cash': 'Efectivo Contra Entrega'
+      'cash': 'Efectivo'
     };
     return methodTexts[method] || method;
   }

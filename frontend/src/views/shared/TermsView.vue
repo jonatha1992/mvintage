@@ -75,23 +75,21 @@
             <div class="bg-gray-50 p-4 rounded-lg mb-4">
               <h3 class="font-medium text-gray-900 mb-2">Métodos de Pago Aceptados:</h3>
               <ul class="list-disc list-inside text-gray-700 space-y-1">
-                <li>Tarjetas de crédito y débito (Visa, Mastercard, American Express)</li>
-                <li>Mercado Pago</li>
+                <li>Mercado Pago (tarjetas de crédito y débito)</li>
                 <li>Transferencia bancaria</li>
-                <li>Pago en efectivo (Rapipago, Pago Fácil)</li>
               </ul>
             </div>
           </section>
 
           <!-- 6. Retiro -->
           <section>
-            <h2 class="text-2xl font-light text-gray-900 mb-4">6. Retiro en el showroom</h2>
+            <h2 class="text-2xl font-light text-gray-900 mb-4">6. Retiro en el local</h2>
             <p class="text-gray-700 leading-relaxed mb-4">
-              Las compras se retiran en el showroom, sin costo de envío. Confirmaremos por nuestros canales de contacto cuando el pedido esté listo.
+              Todas las compras se retiran en el local, sin costo adicional. Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.
             </p>
             <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
-              <li>No realizamos envíos a domicilio</li>
-              <li>El retiro se coordina previamente</li>
+              <li>Modalidad exclusiva de retiro en el local</li>
+              <li>El retiro se coordina previamente por WhatsApp</li>
               <li>Se debe presentar el número de pedido</li>
             </ul>
           </section>

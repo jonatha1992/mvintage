@@ -16,7 +16,7 @@
 
       <div v-if="transferInfo" class="space-y-6">
         <!-- Datos de Transferencia -->
-        <div class="p-6 bg-white rounded-lg shadow">
+        <div v-if="hasValidBankInfo" class="p-6 bg-white rounded-lg shadow">
           <h2 class="flex items-center mb-6 text-xl font-medium text-gray-900">
             <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -85,8 +85,24 @@
           </div>
         </div>
 
+        <!-- Datos por WhatsApp si falta información bancaria real -->
+        <div v-if="!hasValidBankInfo" class="p-6 text-center bg-white rounded-lg shadow">
+          <h2 class="mb-3 text-xl font-medium text-gray-900">Te enviamos los datos para transferir por WhatsApp</h2>
+          <p class="mb-4 text-sm text-gray-600">
+            Monto a transferir: <strong class="text-gray-900">{{ formatPrice(transferInfo.total_amount) }}</strong>
+          </p>
+          <a
+            :href="whatsappTransferUrl"
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center justify-center px-6 py-3 font-medium text-white transition-colors bg-green-600 rounded-md hover:bg-green-700"
+          >
+            Pedir datos por WhatsApp
+          </a>
+        </div>
+
         <!-- Instrucciones -->
-        <div class="p-6 bg-white rounded-lg shadow">
+        <div v-if="hasValidBankInfo" class="p-6 bg-white rounded-lg shadow">
           <h2 class="flex items-center mb-4 text-xl font-medium text-gray-900">
             <svg class="w-6 h-6 mr-2 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -106,7 +122,7 @@
 
         <!-- Información del Cliente -->
         <div class="p-6 bg-white rounded-lg shadow">
-          <h2 class="mb-4 text-xl font-medium text-gray-900">Información de Envío</h2>
+          <h2 class="mb-4 text-xl font-medium text-gray-900">Información de Retiro</h2>
           <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div>
               <h3 class="mb-2 font-medium text-gray-900">Datos de Contacto</h3>
@@ -117,12 +133,9 @@
               </div>
             </div>
             <div>
-              <h3 class="mb-2 font-medium text-gray-900">Dirección de Envío</h3>
-              <div class="text-sm">
-                <p>{{ formatAddress(customerInfo) }}</p>
-                <p v-if="customerInfo.address_reference" class="mt-1 text-gray-600">
-                  Ref: {{ customerInfo.address_reference }}
-                </p>
+              <h3 class="mb-2 font-medium text-gray-900">Retiro en el local</h3>
+              <div class="text-sm text-gray-700">
+                <p>Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.</p>
                 <p v-if="customerInfo.delivery_notes" class="mt-1 text-gray-600">
                   Notas: {{ customerInfo.delivery_notes }}
                 </p>
@@ -135,6 +148,7 @@
         <div class="p-6 bg-white rounded-lg shadow">
           <div class="flex flex-col gap-4 sm:flex-row">
             <button
+              v-if="hasValidBankInfo"
               @click="copyTransferData"
               class="flex items-center justify-center flex-1 px-4 py-3 font-medium text-white transition-colors bg-gray-500 rounded-md hover:bg-gray-700"
             >
@@ -169,7 +183,8 @@
 
 <script setup lang="ts">
 import { formatPrice } from '../../utils/price'
-import { ref, onMounted } from 'vue';
+import { WHATSAPP_NUMBER } from '../../config/payments'
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import type { TransferInfo, Customer } from '../../types';
@@ -202,14 +217,19 @@ onMounted(() => {
   }
 });
 
-const formatAddress = (customer: any) => {
-  const parts: string[] = [];
-  if (customer.address) parts.push(customer.address);
-  if (customer.city) parts.push(customer.city);
-  if (customer.postal_code) parts.push(`CP ${customer.postal_code}`);
-  if (customer.province) parts.push(customer.province);
-  return parts.join(', ');
-};
+const hasValidBankInfo = computed(() => {
+  const bank = transferInfo.value?.bank_info;
+  if (!bank?.cbu?.trim()) return false;
+  if (bank.alias?.trim().toLowerCase() === 'mvintage') return false;
+  if (bank.holder_name?.toLowerCase().includes('m-vintage')) return false;
+  return true;
+});
+
+const whatsappTransferUrl = computed(() => {
+  const orderId = orderData.value?.order_id ?? '';
+  const message = `Hola! Realicé el pedido #${orderId} y necesito los datos para transferir.`;
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+});
 
 const copyTransferData = () => {
   if (!transferInfo.value) return;

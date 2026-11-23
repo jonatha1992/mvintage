@@ -61,10 +61,9 @@
               </div>
             </div>
             <div>
-              <h2 class="mb-2 text-xl font-semibold text-gray-800 font-heading">Completa tu información de entrega</h2>
+              <h2 class="mb-2 text-xl font-semibold text-gray-800 font-heading">Completa tus datos para el retiro</h2>
               <p class="font-body text-body-text">
-                Llena todos los datos de contacto y dirección de envío. Una vez completada toda la información, 
-                aparecerá un botón <strong>"Continuar al pago"</strong> que te llevará a seleccionar tu método de pago preferido.
+                Completá tus datos de contacto. Todas las compras se retiran en el local sin costo y te avisamos por WhatsApp cuando tu pedido esté listo para retirar.
               </p>
             </div>
           </div>
@@ -79,8 +78,8 @@
             <div>
               <h2 class="mb-2 text-xl font-semibold text-gray-800 font-heading">Elige tu método de pago y confirma</h2>
               <p class="font-body text-body-text">
-                Selecciona entre transferencia bancaria, MercadoPago (tarjetas de crédito y débito) 
-                o efectivo contra entrega. Luego confirma tu pedido para finalizarlo.
+                Seleccioná entre transferencia bancaria o Mercado Pago (tarjetas de crédito y débito).
+                Luego confirmá tu pedido para finalizarlo.
               </p>
             </div>
           </div>
@@ -88,7 +87,7 @@
           <!-- Métodos de pago -->
           <div class="p-6 mt-8 rounded-lg bg-gray-50">
             <h3 class="mb-4 text-lg font-semibold text-gray-800 font-heading">Métodos de Pago Aceptados</h3>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div class="flex items-center p-4 bg-white rounded-lg shadow">
                 <div class="p-2 mr-3 bg-blue-100 rounded-full">
                   <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -108,20 +107,8 @@
                   </svg>
                 </div>
                 <div>
-                  <h4 class="font-semibold text-gray-900 font-heading">MercadoPago</h4>
+                  <h4 class="font-semibold text-gray-900 font-heading">Mercado Pago</h4>
                   <p class="text-sm text-gray-600 font-body">Tarjetas de crédito, débito y más</p>
-                </div>
-              </div>
-              
-              <div class="flex items-center p-4 bg-white rounded-lg shadow">
-                <div class="p-2 mr-3 bg-green-100 rounded-full">
-                  <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 class="font-semibold text-gray-900 font-heading">Efectivo Contra Entrega</h4>
-                  <p class="text-sm text-gray-600 font-body">Paga cuando recibas tu pedido</p>
                 </div>
               </div>
             </div>

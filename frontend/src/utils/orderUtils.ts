@@ -55,13 +55,14 @@ export function getDeliveryMethodClass(method: string | null | undefined): strin
  * Gets the display text for a delivery method
  */
 export function getDeliveryMethodText(method: string | null | undefined): string {
-  if (!method) return 'No especificado';
+  if (!method) return 'Retiro en el local';
   const methodText: Record<string, string> = {
-    'standard': 'Estándar',
-    'express': 'Express',
-    'pickup': 'Recogida en tienda'
+    'retiro_local': 'Retiro en el local',
+    'pickup': 'Retiro en el local',
+    'standard': 'Retiro en el local',
+    'express': 'Retiro en el local'
   };
-  return methodText[method.toLowerCase()] || method;
+  return methodText[method.toLowerCase()] || 'Retiro en el local';
 }
 
 /**

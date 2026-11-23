@@ -4,10 +4,10 @@
       <MapPinIcon class="w-6 h-6 mt-0.5 text-gray-700 shrink-0" aria-hidden="true" />
       <div>
         <h3 id="pickup-title" class="text-lg font-medium text-gray-900 font-heading">
-          Retiro en el showroom
+          Retiro en el local
         </h3>
         <p class="mt-1 text-sm text-gray-600 font-body">
-          Tu compra se retira sin costo. Cuando esté lista, te contactaremos para coordinar día y horario.
+          Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.
         </p>
       </div>
     </div>

@@ -61,7 +61,7 @@
                       
                       <!-- Variant Info -->
                       <div v-if="item.variant" class="mt-1 text-sm font-body text-body-text">
-                        {{ item.variant.color.name }}Talle {{ item.variant.size.name }}
+                        {{ item.variant.color.name }} • Talle {{ item.variant.size.name }}
                       </div>
                       
                       <!-- Unique Product Info -->
@@ -81,6 +81,9 @@
                       <p v-if="item.product.has_discount" class="text-xs line-through font-body text-body-text">
                         {{ formatPrice((item.product.price * item.quantity)) }}
                       </p>
+                      <p v-if="item.quantity > 1" class="text-xs text-gray-500 font-body">
+                        {{ formatPrice(cartStore.getItemPrice(item)) }} c/u
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -99,6 +102,11 @@
               <div v-if="cartStore.totalSavings > 0" class="flex justify-between text-sm">
                 <span class="text-red-600 font-body">Descuentos</span>
                 <span class="text-red-600 font-body">-{{ formatPrice(cartStore.totalSavings) }}</span>
+              </div>
+
+              <div class="flex justify-between text-sm">
+                <span class="font-body text-body-text">Retiro en el local</span>
+                <span class="font-body text-body-text">Gratis</span>
               </div>
               
               <div class="pt-2 border-t border-gray-200">
@@ -138,13 +146,9 @@
                   <span class="font-medium text-gray-700 font-body">Teléfono:</span>
                   <span class="text-gray-900 font-body">{{ checkoutForm.phone }}</span>
                 </div>
-                <div v-if="deliveryMethod !== 'retiro_local'" class="flex justify-between">
-                  <span class="font-medium text-gray-700 font-body">Dirección:</span>
-                  <span class="text-gray-900 font-body">{{ checkoutForm.address }}, {{ checkoutForm.city }}</span>
-                </div>
                 <div class="flex justify-between">
-                  <span class="font-medium text-gray-700 font-body">Método de entrega:</span>
-                  <span class="text-gray-900 font-body">Retiro en el showroom</span>
+                  <span class="font-medium text-gray-700 font-body">Modalidad:</span>
+                  <span class="text-gray-900 font-body">Retiro en el local</span>
                 </div>
               </div>
             </div>
@@ -194,26 +198,24 @@
                   <span class="ml-2 text-sm font-body">Transferencia bancaria</span>
                 </label>
                 
-                <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                <label
+                  class="flex items-start p-3 border border-gray-200 rounded-lg"
+                  :class="MERCADOPAGO_HABILITADO ? 'cursor-pointer hover:bg-gray-50' : 'cursor-not-allowed opacity-60 bg-gray-50'"
+                >
                   <input
                     v-model="checkoutForm.paymentMethod"
                     type="radio"
                     value="mercadopago"
-                    class="w-4 h-4 text-black border-gray-300 focus:ring-black"
+                    :disabled="!MERCADOPAGO_HABILITADO"
+                    class="w-4 h-4 mt-0.5 text-black border-gray-300 focus:ring-black disabled:cursor-not-allowed"
                   >
-                  <CreditCardIcon class="w-5 h-5 ml-3 text-purple-600" />
-                  <span class="ml-2 text-sm font-body">MercadoPago</span>
-                </label>
-                
-                <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                  <input
-                    v-model="checkoutForm.paymentMethod"
-                    type="radio"
-                    value="cash"
-                    class="w-4 h-4 text-black border-gray-300 focus:ring-black"
-                  >
-                  <CurrencyDollarIcon class="w-5 h-5 ml-3 text-green-600" />
-                  <span class="ml-2 text-sm font-body">Efectivo al retirar</span>
+                  <CreditCardIcon class="w-5 h-5 ml-3 text-purple-600 shrink-0" />
+                  <div class="ml-2">
+                    <span class="block text-sm font-body">Mercado Pago</span>
+                    <span v-if="!MERCADOPAGO_HABILITADO" class="block mt-1 text-xs text-gray-500 font-body">
+                      Por el momento no se encuentra habilitado el pago con Mercado Pago.
+                    </span>
+                  </div>
                 </label>
               </div>
               
@@ -267,7 +269,7 @@
           to="/shop"
           class="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-black border border-transparent rounded-md hover:bg-gray-800"
         >
-          <span class="font-body">Continuar comprando</span>
+          <span>Continuar comprando</span>
         </router-link>
       </div>
     </div>
@@ -282,6 +284,7 @@ import { useCartStore } from '../../store/cart';
 import { useAuthStore } from '../../store/auth';
 import { useToast } from 'vue-toastification';
 import { ordersApi, customersApi, orderItemsApi } from '../../config/api';
+import { COMPRAS_HABILITADAS, MERCADOPAGO_HABILITADO } from '../../config/payments';
 import { stockService } from '../../services/stockService';
 import { isValidPhone, formatE164, validationMessages } from '../../composables/useValidators';
 import { useUserData } from '../../composables/useUserData';
@@ -289,7 +292,7 @@ import type { PaymentMethod, Order, CustomerCreate, OrderItemCreate } from '../.
 import DeliveryProgress from '../../components/ui/DeliveryProgress.vue';
 import ContactInfoStep from '../../components/checkout/ContactInfoStep.vue';
 import DeliveryStep from '../../components/checkout/DeliveryStep.vue';
-import { BanknotesIcon, CreditCardIcon, CurrencyDollarIcon } from '@heroicons/vue/24/outline';
+import { BanknotesIcon, CreditCardIcon } from '@heroicons/vue/24/outline';
 
 const cartStore = useCartStore();
 const authStore = useAuthStore();
@@ -378,6 +381,11 @@ const handleContinueToPayment = () => {
 };
 
 onMounted(async () => {
+  if (!COMPRAS_HABILITADAS) {
+    router.replace('/cart');
+    return;
+  }
+
   // Check authentication first
   if (!authStore.isAuthenticated) {
     toast.warning('Debes iniciar sesión para acceder al checkout');
@@ -441,6 +449,11 @@ onMounted(async () => {
 
 
 const processOrder = async () => {
+  if (!COMPRAS_HABILITADAS) {
+    router.replace('/cart');
+    return;
+  }
+
   // Ensure we're on the payment step
   if (currentStep.value !== 3) {
     toast.error('Debes completar todos los pasos antes de confirmar el pedido');
@@ -455,7 +468,7 @@ const processOrder = async () => {
   }
   
   if (cartStore.isEmpty) {
-    toast.error('Tu carrito esta vacío');
+    toast.error('Tu carrito está vacío');
     return;
   }
   
@@ -504,6 +517,13 @@ const processOrder = async () => {
       return;
     }
 
+    if (checkoutForm.value.paymentMethod === 'mercadopago' && !MERCADOPAGO_HABILITADO) {
+      toast.error('Por el momento no se encuentra habilitado el pago con Mercado Pago.');
+      checkoutForm.value.paymentMethod = 'transfer';
+      processing.value = false;
+      return;
+    }
+
     // Step 1: Create customer
     const normalizedPhone = formatE164(checkoutForm.value.phone, checkoutForm.value.phoneCountryCode);
     const customerData: CustomerCreate = {
@@ -512,7 +532,7 @@ const processOrder = async () => {
       last_name: checkoutForm.value.lastName,
       email: checkoutForm.value.email,
       phone: normalizedPhone,
-      address: checkoutForm.value.address,
+      address: checkoutForm.value.address || 'Retiro en el local',
       city: checkoutForm.value.city,
       postal_code: checkoutForm.value.postalCode,
       province: checkoutForm.value.province,
@@ -586,7 +606,11 @@ const processOrder = async () => {
     
     
     // Step 4: Handle different payment methods
-    if (checkoutForm.value.paymentMethod === 'mercadopago' && response.payment_preference) {
+    if (checkoutForm.value.paymentMethod === 'mercadopago') {
+      if (!response.payment_preference?.init_point) {
+        toast.error('El pago con Mercado Pago no está disponible en este momento. Probá con transferencia o escribinos por WhatsApp.');
+        return;
+      }
       // Store order info for success page
       localStorage.setItem('pending_order', JSON.stringify({
         order_id: response.order.id,
@@ -608,26 +632,10 @@ const processOrder = async () => {
         transfer_info: response.transfer_info
       }));
       
-      toast.success('Pedido confirmado! Te mostraremos los datos de transferencia.');
+      toast.success('¡Pedido confirmado! Te mostraremos los datos de transferencia.');
       router.push('/payment/transfer-instructions');
-    } else if (checkoutForm.value.paymentMethod === 'cash') {
-      // Clear cart and redirect to cash confirmation
-      cartStore.clearCart();
-      
-      // Store delivery info for confirmation page
-      localStorage.setItem('cash_order', JSON.stringify({
-        order_id: response.order.id,
-        customer: customer,
-        delivery_info: response.delivery_info
-      }));
-      
-      toast.success('¡Pedido confirmado! Te mostraremos los detalles de entrega.');
-      router.push('/payment/cash-confirmation');
     } else {
-      // Fallback for unknown payment methods
-      cartStore.clearCart();
-      toast.success('¡Pedido confirmado! Recibirás información por email.');
-      router.push('/');
+      toast.error('Método de pago no disponible. Seleccioná transferencia bancaria.');
     }
     
   } catch (error: any) {

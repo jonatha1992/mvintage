@@ -30,7 +30,7 @@
               <div>
                 <span class="font-medium text-gray-700">Total:</span>
                 <div class="font-medium text-gray-900">${{ order.total?.toLocaleString() }}</div>
-                <span class="block mt-1 font-medium text-gray-700">Metodo de Pago:</span>
+                <span class="block mt-1 font-medium text-gray-700">Método de pago:</span>
                 <div class="text-gray-600">{{ getPaymentMethodText(order.payment_method) }}</div>
               </div>
             </div>
@@ -49,9 +49,9 @@
                 class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Seleccionar estado...</option>
-                <option value="pending">Pendiente</option>
-                <option value="approved">Aprobado</option>
-                <option value="rejected">Rechazado</option>
+                <option value="pending">Pendiente de pago</option>
+                <option value="approved">Pago confirmado</option>
+                <option value="rejected">Cancelado</option>
               </select>
             </div>
 
@@ -148,8 +148,8 @@ const updateStatus = async () => {
 
 const getPaymentMethodText = (method: string): string => {
   const methods: Record<string, string> = {
-    'transfer': 'Transferencia Bancaria',
-    'mercadopago': 'MercadoPago',
+    'transfer': 'Transferencia bancaria',
+    'mercadopago': 'Mercado Pago',
     'cash': 'Efectivo'
   };
   return methods[method] || method;

@@ -53,19 +53,6 @@
                         <span v-if="item.selectedColor && item.selectedSize" class="mx-1 font-body">•</span>
                         <span v-if="item.selectedSize" class="font-body">Talle {{ item.selectedSize.name }}</span>
                       </div>
-
-                      <!-- Price -->
-                      <div class="flex items-center mt-2 space-x-2">
-                        <span class="text-lg font-medium font-body text-body-text">
-                          {{ formatPrice(cartStore.getItemPrice(item)) }}
-                        </span>
-                        <span v-if="item.product.has_discount" class="text-sm line-through font-body text-body-text">
-                          {{ formatPrice(item.product.price) }}
-                        </span>
-                        <span v-if="item.product.has_discount" class="text-sm font-medium text-red-600 font-body">
-                          -{{ item.product.discount_percentage }}%
-                        </span>
-                      </div>
                     </div>
 
                     <!-- Remove Button -->
@@ -110,7 +97,15 @@
                       <p class="text-lg font-medium font-body text-body-text">
                         {{ formatPrice(cartStore.getItemTotal(item)) }}
                       </p>
-                      <p v-if="item.quantity > 1" class="text-sm font-body text-body-text">
+                      <div v-if="item.product.has_discount" class="flex items-center justify-end space-x-1.5">
+                        <span class="text-xs text-gray-400 line-through font-body">
+                          {{ formatPrice(item.product.price * item.quantity) }}
+                        </span>
+                        <span class="text-xs font-medium text-red-600 font-body">
+                          -{{ item.product.discount_percentage }}%
+                        </span>
+                      </div>
+                      <p v-if="item.quantity > 1" class="text-xs text-gray-500 font-body">
                         {{ formatPrice(cartStore.getItemPrice(item)) }} c/u
                       </p>
                     </div>
@@ -128,7 +123,7 @@
           <div class="space-y-2">
             <!-- Subtotal -->
             <div class="flex justify-between text-sm">
-              <span class="text-gray-600 font-body">Subtotal ({{ cartStore.itemCount }} productos)</span>
+              <span class="text-gray-600 font-body">Subtotal ({{ cartStore.itemCount }} {{ cartStore.itemCount === 1 ? 'producto' : 'productos' }})</span>
               <span class="text-gray-900 font-body">
                 {{ formatPrice((cartStore.totalSavings > 0 ? cartStore.totalOriginalPrice : cartStore.totalPrice)) }}
               </span>
@@ -140,10 +135,10 @@
               <span class="text-red-600 font-body">-{{ formatPrice(cartStore.totalSavings) }}</span>
             </div>
 
-            <!-- Shipping -->
+            <!-- Pickup -->
             <div class="flex justify-between text-sm">
-              <span class="text-gray-600 font-body">Envío</span>
-              <span class="text-gray-900 font-body">Calculado en checkout</span>
+              <span class="text-gray-600 font-body">Retiro en el local</span>
+              <span class="text-gray-900 font-body">Gratis</span>
             </div>
 
             <!-- Total -->
@@ -158,7 +153,7 @@
           </div>
 
           <!-- Auth Notice -->
-          <div v-if="!authStore.isAuthenticated" class="p-3 mt-4 border border-blue-200 rounded-md bg-blue-50">
+          <div v-if="COMPRAS_HABILITADAS && !authStore.isAuthenticated" class="p-3 mt-4 border border-blue-200 rounded-md bg-blue-50">
             <div class="flex">
               <div class="flex-shrink-0">
                 <svg class="w-5 h-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
@@ -167,20 +162,37 @@
               </div>
               <div class="ml-3">
                 <p class="text-sm text-blue-700 font-body">
-                  Necesitas <strong>iniciar sesión</strong> para proceder con la compra.
+                  Necesitás <strong>iniciar sesión</strong> para proceder con la compra.
                 </p>
               </div>
             </div>
           </div>
 
-          <!-- Checkout Button -->
+          <!-- Online Purchases Disabled Notice -->
+          <div v-if="!COMPRAS_HABILITADAS" class="p-3 mt-4 border border-amber-200 rounded-md bg-amber-50">
+            <p class="text-sm text-amber-800 font-body">
+              Las compras online estarán disponibles muy pronto.
+            </p>
+          </div>
+
+          <!-- Checkout / WhatsApp Button -->
           <div class="mt-6">
             <button
+              v-if="COMPRAS_HABILITADAS"
               @click="proceedToCheckout"
               class="w-full px-4 py-3 font-medium text-white transition-colors bg-black rounded-md hover:bg-gray-800"
             >
               {{ authStore.isAuthenticated ? 'Finalizar la compra' : 'Iniciar sesión y finalizar la compra' }}
             </button>
+            <a
+              v-else
+              :href="whatsappCartUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center justify-center w-full px-4 py-3 font-medium text-white transition-colors bg-green-600 rounded-md hover:bg-green-700"
+            >
+              Consultar por WhatsApp
+            </a>
           </div>
 
           <!-- Continue Shopping -->
@@ -217,12 +229,13 @@
 
 <script setup lang="ts">
 import { formatPrice } from '../../utils/price'
-import { onMounted, withDefaults } from 'vue';
+import { computed, onMounted, withDefaults } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore, type CartItem } from '../../store/cart';
 import { useAuthStore } from '../../store/auth';
 import { useToast } from 'vue-toastification';
 import { useCartModal } from '../../composables/useCartModal';
+import { COMPRAS_HABILITADAS, WHATSAPP_NUMBER } from '../../config/payments';
 
 // Props
 interface Props {
@@ -267,7 +280,21 @@ const updateQuantity = (item: CartItem, newQuantity: number) => {
   cartStore.updateQuantity(item.id, newQuantity);
 };
 
+const whatsappCartUrl = computed(() => {
+  const lines = cartStore.items.map((item) => {
+    const color = item.variant?.color?.name || item.selectedColor?.name;
+    const size = item.variant?.size?.name || item.selectedSize?.name;
+    const details = [color, size ? `Talle ${size}` : null].filter(Boolean).join(', ');
+    const detailSuffix = details ? ` (${details})` : '';
+    return `- ${item.product.name}${detailSuffix} x${item.quantity}: ${formatPrice(cartStore.getItemTotal(item))}`;
+  });
+  const nl = String.fromCharCode(10);
+  const text = ['Hola! Quiero consultar por estos productos:', ...lines, `Total: ${formatPrice(cartStore.totalPrice)}`].join(nl);
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+});
+
 const proceedToCheckout = () => {
+  if (!COMPRAS_HABILITADAS) return;
   // Validate stock before proceeding
   cartStore.validateStock();
   

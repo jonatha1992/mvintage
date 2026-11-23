@@ -1,7 +1,12 @@
 <template>
   <div class="app-container" :class="{ 'app-loaded': appLoaded }">
-    <div v-if="maxInstallments > 1" class="px-4 py-2 text-xs text-center text-white bg-black sm:text-sm">
-      Hasta {{ maxInstallments }} cuotas sin interés · Retiro en el local · Transferencia
+    <div class="px-4 py-2 text-xs text-center text-white bg-black sm:text-sm">
+      <template v-if="MERCADOPAGO_HABILITADO && maxInstallments > 1">
+        Hasta {{ maxInstallments }} cuotas sin interés · Retiro en el local · Transferencia
+      </template>
+      <template v-else>
+        Retiro en el local · Transferencia bancaria
+      </template>
     </div>
     <Navbar />
     <router-view />
@@ -42,6 +47,7 @@ import Chatbot from './components/ui/Chatbot.vue'
 import CartModal from './components/cart/CartModal.vue'
 import CartAddedNotification from './components/cart/CartAddedNotification.vue'
 import { globalProgressBar } from './composables/useProgressBar'
+import { MERCADOPAGO_HABILITADO } from './config/payments'
 
 const route = useRoute()
 const authStore = useAuthStore()

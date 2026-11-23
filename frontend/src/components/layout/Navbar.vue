@@ -22,7 +22,7 @@
                 class="absolute z-10 w-48 mt-2 bg-white border border-gray-100 shadow-lg">
                 <div class="py-1" role="menu" aria-orientation="vertical">
                   <div v-if="categories.length === 0" class="px-4 py-2 text-sm italic text-gray-500 font-body">
-                    No hay stock con categorias
+                    No hay stock con categorías
                   </div>
                   <router-link v-else v-for="category in categories" :key="category.id"
                     :to="`/shop?category=${category.name.toLowerCase()}`" @click="closeMenus"
@@ -57,7 +57,7 @@
             
             <router-link to="/contact" class="px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">CONTACTO</router-link>
             <router-link to="/how-to-shop" class="px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">CÓMO COMPRAR</router-link>
-            <router-link to="/shipping" class="px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">RETIRO</router-link>
+            <router-link to="/shipping" class="px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">RETIRO EN EL LOCAL</router-link>
           </div>
 
           <!-- Desktop Auth & Cart -->
@@ -182,7 +182,7 @@
         
         <router-link to="/contact" @click="closeMenus" class="block px-3 py-3 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">CONTACTO</router-link>
         <router-link to="/how-to-shop" @click="closeMenus" class="block px-3 py-3 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">CÓMO COMPRAR</router-link>
-        <router-link to="/shipping" @click="closeMenus" class="block px-3 py-3 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">RETIRO</router-link>
+        <router-link to="/shipping" @click="closeMenus" class="block px-3 py-3 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">RETIRO EN EL LOCAL</router-link>
         
         <div class="pt-4 mt-4 border-t border-gray-200">
           <div v-if="authStore.isAuthenticated" class="flex items-center px-3 mb-3">

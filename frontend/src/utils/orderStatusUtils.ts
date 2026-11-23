@@ -5,35 +5,38 @@
 
 // Configuration for payment status display
 export const PAYMENT_STATUS_CONFIG = {
-  'pending': { text: 'Pago Pendiente', class: 'bg-orange-100 text-orange-800' },
-  'pending_payment': { text: 'Esperando Pago', class: 'bg-orange-100 text-orange-800' },
-  'approved': { text: 'Pago Confirmado', class: 'bg-green-100 text-green-800' },
-  'paid': { text: 'Pagado', class: 'bg-green-100 text-green-800' },
-  'rejected': { text: 'Pago Rechazado', class: 'bg-red-100 text-red-800' },
-  'cancelled': { text: 'Pago Cancelado', class: 'bg-red-100 text-red-800' }
+  'pending': { text: 'Pendiente de pago', class: 'bg-orange-100 text-orange-800' },
+  'pending_payment': { text: 'Pendiente de pago', class: 'bg-orange-100 text-orange-800' },
+  'approved': { text: 'Pago confirmado', class: 'bg-green-100 text-green-800' },
+  'paid': { text: 'Pago confirmado', class: 'bg-green-100 text-green-800' },
+  'rejected': { text: 'Cancelado', class: 'bg-red-100 text-red-800' },
+  'cancelled': { text: 'Cancelado', class: 'bg-red-100 text-red-800' }
 } as const;
 
-// Configuration for shipping status display
+// Configuration for pickup/order status display
 export const SHIPPING_STATUS_CONFIG = {
-  'pending': { text: 'Pendiente Envío', class: 'bg-yellow-100 text-yellow-800' },
-  'prepared': { text: 'Preparado', class: 'bg-blue-100 text-blue-800' },
-  'ready_to_ship': { text: 'Listo para Enviar', class: 'bg-indigo-100 text-indigo-800' },
-  'ready_for_pickup': { text: 'Listo para Recoger', class: 'bg-indigo-100 text-indigo-800' },
-  'shipped': { text: 'Enviado', class: 'bg-purple-100 text-purple-800' },
-  'in_transit': { text: 'En Tránsito', class: 'bg-blue-100 text-blue-800' },
-  'out_for_delivery': { text: 'En Reparto', class: 'bg-purple-100 text-purple-800' },
-  'delivered': { text: 'Entregado', class: 'bg-green-100 text-green-800' },
-  'failed': { text: 'Error en Entrega', class: 'bg-red-100 text-red-800' }
+  'pending': { text: 'Pendiente de pago', class: 'bg-yellow-100 text-yellow-800' },
+  'pending_payment': { text: 'Pendiente de pago', class: 'bg-yellow-100 text-yellow-800' },
+  'approved': { text: 'Pago confirmado', class: 'bg-green-100 text-green-800' },
+  'paid': { text: 'Pago confirmado', class: 'bg-green-100 text-green-800' },
+  'prepared': { text: 'Listo para retirar', class: 'bg-indigo-100 text-indigo-800' },
+  'ready_to_ship': { text: 'Listo para retirar', class: 'bg-indigo-100 text-indigo-800' },
+  'ready_for_pickup': { text: 'Listo para retirar', class: 'bg-indigo-100 text-indigo-800' },
+  'shipped': { text: 'Listo para retirar', class: 'bg-indigo-100 text-indigo-800' },
+  'in_transit': { text: 'Listo para retirar', class: 'bg-indigo-100 text-indigo-800' },
+  'out_for_delivery': { text: 'Listo para retirar', class: 'bg-indigo-100 text-indigo-800' },
+  'delivered': { text: 'Retirado', class: 'bg-green-100 text-green-800' },
+  'cancelled': { text: 'Cancelado', class: 'bg-red-100 text-red-800' },
+  'rejected': { text: 'Cancelado', class: 'bg-red-100 text-red-800' },
+  'failed': { text: 'Cancelado', class: 'bg-red-100 text-red-800' }
 } as const;
 
 // Configuration for delivery method display
 export const DELIVERY_METHOD_CONFIG = {
-  'envio_andreani': { text: 'Envío Andreani', class: 'bg-blue-100 text-blue-800' },
-  'envio_correo': { text: 'Envío Correo Argentino', class: 'bg-purple-100 text-purple-800' },
-  'retiro_local': { text: 'Retiro en Local', class: 'bg-green-100 text-green-800' },
-  'standard': { text: 'Estándar', class: 'bg-blue-100 text-blue-800' },
-  'express': { text: 'Express', class: 'bg-purple-100 text-purple-800' },
-  'pickup': { text: 'Recogida en tienda', class: 'bg-green-100 text-green-800' }
+  'retiro_local': { text: 'Retiro en el local', class: 'bg-green-100 text-green-800' },
+  'pickup': { text: 'Retiro en el local', class: 'bg-green-100 text-green-800' },
+  'standard': { text: 'Retiro en el local', class: 'bg-green-100 text-green-800' },
+  'express': { text: 'Retiro en el local', class: 'bg-green-100 text-green-800' }
 } as const;
 
 /**
@@ -58,9 +61,34 @@ export function getShippingStatusConfig(status: string | undefined) {
  * Gets delivery method configuration (text and CSS class)
  */
 export function getDeliveryMethodConfig(method: string | null | undefined) {
-  if (!method) return { text: 'No especificado', class: 'bg-gray-100 text-gray-800' };
+  if (!method) return { text: 'Retiro en el local', class: 'bg-green-100 text-green-800' };
   return DELIVERY_METHOD_CONFIG[method.toLowerCase() as keyof typeof DELIVERY_METHOD_CONFIG] 
-    || { text: method, class: 'bg-gray-100 text-gray-800' };
+    || { text: 'Retiro en el local', class: 'bg-green-100 text-green-800' };
+}
+
+export function getOrderPickupStatusConfig(order: {
+  status?: string;
+  payment_status?: string;
+  shipping_status?: string;
+} | null | undefined) {
+  if (!order) return SHIPPING_STATUS_CONFIG.pending;
+  const status = (order.status || '').toLowerCase();
+  const paymentStatus = (order.payment_status || '').toLowerCase();
+  const shippingStatus = (order.shipping_status || '').toLowerCase();
+
+  if (status === 'cancelled' || status === 'rejected' || paymentStatus === 'cancelled' || paymentStatus === 'rejected' || shippingStatus === 'cancelled' || shippingStatus === 'failed') {
+    return SHIPPING_STATUS_CONFIG.cancelled;
+  }
+  if (shippingStatus === 'delivered' || status === 'delivered') {
+    return SHIPPING_STATUS_CONFIG.delivered;
+  }
+  if (['prepared', 'ready_for_pickup', 'ready_to_ship', 'shipped', 'in_transit', 'out_for_delivery'].includes(shippingStatus)) {
+    return SHIPPING_STATUS_CONFIG.ready_for_pickup;
+  }
+  if (paymentStatus === 'approved' || paymentStatus === 'paid' || status === 'approved' || status === 'paid') {
+    return SHIPPING_STATUS_CONFIG.approved;
+  }
+  return SHIPPING_STATUS_CONFIG.pending;
 }
 
 /**

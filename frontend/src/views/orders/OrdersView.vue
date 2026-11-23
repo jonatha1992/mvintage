@@ -36,9 +36,9 @@
               <div class="text-right">
                 <span 
                   class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full"
-                  :class="getShippingStatusClass(order.shipping_status || order.status || '')"
+                  :class="getOrderPickupStatusConfig(order).class"
                 >
-                  {{ getShippingStatusText(order.shipping_status || order.status || '') }}
+                  {{ getOrderPickupStatusConfig(order).text }}
                 </span>
                 <p class="mt-1 text-lg font-medium text-gray-900">
                   {{ formatPrice(order.total) }}
@@ -79,93 +79,33 @@
               </div>
             </div>
 
-            <!-- Shipping/Delivery Info -->
+            <!-- Local Pickup Info -->
             <div class="pt-4 mt-4 border-t border-gray-200">
-              <!-- Delivery Method -->
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center">
                   <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                  <span class="text-sm font-medium text-gray-700">Método de entrega:</span>
-                </div>
-                <span :class="getDeliveryMethodClass(order.delivery_method || '')" 
-                  class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
-                  {{ getDeliveryMethodText(order.delivery_method || '') }}
-                </span>
-              </div>
-
-              <!-- Tracking Info (for shipping orders) -->
-              <div v-if="isShippingOrder(order.delivery_method || '')" class="space-y-3">
-                <!-- Tracking Number -->
-                <div v-if="order.tracking_number" class="flex items-center justify-between">
-                  <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span class="text-sm font-medium text-gray-700">Numero de seguimiento:</span>
-                  </div>
-                  <div class="text-right">
-                    <div class="font-mono text-sm text-gray-900">{{ order.tracking_number }}</div>
-                    <div v-if="order.shipping_provider" class="text-xs text-gray-500">{{ getShippingProviderName(order.shipping_provider) }}</div>
-                  </div>
-                </div>
-
-                <!-- Track Shipment Button -->
-                <div v-if="order.tracking_number" class="flex justify-end">
-                  <button @click="trackShipment(order.tracking_number, order.shipping_provider || '')"
-                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
-                    <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2M7 7l10 10M17 7l-4 4" />
-                    </svg>
-                    Seguir envio
-                  </button>
-                </div>
-
-                <!-- No tracking yet -->
-                <div v-else-if="order.status === 'approved'" class="py-3 text-center rounded-lg bg-blue-50">
-                  <svg class="w-8 h-8 mx-auto mb-2 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p class="text-sm text-blue-700">Preparando envío</p>
-                  <p class="mt-1 text-xs text-blue-600">Te notificaremos cuando el pedido sea enviado</p>
-                </div>
-              </div>
-
-              <!-- Local Pickup Info -->
-              <div v-else-if="order.delivery_method === 'retiro_local'" class="p-4 rounded-lg bg-purple-50">
-                <div class="flex items-start">
-                  <svg class="w-5 h-5 text-purple-600 mt-0.5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <div class="flex-1">
-                    <h4 class="mb-2 text-sm font-medium text-purple-900">Retiro en Local</h4>
-                    
-                    <div v-if="order.status === 'approved'" class="space-y-2">
-                      <p class="text-sm text-purple-700">
-                        Tu pedido está listo para retirar. Coordina tu horario de retiro:
-                      </p>
-                      <div class="p-3 text-sm bg-white rounded">
-                        <div class="mb-1 font-medium text-gray-900">Información de contacto:</div>
-                        <div class="text-gray-700">📱 WhatsApp: +54 9 11 1234-5678</div>
-                        <div class="text-gray-700">📍 Dirección: Av. Ejemplo 123, CABA</div>
-                        <div class="text-gray-700">🕐 Horarios: Lun-Vie 9-18hs, Sáb 9-13hs</div>
-                      </div>
-                      <button @click="contactForPickup(order)" 
-                        class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700">
-                        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        Contactar por WhatsApp
-                      </button>
-                    </div>
-                    
-                    <div v-else class="text-sm text-purple-700">
-                      Una vez que tu pago sea confirmado, podrás coordinar el retiro.
-                    </div>
-                  </div>
+                  <span class="text-sm font-medium text-gray-700">Modalidad:</span>
                 </div>
+                <span :class="getDeliveryMethodClass(order.delivery_method || 'retiro_local')" 
+                  class="inline-flex px-2 py-1 text-xs font-semibold rounded-full">
+                  {{ getDeliveryMethodText(order.delivery_method || 'retiro_local') }}
+                </span>
+              </div>
+
+              <div class="p-4 rounded-lg bg-gray-50">
+                <p class="text-sm text-gray-700">
+                  Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.
+                </p>
+                <button
+                  v-if="order.payment_status === 'approved' || order.status === 'approved'"
+                  @click="contactForPickup(order)"
+                  class="inline-flex items-center justify-center mt-3 px-4 py-2 text-sm font-medium text-white bg-black border border-transparent rounded-md hover:bg-gray-800"
+                >
+                  Consultar retiro por WhatsApp
+                </button>
               </div>
             </div>
           </div>
@@ -228,9 +168,9 @@ import { useAuthStore } from '../../store/auth';
 import { useToast } from 'vue-toastification';
 import { ordersApi } from '../../config/api';
 import type { Order, OrderItem } from '../../types';
+import { WHATSAPP_NUMBER } from '../../config/payments';
 import { 
-  getShippingStatusClass, 
-  getShippingStatusText,
+  getOrderPickupStatusConfig,
   getDeliveryMethodClass,
   getDeliveryMethodText 
 } from '../../utils/orderStatusUtils';
@@ -267,7 +207,7 @@ const loadOrders = async () => {
   } catch (error: any) {
     // Manejo de errores específicos
     if (error?.response?.status === 401) {
-      toast.error('Sesion expirada. Por favor, inicia sesión nuevamente.');
+      toast.error('Sesión expirada. Por favor, inicia sesión nuevamente.');
       authStore.logout();
       router.push('/auth');
     } else if (error?.response?.status === 400) {
@@ -303,54 +243,10 @@ const formatDate = (dateString: string | undefined) => {
 
 // Delivery method functions now imported from centralized orderStatusUtils
 
-const isShippingOrder = (deliveryMethod: string | undefined) => {
-  return deliveryMethod === 'envio_andreani' || deliveryMethod === 'envio_correo';
-};
-
-const getShippingProviderName = (provider: string) => {
-  switch (provider) {
-    case 'andreani':
-      return 'Andreani';
-    case 'correo-argentino':
-      return 'Correo Argentino';
-    default:
-      return provider || 'Proveedor';
-  }
-};
-
-// Tracking functions
-const trackShipment = (trackingNumber: string | undefined, provider: string | undefined) => {
-  if (!trackingNumber || !provider) {
-    toast.error('Información de tracking no disponible');
-    return;
-  }
-  
-  let trackingUrl = '';
-  
-  switch (provider) {
-    case 'andreani':
-      trackingUrl = `https://www.andreani.com/seguimiento?codigo=${trackingNumber}`;
-      break;
-    case 'correo-argentino':
-      trackingUrl = `https://www.correoargentino.com.ar/formularios/e-commerce?codigo=${trackingNumber}`;
-      break;
-    default:
-      toast.info('Número de tracking copiado al portapapeles');
-      navigator.clipboard.writeText(trackingNumber);
-      return;
-  }
-  
-  window.open(trackingUrl, '_blank');
-};
-
 const contactForPickup = (order: any) => {
-  const message = `Hola! Soy ${order.customer_name || 'un cliente'} y tengo el pedido #${order.id} listo para retirar.
-
-
-¿Cuando puedo pasar a retirarlo?`;
-
+  const message = `Hola! Soy ${order.customer_name || 'un cliente'} y quiero coordinar el retiro de mi pedido #${order.id}.`;
   const encodedMessage = encodeURIComponent(message);
-  const whatsappUrl = `https://wa.me/5491112345678?text=${encodedMessage}`;
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
   
   window.open(whatsappUrl, '_blank');
 };
