@@ -34,7 +34,6 @@ from pydantic import ValidationError
 
 @router.post("/orders/")
 def create_order(
-    background_tasks: BackgroundTasks,
     session: Session = Depends(get_session),
     order: Order = Body(...),
     user=Depends(get_current_user),
@@ -93,10 +92,42 @@ def create_order(
     except Exception as e:
         response["payment_error"] = str(e)
 
-    snapshot = build_order_snapshot(db_order, session, customer=customer)
+    return response
+
+
+@router.post("/orders/{order_id}/notify-created")
+def notify_order_created(
+    order_id: int,
+    background_tasks: BackgroundTasks,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user),
+):
+    order = session.get(Order, order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    check_order_ownership_or_admin(order, user, session)
+
+    if order.notified_created_at is not None:
+        return {
+            "order_id": order.id,
+            "notified": False,
+            "already_notified": True,
+        }
+
+    order.notified_created_at = datetime.utcnow()
+    session.add(order)
+    session.commit()
+    session.refresh(order)
+
+    snapshot = build_order_snapshot(order, session)
     background_tasks.add_task(notificaciones_service.notificar_pedido_creado, snapshot)
 
-    return response
+    return {
+        "order_id": order.id,
+        "notified": True,
+        "already_notified": False,
+    }
 
 
 @router.get("/orders/", response_model=List[Order])

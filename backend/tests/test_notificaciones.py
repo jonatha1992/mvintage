@@ -186,7 +186,7 @@ def test_notificar_pedido_creado_transferencia_con_prendas():
     assert "Transferencia bancaria" in owner_mail["mensaje"]
 
 
-def test_create_order_transfer_and_mercadopago_send_emails(
+def test_post_orders_does_not_send_email_and_notify_created_sends_with_items_idempotently(
     client, db_session: Session, auth_cookie, fake_correo
 ):
     customer = Customer(
@@ -197,6 +197,16 @@ def test_create_order_transfer_and_mercadopago_send_emails(
     db_session.add(customer)
     db_session.commit()
     db_session.refresh(customer)
+
+    product = Product(name="Vestido Lino", price=28500.0, is_unique=False, stock=0)
+    db_session.add(product)
+    db_session.commit()
+    db_session.refresh(product)
+
+    variant = ProductVariant(product_id=product.id, color="Crudo", talle="M", stock=4)
+    db_session.add(variant)
+    db_session.commit()
+    db_session.refresh(variant)
 
     resp_transfer = client.post(
         "/api/v1/orders/",
@@ -210,16 +220,60 @@ def test_create_order_transfer_and_mercadopago_send_emails(
     )
     assert resp_transfer.status_code == 200
     order_id = resp_transfer.json()["order"]["id"]
+    assert len(fake_correo.sent) == 0
+
+    item_resp = client.post(
+        "/api/v1/order-items/",
+        json={
+            "order_id": order_id,
+            "product_id": product.id,
+            "variant_id": variant.id,
+            "quantity": 1,
+            "price": 28500.0,
+        },
+        headers=auth_cookie,
+    )
+    assert item_resp.status_code == 200
+    assert len(fake_correo.sent) == 0
+
+    notify_resp = client.post(
+        f"/api/v1/orders/{order_id}/notify-created",
+        headers=auth_cookie,
+    )
+    assert notify_resp.status_code == 200
+    assert notify_resp.json() == {
+        "order_id": order_id,
+        "notified": True,
+        "already_notified": False,
+    }
 
     assert len(fake_correo.sent) == 2
     assert fake_correo.sent[0]["to"] == "lucia@example.com"
     assert f"Recibimos tu pedido #{order_id}" == fake_correo.sent[0]["titulo"]
+    assert "Vestido Lino" in fake_correo.sent[0]["mensaje"]
+    assert "Color: Crudo" in fake_correo.sent[0]["mensaje"]
+    assert "Talle: M" in fake_correo.sent[0]["mensaje"]
+    assert "$28.500" in fake_correo.sent[0]["mensaje"]
     assert "Para pagar pedí los datos por WhatsApp" in fake_correo.sent[0]["mensaje"]
     assert fake_correo.sent[1]["to"] == "Showroomisabella@gmail.com"
     assert f"Nuevo pedido #{order_id}" == fake_correo.sent[1]["titulo"]
+    assert "Vestido Lino" in fake_correo.sent[1]["mensaje"]
 
+    # Segunda llamada es idempotente y no reenvía
+    notify_resp_2 = client.post(
+        f"/api/v1/orders/{order_id}/notify-created",
+        headers=auth_cookie,
+    )
+    assert notify_resp_2.status_code == 200
+    assert notify_resp_2.json() == {
+        "order_id": order_id,
+        "notified": False,
+        "already_notified": True,
+    }
+    assert len(fake_correo.sent) == 2
+
+    # Pedido Mercado Pago: POST /orders/ no envía, notify-created sí envía
     fake_correo.sent.clear()
-
     resp_mp = client.post(
         "/api/v1/orders/",
         json={
@@ -232,7 +286,13 @@ def test_create_order_transfer_and_mercadopago_send_emails(
     )
     assert resp_mp.status_code == 200
     mp_order_id = resp_mp.json()["order"]["id"]
+    assert len(fake_correo.sent) == 0
 
+    notify_mp = client.post(
+        f"/api/v1/orders/{mp_order_id}/notify-created",
+        headers=auth_cookie,
+    )
+    assert notify_mp.status_code == 200
     assert len(fake_correo.sent) == 2
     assert fake_correo.sent[0]["to"] == "lucia@example.com"
     assert f"Recibimos tu pedido #{mp_order_id}" == fake_correo.sent[0]["titulo"]
@@ -242,7 +302,53 @@ def test_create_order_transfer_and_mercadopago_send_emails(
     assert fake_correo.sent[1]["to"] == "Showroomisabella@gmail.com"
 
 
-def test_correo_failure_does_not_break_order_creation(
+def test_notify_created_requires_owner_or_admin(
+    client, db_session: Session, fake_correo
+):
+    from app.core.auth_firebase import verify_firebase_token
+    from app.main import app
+
+    customer = Customer(name="María López", email="maria@example.com", phone="1133445566")
+    db_session.add(customer)
+    db_session.commit()
+    db_session.refresh(customer)
+
+    order = Order(
+        customer_id=customer.id,
+        total=18000.0,
+        payment_method="transfer",
+        delivery_method="retiro_local",
+    )
+    db_session.add(order)
+    db_session.commit()
+    db_session.refresh(order)
+
+    # Otro usuario no admin -> 403
+    app.dependency_overrides[verify_firebase_token] = lambda: {
+        "uid": "other_uid",
+        "email": "intruso@example.com",
+        "email_verified": True,
+    }
+    try:
+        resp_forbidden = client.post(f"/api/v1/orders/{order.id}/notify-created")
+        assert resp_forbidden.status_code == 403
+        assert len(fake_correo.sent) == 0
+
+        # Dueño del pedido (no admin) -> 200
+        app.dependency_overrides[verify_firebase_token] = lambda: {
+            "uid": "owner_uid",
+            "email": "maria@example.com",
+            "email_verified": True,
+        }
+        resp_owner = client.post(f"/api/v1/orders/{order.id}/notify-created")
+        assert resp_owner.status_code == 200
+        assert resp_owner.json()["notified"] is True
+        assert len(fake_correo.sent) == 2
+    finally:
+        app.dependency_overrides.pop(verify_firebase_token, None)
+
+
+def test_correo_failure_does_not_break_notify_created(
     client, db_session: Session, auth_cookie, monkeypatch, caplog
 ):
     failing_client = FakeCorreoClient(configured=True, fail=True)
@@ -253,20 +359,27 @@ def test_correo_failure_does_not_break_order_creation(
     db_session.commit()
     db_session.refresh(customer)
 
+    resp = client.post(
+        "/api/v1/orders/",
+        json={
+            "customer_id": customer.id,
+            "total": 15000.0,
+            "payment_method": "transfer",
+            "delivery_method": "retiro_local",
+        },
+        headers=auth_cookie,
+    )
+    assert resp.status_code == 200
+    order_id = resp.json()["order"]["id"]
+
     with caplog.at_level(logging.ERROR):
-        resp = client.post(
-            "/api/v1/orders/",
-            json={
-                "customer_id": customer.id,
-                "total": 15000.0,
-                "payment_method": "transfer",
-                "delivery_method": "retiro_local",
-            },
+        notify_resp = client.post(
+            f"/api/v1/orders/{order_id}/notify-created",
             headers=auth_cookie,
         )
 
-    assert resp.status_code == 200
-    assert resp.json()["order"]["id"] is not None
+    assert notify_resp.status_code == 200
+    assert notify_resp.json()["notified"] is True
     assert "Error enviando correo" in caplog.text
 
 

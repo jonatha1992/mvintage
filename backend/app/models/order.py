@@ -19,6 +19,7 @@ class Order(SQLModel, table=True):
     mercadopago_checkout_url: Optional[str] = Field(default=None)
     payment_expires_at: Optional[datetime] = Field(default=None)
     stock_released: bool = Field(default=False)
+    notified_created_at: Optional[datetime] = Field(default=None)
     
     # Delivery method
     delivery_method: Optional[str] = Field(
