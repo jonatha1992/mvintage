@@ -20,8 +20,11 @@
       <div class="relative flex items-center justify-center flex-1 min-h-0">
           <img 
             ref="modalImgRef"
-            :src="currentImage" 
+            :src="currentImageSrc" 
+            :srcset="currentImageSrcset"
+            sizes="100vw"
             :alt="alt" 
+            decoding="async"
             class="object-contain max-w-full max-h-full modal-image"
             @load="handleImageLoad"
             @error="handleImageError"
@@ -122,6 +125,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import type { ProductImage } from '../../types/products/product.types';
+import { buildImageVariantUrl, buildImageSrcset } from '../../utils/imageUrl';
 
 interface Props {
   isOpen: boolean;
@@ -227,6 +231,9 @@ const currentImage = computed(() => {
   }
   return '';
 });
+
+const currentImageSrc = computed(() => buildImageVariantUrl(currentImage.value, 800));
+const currentImageSrcset = computed(() => buildImageSrcset(currentImage.value, [400, 800]));
 
 const closeModal = async () => {
   // If there's a shared-element target on the product detail, animate back first
