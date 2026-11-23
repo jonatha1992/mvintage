@@ -26,7 +26,7 @@
           <section>
             <h2 class="text-2xl font-light text-gray-900 mb-4">2. Descripción del Servicio</h2>
             <p class="text-gray-700 leading-relaxed mb-4">
-              Showroom Isabella es una tienda online de ropa vintage y contemporánea. Ofrecemos una plataforma
+              Showroom Isabella es una tienda online de indumentaria y accesorios. Ofrecemos una plataforma
               para la compra de productos de moda, accesorios y artículos relacionados.
             </p>
             <p class="text-gray-700 leading-relaxed">
@@ -85,10 +85,10 @@
           <section>
             <h2 class="text-2xl font-light text-gray-900 mb-4">6. Retiro en el local</h2>
             <p class="text-gray-700 leading-relaxed mb-4">
-              Todas las compras se retiran en el local, sin costo adicional. Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.
+              Todas las compras se retiran en el local, sin costo adicional. No realizamos envíos. Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.
             </p>
             <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
-              <li>Modalidad exclusiva de retiro en el local</li>
+              <li>Modalidad exclusiva de retiro en el local (sin envíos)</li>
               <li>El retiro se coordina previamente por WhatsApp</li>
               <li>Se debe presentar el número de pedido</li>
             </ul>
@@ -181,16 +181,21 @@
               </p>
               <div class="space-y-2 text-gray-700">
                 <p><strong>Email:</strong> 
-                  <a href="mailto:Showroomisabellaa@gmail.com" class="text-blue-600 hover:text-blue-800">
-                    Showroomisabellaa@gmail.com
+                  <a href="mailto:Showroomisabella@gmail.com" class="text-blue-600 hover:text-blue-800">
+                    Showroomisabella@gmail.com
                   </a>
                 </p>
-                <p><strong>Teléfono:</strong> 
-                  <a href="tel:+5491176372876" class="text-blue-600 hover:text-blue-800">
+                <p><strong>WhatsApp:</strong> 
+                  <a href="https://wa.me/5491176372876" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800">
                     +54 9 11 7637-2876
                   </a>
                 </p>
-                <p><strong>Dirección:</strong> Buenos Aires, Argentina</p>
+                <p><strong>Instagram:</strong> 
+                  <a href="https://www.instagram.com/showroomisabella_/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800">
+                    @showroomisabella_
+                  </a>
+                </p>
+                <p><strong>Dirección del local:</strong> A confirmar al coordinar el retiro por WhatsApp.</p>
               </div>
             </div>
           </section>

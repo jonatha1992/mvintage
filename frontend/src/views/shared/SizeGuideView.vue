@@ -146,7 +146,7 @@
               rel="noopener noreferrer"
               class="text-blue-600 hover:underline font-medium"
             >Escribinos por WhatsApp</a> o por correo a
-            <a href="mailto:Showroomisabellaa@gmail.com" class="text-blue-600 hover:underline font-medium">Showroomisabellaa@gmail.com</a>.
+            <a href="mailto:Showroomisabella@gmail.com" class="text-blue-600 hover:underline font-medium">Showroomisabella@gmail.com</a>.
           </p>
         </div>
       </div>

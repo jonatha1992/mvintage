@@ -21,6 +21,7 @@ from app.controllers.payments_controller import payments_controller
 from app.controllers.transfer_controller import transfer_controller
 from app.controllers.cash_controller import cash_controller
 from app.core.config import settings
+from app.core.rate_limit import rate_limit
 from app.routes.inventory import reduce_stock, release_order_stock_once, restore_stock
 from app.services.notificaciones import build_order_snapshot, notificaciones_service
 
@@ -32,7 +33,7 @@ router = APIRouter()
 from pydantic import ValidationError
 
 
-@router.post("/orders/")
+@router.post("/orders/", dependencies=[Depends(rate_limit("orders_create", limit=10, window_seconds=60))])
 def create_order(
     session: Session = Depends(get_session),
     order: Order = Body(...),
@@ -95,7 +96,10 @@ def create_order(
     return response
 
 
-@router.post("/orders/{order_id}/notify-created")
+@router.post(
+    "/orders/{order_id}/notify-created",
+    dependencies=[Depends(rate_limit("orders_notify_created", limit=10, window_seconds=60))],
+)
 def notify_order_created(
     order_id: int,
     background_tasks: BackgroundTasks,
