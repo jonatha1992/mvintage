@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from app.routes.admin_images import router as admin_images_router
 from app.routes.products import router as products_router
@@ -72,16 +73,17 @@ async def shutdown_event():
     _expiration_task = None
 
 
-# CORS Middleware Configuration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_origins,  # Use dynamic origins from settings
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
-    expose_headers=["Content-Disposition", "Set-Cookie"],  # Expose additional headers
-    max_age=600,  # Cache preflight requests for 10 minutes
-)
+@app.middleware("http")
+async def catch_unhandled_exceptions(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception:
+        logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Error interno del servidor"},
+        )
+
 
 @app.middleware("http")
 async def security_headers(request, call_next):
@@ -92,6 +94,18 @@ async def security_headers(request, call_next):
     if response.headers.get("content-type", "").startswith("application/json"):
         response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
     return response
+
+
+# CORS registrado al final para envolver security_headers y errores 500
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["Content-Disposition", "Set-Cookie"],
+    max_age=600,
+)
 
 
 app.include_router(admin_images_router, prefix="/api/v1")

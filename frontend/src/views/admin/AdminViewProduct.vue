@@ -1037,6 +1037,31 @@ async function fetchProducts() {
   }
 }
 
+function getProductSaveErrorMessage(error: unknown, isEditing: boolean): string {
+  const action = isEditing ? 'actualizar' : 'crear';
+  const err = error as { response?: { status?: number; data?: { detail?: unknown } } };
+  const detail = err?.response?.data?.detail;
+  if (typeof detail === 'string' && detail.trim()) {
+    return `No se pudo ${action} el producto: ${detail}`;
+  }
+  if (Array.isArray(detail) && detail.length > 0) {
+    const firstMsg = detail
+      .map((item: { msg?: unknown }) => (typeof item?.msg === 'string' ? item.msg : ''))
+      .filter(Boolean)
+      .join('. ');
+    if (firstMsg) {
+      return `No se pudo ${action} el producto: ${firstMsg}`;
+    }
+  }
+  if (err?.response?.status && err.response.status >= 500) {
+    return `No se pudo ${action} el producto por un error del servidor. Intentá nuevamente.`;
+  }
+  if (!err?.response) {
+    return `No se pudo ${action} el producto. Verificá tu conexión e intentá nuevamente.`;
+  }
+  return `No se pudo ${action} el producto. Revisá los datos e intentá nuevamente.`;
+}
+
 async function saveProduct() {
   showLoading(
     editing.value ? 'Actualizando producto...' : 'Agregando producto...',
@@ -1124,12 +1149,12 @@ async function saveProduct() {
       savedProduct = await addProduct(product.value as any);
     }
 
-    // El store ya actualiza automáticamente la cache
+    const wasEditing = editing.value;
     products.value = storeProducts.value as any[];
     resetForm();
-    toast.success(` Producto ${editing.value ? 'actualizado' : 'creado'} exitosamente!`);
+    toast.success(`Producto ${wasEditing ? 'actualizado' : 'creado'} exitosamente.`);
   } catch (error) {
-    toast.error(`Error al ${editing.value ? 'actualizar' : 'crear'} producto: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    toast.error(getProductSaveErrorMessage(error, editing.value));
   } finally {
     hideLoading();
   }
@@ -1258,7 +1283,7 @@ function editProduct(p: any) {
     talle: p.talle || null,
     stock: p.stock || null,
     images: p.images.map((img: any) => img.image_url),
-    variants: p.variants?.map((v: any) => ({ color: v.color || v.size, talle: v.talle || v.size, stock: v.stock })) || [],
+    variants: p.variants?.map((v: any) => ({ id: v.id, color: v.color || v.size, talle: v.talle || v.size, stock: v.stock })) || [],
     has_discount: p.has_discount || false,
     max_installments: p.max_installments ?? 3
   };

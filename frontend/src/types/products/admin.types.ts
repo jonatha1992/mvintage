@@ -46,5 +46,5 @@ export interface AdminProductCreate {
   discount_percentage?: number | null;
   max_installments?: number;
   images: string[];
-  variants: Omit<AdminProductVariant, 'id'>[];
+  variants: AdminProductVariant[];
 }
