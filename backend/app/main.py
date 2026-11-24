@@ -19,15 +19,18 @@ from app.routes.contact import router as contact_router
 
 # Email functionality moved to /routes/ (standard approach)
 from app.core.config import settings
+import asyncio
 import os
 import re
 import subprocess
 from pathlib import Path
 from app.db.migrations import run_migrations
+from app.services.order_expiration import pending_order_expiration_loop
 import app.models  # noqa: F401
 import logging
 
 logger = logging.getLogger(__name__)
+_expiration_task = None
 
 app = FastAPI(
     title="Tienda Ropa API",
@@ -39,6 +42,7 @@ app = FastAPI(
 @app.on_event("startup")
 async def startup_event():
     """Ejecutar migraciones automáticamente al iniciar la aplicación."""
+    global _expiration_task
     logger.info("Starting application...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
 
@@ -51,6 +55,21 @@ async def startup_event():
         # En development podemos continuar, en otros entornos es más crítico
         if settings.ENVIRONMENT not in ["development", "dev"]:
             raise
+
+    if not os.environ.get("PYTEST_CURRENT_TEST") and (_expiration_task is None or _expiration_task.done()):
+        _expiration_task = asyncio.create_task(pending_order_expiration_loop())
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    global _expiration_task
+    if _expiration_task is not None and not _expiration_task.done():
+        _expiration_task.cancel()
+        try:
+            await _expiration_task
+        except asyncio.CancelledError:
+            logger.info("Tarea periódica de vencimiento de pedidos detenida")
+    _expiration_task = None
 
 
 # CORS Middleware Configuration
