@@ -1,5 +1,12 @@
 ﻿<template>
-  <router-link v-reveal="index" :to="`/product/${product.id}/${product.name}`" class="block h-full">
+  <component
+    :is="preview ? 'div' : 'router-link'"
+    v-reveal="index"
+    :to="preview ? undefined : `/product/${product.id}/${product.name}`"
+    :aria-label="preview ? 'Vista previa' : undefined"
+    class="block h-full"
+    :class="{ 'cursor-default': preview }"
+  >
     <div class="flex flex-col h-full overflow-hidden transition-shadow duration-200 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-md group product-card">
       <!-- Imagen del producto -->
       <div
@@ -109,7 +116,7 @@
       </div>
     </div>
     
-  </router-link>
+  </component>
 </template>
 
 <script setup lang="ts">
@@ -123,10 +130,16 @@ import type { Product } from '../../types/products/product.types';
 const defaultImage = '/imagen-portada.svg';
 const CARD_IMAGE_SIZES = '(max-width: 639px) 46vw, (max-width: 1023px) 45vw, (max-width: 1279px) 30vw, 23vw';
 
-const props = defineProps<{
-  product: Product;
-  index?: number;
-}>();
+const props = withDefaults(
+  defineProps<{
+    product: Product;
+    index?: number;
+    preview?: boolean;
+  }>(),
+  {
+    preview: false,
+  }
+);
 
 const primaryImageFailed = ref(false);
 const shouldLoadHover = ref(false);

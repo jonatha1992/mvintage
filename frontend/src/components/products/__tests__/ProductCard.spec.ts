@@ -39,13 +39,32 @@ const mockMatchMedia = (matches: boolean) => {
 };
 
 describe('ProductCard', () => {
-  const mountCard = (product: Product, index = 0) =>
+  const mountCard = (product: Product, index = 0, preview = false) =>
     mount(ProductCard, {
-      props: { product, index },
+      props: { product, index, preview },
       global: {
-        stubs: { RouterLink: { template: '<a><slot /></a>' } },
+        stubs: {
+          RouterLink: {
+            props: ['to'],
+            template: '<a :href="to"><slot /></a>',
+          },
+        },
       },
     });
+
+  it('renders link with product id when preview is false and non-link div with preview label when preview is true', () => {
+    const normal = mountCard(makeProduct({ id: 42, name: 'Remera Test' }), 0, false);
+    const link = normal.find('a');
+    expect(link.exists()).toBe(true);
+    expect(link.attributes('href')).toBe('/product/42/Remera Test');
+
+    const previewCard = mountCard(makeProduct({ id: 42, name: 'Remera Test' }), 0, true);
+    expect(previewCard.find('a').exists()).toBe(false);
+    const previewEl = previewCard.find('[aria-label="Vista previa"]');
+    expect(previewEl.exists()).toBe(true);
+    expect(previewEl.element.tagName.toLowerCase()).toBe('div');
+    expect(previewEl.classes()).toContain('cursor-default');
+  });
 
   it('does not render hover image until pointerenter on hover-capable desktop', async () => {
     const restore = mockMatchMedia(true);

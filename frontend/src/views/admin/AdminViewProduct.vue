@@ -736,7 +736,7 @@
           <div class="p-5 bg-white border border-gray-200 rounded-lg">
             <h3 class="mb-3 text-base font-semibold text-gray-900">Vista previa del producto</h3>
             <div class="max-w-sm mx-auto">
-              <ProductCard :product="previewProduct" />
+              <ProductCard :product="previewProduct" preview />
             </div>
           </div>
         </div>
