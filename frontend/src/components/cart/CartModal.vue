@@ -17,7 +17,8 @@
           <!-- Close Button -->
           <button
             @click="closeCartModal"
-            class="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600"
+                        aria-label="Cerrar carrito"
+                        class="absolute top-2 right-2 z-10 flex items-center justify-center min-w-12 min-h-12 text-gray-500 hover:text-gray-700"
           >
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

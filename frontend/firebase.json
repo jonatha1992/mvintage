@@ -8,6 +8,14 @@
         "**/.*",
         "**/node_modules/**"
       ],
+      "headers": [{
+        "source": "**",
+        "headers": [
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
+        ]
+      }],
       "rewrites": [
         {
           "source": "**",
@@ -23,6 +31,14 @@
         "**/.*",
         "**/node_modules/**"
       ],
+      "headers": [{
+        "source": "**",
+        "headers": [
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
+        ]
+      }],
       "rewrites": [
         {
           "source": "**",

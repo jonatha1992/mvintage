@@ -15,6 +15,7 @@ from app.routes.admin_payments import router as admin_payments_router
 from app.routes.admin_shipping import router as admin_shipping_router
 from app.routes.email_verification import router as email_verification_router
 from app.routes.shipping_quotes import router as shipping_quotes_router
+from app.routes.contact import router as contact_router
 
 # Email functionality moved to /routes/ (standard approach)
 from app.core.config import settings
@@ -63,6 +64,17 @@ app.add_middleware(
     max_age=600,  # Cache preflight requests for 10 minutes
 )
 
+@app.middleware("http")
+async def security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    if response.headers.get("content-type", "").startswith("application/json"):
+        response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+    return response
+
+
 app.include_router(admin_images_router, prefix="/api/v1")
 app.include_router(products_router, prefix="/api/v1")
 app.include_router(customers_router, prefix="/api/v1")
@@ -76,6 +88,7 @@ app.include_router(payments_router, prefix="/api/v1")
 app.include_router(admin_payments_router, prefix="/api/v1/orders", tags=["admin"])
 app.include_router(admin_shipping_router, prefix="/api/v1")
 app.include_router(email_verification_router, prefix="/api/v1")
+app.include_router(contact_router, prefix="/api/v1")
 app.include_router(shipping_quotes_router, prefix="/api/v1")
 # Email functionality moved to standard /routes/
 

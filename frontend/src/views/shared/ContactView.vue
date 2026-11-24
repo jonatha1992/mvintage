@@ -39,30 +39,34 @@
           <!-- Formulario de contacto -->
           <div>
             <h2 class="mb-4 text-xl font-semibold text-gray-800 font-heading">Envíanos un mensaje</h2>
-            <form class="space-y-4">
+            <p class="mb-4 text-sm text-gray-600">Todos los campos son obligatorios.</p>
+            <form class="space-y-4" method="post" :aria-busy="sending" @submit.prevent="sendMessage">
               <div>
                 <label for="name" class="block mb-1 text-sm font-medium font-body text-body-text">Nombre</label>
-                <input type="text" id="name" name="name" 
+                <input type="text" id="name" name="name" v-model.trim="form.nombre" required minlength="2" maxlength="100" autocomplete="name"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="Tu nombre">
               </div>
               <div>
                 <label for="email" class="block mb-1 text-sm font-medium font-body text-body-text">Email</label>
-                <input type="email" id="email" name="email"
+                <input type="email" id="email" name="email" v-model.trim="form.email" required maxlength="254" autocomplete="email"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="tu@email.com">
               </div>
               <div>
                 <label for="message" class="block mb-1 text-sm font-medium font-body text-body-text">Mensaje</label>
-                <textarea id="message" name="message" rows="4"
+                <textarea id="message" name="message" rows="4" v-model.trim="form.mensaje" required minlength="10" maxlength="4000"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="Tu mensaje..."></textarea>
               </div>
-              <button type="submit"
-                class="w-full px-4 py-2 text-white transition duration-200 bg-gray-500 rounded-md hover:bg-gray-700">
-                <span class="text-white"> Enviar Mensaje</span>
+              <button type="submit" :disabled="sending"
+                class="w-full min-h-12 px-4 py-2 text-white transition duration-200 bg-gray-500 rounded-md hover:bg-gray-700">
+                <span class="text-white">{{ sending ? 'Enviando…' : 'Enviar mensaje' }}</span>
               </button>
             </form>
+            <p v-if="success" role="status" class="mt-4 text-sm text-green-800">Recibimos tu mensaje. Te responderemos por email.</p>
+            <p v-if="error" role="alert" class="mt-4 text-sm text-red-800">{{ error }}</p>
+            <a :href="`https://wa.me/${WHATSAPP_NUMBER}`" target="_blank" rel="noopener noreferrer" class="inline-flex items-center min-h-12 mt-3 text-sm underline">O escribinos por WhatsApp</a>
           </div>
         </div>
       </div>
@@ -71,6 +75,29 @@
 </template>
 
 <script setup lang="ts">
+import { reactive, ref } from 'vue'
+import { apiClient } from '../../config/index'
+import { WHATSAPP_NUMBER } from '../../config/payments'
 import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store'
+const form = reactive({ nombre: '', email: '', mensaje: '' })
+const sending = ref(false)
+const success = ref(false)
+const error = ref('')
+
+const sendMessage = async () => {
+  if (sending.value) return
+  sending.value = true
+  success.value = false
+  error.value = ''
+  try {
+    await apiClient.post('/contact', { ...form })
+    success.value = true
+    Object.assign(form, { nombre: '', email: '', mensaje: '' })
+  } catch {
+    error.value = 'No pudimos enviar tu mensaje. Intentá de nuevo en unos minutos o escribinos por WhatsApp.'
+  } finally {
+    sending.value = false
+  }
+}
 </script>
 

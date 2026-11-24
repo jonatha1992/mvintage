@@ -5,13 +5,13 @@
       <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div class="flex items-center py-4 space-x-2 text-sm">
           <router-link to="/" class="text-gray-400 transition-colors hover:text-gray-600">
-            Home
+            Inicio
           </router-link>
           <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
           </svg>
           <router-link to="/shop" class="text-gray-400 transition-colors hover:text-gray-600">
-            Shop
+            Colección
           </router-link>
           <svg v-if="selectedCategory" class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
@@ -116,8 +116,9 @@
           <!-- Mobile Filter Toggle -->
           <div class="mb-6 lg:hidden">
             <button 
-              @click="showMobileFilters = !showMobileFilters"
-              class="flex items-center justify-center w-full py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+              @click="mobileFilters?.showModal()"
+              aria-controls="mobile-filters" aria-haspopup="dialog"
+              class="flex items-center justify-center w-full min-h-12 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
             >
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -189,39 +190,49 @@
       </div>
     </div>
 
-    <!-- Mobile Filters Overlay -->
-    <div v-if="showMobileFilters" class="fixed inset-0 z-50 lg:hidden">
-      <div class="fixed inset-0 bg-black bg-opacity-25" @click="showMobileFilters = false"></div>
-      <div class="fixed top-0 right-0 w-full h-full max-w-xs bg-white shadow-xl">
-        <div class="flex items-center justify-between p-4 border-b">
-          <h2 class="text-lg font-medium text-gray-900">Filtros</h2>
-          <button @click="showMobileFilters = false" class="p-2 text-gray-400 hover:text-gray-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div class="p-4 space-y-6">
-          <!-- Mobile filters content (same as desktop) -->
-          <!-- Categories -->
-          <div>
-            <h3 class="mb-3 text-base font-medium text-gray-900">Categorías</h3>
-            <div class="space-y-2">
-              <label v-for="category in categories" :key="category.id" class="flex items-center">
-                <input 
-                  type="radio" 
-                  :value="category.name" 
-                  v-model="filters.category"
-                  @change="applyFilters"
-                  class="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-500"
-                >
-                <span class="ml-3 text-sm text-gray-700">{{ category.name }}</span>
-              </label>
-            </div>
-          </div>
-        </div>
+    <dialog id="mobile-filters" ref="mobileFilters" aria-labelledby="filters-heading" class="filters-dialog">
+      <div class="flex items-center justify-between p-4 border-b">
+        <h2 id="filters-heading" class="text-lg font-medium text-gray-900">Filtros</h2>
+        <button type="button" @click="mobileFilters?.close()" class="min-h-12 min-w-12 px-2 text-gray-700" aria-label="Cerrar filtros" autofocus>Cerrar</button>
       </div>
-    </div>
+      <div class="p-4 space-y-6">
+        <fieldset>
+          <legend class="mb-3 font-medium">Categorías</legend>
+          <label v-for="category in categories" :key="category.id" class="flex items-center min-h-12 gap-3">
+            <input type="radio" name="mobile-category" :value="category.name" v-model="filters.category" @change="applyFilters">
+            {{ category.name }}
+          </label>
+          <label class="flex items-center min-h-12 gap-3">
+            <input type="radio" name="mobile-category" value="" v-model="filters.category" @change="applyFilters">
+            Todas las categorías
+          </label>
+        </fieldset>
+        <fieldset>
+          <legend class="mb-3 font-medium">Precio</legend>
+          <label v-for="range in priceRanges" :key="range.value" class="flex items-center min-h-12 gap-3">
+            <input type="radio" name="mobile-price" :value="range.value" v-model="filters.priceRange" @change="applyFilters">
+            {{ range.label }}
+          </label>
+          <label class="flex items-center min-h-12 gap-3">
+            <input type="radio" name="mobile-price" value="" v-model="filters.priceRange" @change="applyFilters">
+            Todos los precios
+          </label>
+        </fieldset>
+        <div>
+          <label for="mobile-sort" class="block mb-3 font-medium">Ordenar por</label>
+          <select id="mobile-sort" v-model="filters.sortBy" @change="applyFilters" class="w-full min-h-12 px-3 border border-gray-400 rounded-md">
+            <option value="">Recomendados</option>
+            <option value="price-asc">Precio: Menor a Mayor</option>
+            <option value="price-desc">Precio: Mayor a Menor</option>
+            <option value="name-asc">Nombre: A-Z</option>
+            <option value="name-desc">Nombre: Z-A</option>
+            <option value="newest">Más nuevos</option>
+          </select>
+        </div>
+        <button type="button" @click="clearFilters" class="w-full min-h-12 underline">Limpiar filtros</button>
+        <button type="button" @click="mobileFilters?.close()" class="w-full min-h-12 text-white bg-black rounded-md">Ver {{ filteredProducts.length }} productos</button>
+      </div>
+    </dialog>
   </div>
 </template>
 
@@ -242,7 +253,7 @@ const { products, isLoading, ensureProducts } = useProducts()
 
 // Data
 const categories = ref<Category[]>([])
-const showMobileFilters = ref(false)
+const mobileFilters = ref<HTMLDialogElement | null>(null)
 const productsPerPage = ref(12)
 const currentPage = ref(1)
 
@@ -407,4 +418,19 @@ onMounted(() => {
   loadCategories()
 })
 </script>
+
+<style scoped>
+.filters-dialog {
+  margin: 0 0 0 auto;
+  width: min(100%, 22rem);
+  max-width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  padding: 0;
+  border: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.filters-dialog::backdrop { background: rgb(0 0 0 / 0.35); }
+</style>
 

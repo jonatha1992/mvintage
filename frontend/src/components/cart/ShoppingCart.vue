@@ -33,7 +33,7 @@
                     <div class="flex-1">
                       <h3 class="text-base font-medium text-gray-900 font-heading">
                         <router-link 
-                          :to="`/product/${item.product.name}`" 
+                          :to="`/product/${item.product.id}/${encodeURIComponent(item.product.name)}`"
                           class="hover:text-gray-700 font-body"
                         >
                           {{ item.product.name }}
@@ -76,11 +76,11 @@
 
                   <!-- Quantity Controls -->
                   <div class="flex items-center justify-between mt-3">
-                    <div class="inline-flex items-center h-9 border border-gray-300 rounded-md">
+                    <div class="inline-flex items-center h-12 border border-gray-300 rounded-md">
                       <button
                         @click="updateQuantity(item, item.quantity - 1)"
                         :disabled="item.quantity <= 1"
-                        class="w-9 h-full text-gray-700 hover:text-black disabled:text-gray-300 disabled:cursor-not-allowed"
+                        class="w-12 h-full text-gray-700 hover:text-black disabled:text-gray-300 disabled:cursor-not-allowed"
                         aria-label="Restar uno"
                       >
                         −
@@ -88,7 +88,7 @@
                       <span class="w-8 text-sm text-center text-gray-900 tabular-nums" aria-live="polite">{{ item.quantity }}</span>
                       <button
                         @click="updateQuantity(item, item.quantity + 1)"
-                        class="w-9 h-full text-gray-700 hover:text-black"
+                        class="w-12 h-full text-gray-700 hover:text-black"
                         aria-label="Sumar uno"
                       >
                         +
@@ -97,7 +97,7 @@
 
                     <button
                       @click="cartStore.removeFromCart(item.id)"
-                      class="text-xs text-gray-500 underline underline-offset-2 hover:text-gray-800"
+                      class="min-h-12 px-2 text-xs text-gray-500 underline underline-offset-2 hover:text-gray-800"
                     >
                       Eliminar
                     </button>
