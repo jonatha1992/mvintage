@@ -24,7 +24,8 @@
       <div class="pt-6 mt-6 border-t border-gray-200">
         <h2 class="text-lg font-medium text-gray-900 font-heading">Cómo funciona</h2>
         <ol class="mt-3 space-y-3 text-sm leading-6 text-gray-700 list-decimal list-inside font-body">
-          <li>Completá la compra y elegí tu medio de pago (transferencia bancaria o Mercado Pago).</li>
+          <li v-if="COMPRAS_HABILITADAS">Completá la compra y pagá por transferencia bancaria<span v-if="MERCADOPAGO_HABILITADO"> o Mercado Pago</span>.</li>
+          <li v-else>Elegí tu prenda y escribinos por WhatsApp para confirmar disponibilidad, pago y retiro.</li>
           <li>Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.</li>
           <li>{{ STORE_PICKUP_HOURS }} y pasá con tu número de pedido.</li>
         </ol>
@@ -41,4 +42,5 @@
 
 <script setup lang="ts">
 import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store'
+import { COMPRAS_HABILITADAS, MERCADOPAGO_HABILITADO } from '../../config/payments'
 </script>
