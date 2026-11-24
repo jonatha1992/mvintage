@@ -2,17 +2,19 @@
   <div class="chatbot-container">
     <!-- Botón flotante del chatbot -->
     <button @click="toggleChat"
-      class="fixed z-50 flex items-center justify-center w-16 h-16 text-black transition-all duration-300 bg-white border border-black rounded-full shadow-lg bottom-6 right-6 hover:bg-gray-100"
+      class="fixed z-50 flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 text-black transition-all duration-300 bg-white border border-black rounded-full shadow-lg hover:bg-gray-100"
+      style="right: max(1rem, env(safe-area-inset-right, 0px)); bottom: max(1rem, env(safe-area-inset-bottom, 0px));"
       :class="{ 'rotate-45': isChatOpen }">
-      <img v-if="!isChatOpen" src="/logo_redondo.jpg" alt="Chat de Showroom Isabella" class="object-cover w-14 h-14 rounded-full" />
-      <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <img v-if="!isChatOpen" src="/logo_redondo.jpg" alt="Chat de Showroom Isabella" class="object-cover w-12 h-12 sm:w-14 sm:h-14 rounded-full" />
+      <svg v-else class="w-6 h-6" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
     </button>
 
     <!-- Ventana del chat -->
     <div v-if="isChatOpen"
-      class="fixed z-40 flex flex-col bg-white border border-gray-200 rounded-lg shadow-xl bottom-24 right-6 w-80 h-96">
+      class="fixed z-40 flex flex-col bg-white border border-gray-200 rounded-lg shadow-xl w-[min(20rem,calc(100vw-2rem))] h-96"
+      style="right: max(1rem, env(safe-area-inset-right, 0px)); bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));">
       <!-- Header del chat -->
       <div class="flex items-center p-4 space-x-3 text-white bg-black rounded-t-lg">
         <img src="/logo_redondo.jpg" alt="Showroom Isabella" class="object-cover w-8 h-8 rounded-full" />

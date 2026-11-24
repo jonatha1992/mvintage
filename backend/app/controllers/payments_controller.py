@@ -208,6 +208,28 @@ class PaymentsController:
                 order.payment_expires_at = _parse_iso_utc(charge.get("expiresAt"))
 
             if remote_status == "approved":
+                if order.payment_status in ("cancelled", "expired"):
+                    payment_ref = order.mercadopago_payment_id or "sin_id"
+                    note = (
+                        f"Pago tardío recibido (payment_id={payment_ref}) para pedido ya "
+                        f"{order.payment_status}; requiere revisión manual (no reactivado)."
+                    )
+                    logger.warning(
+                        "Pago tardío aprobado para orden #%s ya en estado %s (payment_id=%s); marcado para revisión manual",
+                        order.id,
+                        order.payment_status,
+                        payment_ref,
+                    )
+                    order.verification_required = True
+                    if not order.admin_notes:
+                        order.admin_notes = note
+                    elif note not in order.admin_notes:
+                        order.admin_notes = f"{order.admin_notes}\n{note}"
+                    session.add(order)
+                    session.commit()
+                    session.refresh(order)
+                    return order.payment_status
+
                 just_approved = order.payment_status not in ("approved", "paid")
                 if just_approved:
                     if order.stock_released:
