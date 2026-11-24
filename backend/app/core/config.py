@@ -80,6 +80,8 @@ class Settings(BaseSettings):
     PAYALERT_API_KEY: str = ""
     PAYALERT_ORIGIN: str = "https://showroomisabella-api.tecnofusion.dev"
     PAYMENT_RETURN_URL: Optional[str] = None
+    PENDING_ORDER_TTL_HOURS: int = 24
+    PENDING_ORDER_CLEANUP_INTERVAL_MINUTES: int = 15
 
     # MercadoPago Configuration (legacy, unused)
     MERCADOPAGO_ACCESS_TOKEN: str = ""
