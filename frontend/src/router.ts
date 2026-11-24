@@ -1,4 +1,5 @@
 import { nextTick } from 'vue'
+import { applySeo, routeSeo } from './utils/seo'
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import HomeView from './views/shared/HomeView.vue'
 import CollectionView from './views/products/CollectionView.vue'
@@ -192,7 +193,8 @@ router.beforeResolve((to, from) => {
 });
 
 // Completar progress bar después de navegar
-router.afterEach(() => {
+router.afterEach((to, _from, failure) => {
+  if (!failure) applySeo(routeSeo(to.fullPath, !['pro', 'production'].includes(import.meta.env.MODE)));
   globalProgressBar.complete();
   if (terminarTransicion) {
     const fin = terminarTransicion;
