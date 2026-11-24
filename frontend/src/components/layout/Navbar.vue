@@ -1,12 +1,12 @@
 ﻿<template>
   <nav class="sticky top-0 z-50 bg-white border-b border-gray-100 site-nav">
     <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
+      <div class="flex items-center justify-between gap-2 h-16">
         <!-- Logo -->
-        <div class="flex-shrink-0">
-          <router-link to="/" class="flex items-center space-x-2 text-lg sm:text-2xl font-light tracking-wider text-gray-900 font-heading hover:text-gray-700">
-            <img src="/logo_redondo.jpg" alt="Showroom Isabella" class="object-cover w-10 h-10 rounded-full" />
-            <span>SHOWROOM ISABELLA</span>
+        <div class="min-w-0 flex-1 lg:flex-initial">
+          <router-link to="/" class="inline-flex items-center max-w-full min-w-0 gap-2 font-light tracking-wide sm:tracking-wider text-gray-900 font-heading hover:text-gray-700">
+            <img src="/logo_redondo.jpg" alt="Showroom Isabella" class="object-cover flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full" />
+            <span class="truncate font-heading text-[clamp(0.875rem,3.8vw,1.5rem)] leading-tight">SHOWROOM ISABELLA</span>
           </router-link>
         </div>
 
@@ -106,24 +106,24 @@
         </div>
 
         <!-- Mobile Menu Button -->
-        <div class="flex items-center lg:hidden">
-          <button @click="openCartModal" class="relative min-w-12 min-h-12 p-2 mr-4 text-gray-900 hover:text-gray-600 focus:outline-none">
+        <div class="flex items-center flex-shrink-0 gap-1 lg:hidden">
+          <button @click="openCartModal" class="relative inline-flex items-center justify-center flex-shrink-0 min-w-11 min-h-11 sm:min-w-12 sm:min-h-12 p-2 text-gray-900 hover:text-gray-600 focus:outline-none">
             <span class="sr-only">Carrito</span>
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
             <!-- Mobile Cart Badge -->
             <span 
               v-if="cartStore.itemCount > 0" :key="additionId" :class="{ 'cart-bump': additionId > 0 }"
-              class="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 "
+              class="absolute top-0.5 right-0.5 bg-black text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 "
             >
               {{ cartStore.itemCount > 99 ? '99+' : cartStore.itemCount }}
             </span>
           </button>
-          <button @click.stop="toggleMobileMenu" :aria-expanded="isMobileMenuOpen" aria-controls="mobile-menu" class="inline-flex items-center justify-center min-w-12 min-h-12 p-2 text-gray-900 transition-colors hover:text-gray-600 focus:outline-none">
+          <button @click.stop="toggleMobileMenu" :aria-expanded="isMobileMenuOpen" aria-controls="mobile-menu" class="inline-flex items-center justify-center flex-shrink-0 min-w-11 min-h-11 sm:min-w-12 sm:min-h-12 p-2 text-gray-900 transition-colors hover:text-gray-600 focus:outline-none">
             <span class="sr-only">Abrir menú</span>
-            <svg v-if="!isMobileMenuOpen" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
-            <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            <svg v-if="!isMobileMenuOpen" class="w-6 h-6" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+            <svg v-else class="w-6 h-6" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
       </div>
