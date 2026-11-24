@@ -95,6 +95,7 @@ class ProductCreate(ProductBase):
             self.discount_percentage = None
 
 class ProductVariantCreate(SQLModel):
+    id: Optional[int] = None
     color: str = Field(min_length=1, description="Color is required for variants")
     talle: str = Field(min_length=1, description="Size is required for variants")  
     stock: int = Field(ge=0)
