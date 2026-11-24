@@ -468,7 +468,7 @@ class NotificacionesService:
             if snapshot.payment_method == "transfer":
                 lines.extend([
                     "",
-                    "Para pagar, transferí al alias Primoyanoo indicando tu número de pedido y enviá el comprobante por WhatsApp.",
+                    "Para pagar, transferí al alias SHOWROOMISABELLAA indicando tu número de pedido y enviá el comprobante por WhatsApp.",
                 ])
                 wa_text = (
                     f"Hola! Hice la transferencia del pedido #{snapshot.order_id} "

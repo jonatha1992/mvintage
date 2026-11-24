@@ -173,7 +173,7 @@ def test_notificar_pedido_creado_transferencia_con_prendas():
     assert "Retiro en el local" in client_mail["mensaje"]
     assert "Alonso Pareja 6542, González Catán (Buenos Aires)" in client_mail["mensaje"]
     assert "coordiná el horario por whatsapp" in client_mail["mensaje"].lower()
-    assert "transferí al alias Primoyanoo" in client_mail["mensaje"]
+    assert "transferí al alias SHOWROOMISABELLAA" in client_mail["mensaje"]
     assert client_mail["boton"] is not None
     assert client_mail["boton"]["url"].startswith("https://wa.me/5491176372876?text=")
     assert "42" in client_mail["boton"]["url"]
@@ -256,7 +256,7 @@ def test_post_orders_does_not_send_email_and_notify_created_sends_with_items_ide
     assert "Color: Crudo" in fake_correo.sent[0]["mensaje"]
     assert "Talle: M" in fake_correo.sent[0]["mensaje"]
     assert "$28.500" in fake_correo.sent[0]["mensaje"]
-    assert "transferí al alias Primoyanoo" in fake_correo.sent[0]["mensaje"]
+    assert "transferí al alias SHOWROOMISABELLAA" in fake_correo.sent[0]["mensaje"]
     assert fake_correo.sent[1]["to"] == "Showroomisabella@gmail.com"
     assert f"Nuevo pedido #{order_id}" == fake_correo.sent[1]["titulo"]
     assert "Vestido Lino" in fake_correo.sent[1]["mensaje"]
@@ -300,7 +300,7 @@ def test_post_orders_does_not_send_email_and_notify_created_sends_with_items_ide
     assert f"Recibimos tu pedido #{mp_order_id}" == fake_correo.sent[0]["titulo"]
     assert "Mercado Pago" in fake_correo.sent[0]["mensaje"]
     assert "$19.900" in fake_correo.sent[0]["mensaje"]
-    assert "transferí al alias Primoyanoo" not in fake_correo.sent[0]["mensaje"]
+    assert "transferí al alias SHOWROOMISABELLAA" not in fake_correo.sent[0]["mensaje"]
     assert fake_correo.sent[1]["to"] == "Showroomisabella@gmail.com"
 
 

@@ -2,7 +2,7 @@ from typing import Optional, List
 from pydantic import field_validator
 from sqlmodel import SQLModel, Field, Relationship
 
-ALLOWED_INSTALLMENTS = (1, 3, 6, 12)
+ALLOWED_INSTALLMENTS = (1, 3)
 DEFAULT_MAX_INSTALLMENTS = 3
 
 class ProductBase(SQLModel):
@@ -21,13 +21,13 @@ class ProductBase(SQLModel):
     # Discount fields
     has_discount: bool = Field(default=False, description="True if product has a discount")
     discount_percentage: Optional[float] = Field(default=None, ge=0, le=100, description="Discount percentage (0-100)")
-    max_installments: int = Field(default=DEFAULT_MAX_INSTALLMENTS, description="Max installments offered (1, 3, 6, 12)")
+    max_installments: int = Field(default=DEFAULT_MAX_INSTALLMENTS, description="Cuotas máximas sin interés (1 o 3)")
 
     @field_validator("max_installments")
     @classmethod
     def _validate_max_installments(cls, v: int) -> int:
         if v not in ALLOWED_INSTALLMENTS:
-            raise ValueError("max_installments must be one of 1, 3, 6, 12")
+            raise ValueError("Las cuotas máximas deben ser 1 o 3")
         return v
 
 class Product(ProductBase, table=True):
