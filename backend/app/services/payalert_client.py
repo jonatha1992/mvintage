@@ -92,6 +92,9 @@ class PayAlertClient:
         return_url: str,
         payer_email: Optional[str] = None,
         max_installments: Optional[int] = None,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        exclude_cash: bool = True,
     ) -> Dict[str, Any]:
         body: Dict[str, Any] = {
             "bookingId": f"order-{order_id}",
@@ -103,7 +106,18 @@ class PayAlertClient:
             body["payerEmail"] = payer_email
         if max_installments is not None:
             body["maxInstallments"] = max_installments
-        return self._request("POST", "/api/v1/charges", json_body=body)
+        if title:
+            body["title"] = title
+        if description:
+            body["description"] = description[:255]
+        body["excludeCash"] = exclude_cash
+        try:
+            return self._request("POST", "/api/v1/charges", json_body=body)
+        except PayAlertError as exc:
+            if exc.status_code != 400 or exc.code != "invalid_request":
+                raise
+            legacy_body = {k: v for k, v in body.items() if k not in ("title", "description", "excludeCash")}
+            return self._request("POST", "/api/v1/charges", json_body=legacy_body)
 
     def get_charge(self, order_id: int) -> Dict[str, Any]:
         return self._request("GET", f"/api/v1/charges/order-{order_id}")

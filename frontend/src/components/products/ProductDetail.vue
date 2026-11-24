@@ -283,7 +283,6 @@
       :images="product?.images || []"
       :initial-index="galleryInitialIndex"
       :alt="product?.name || ''"
-      :shared-selector="'.product-main-image'"
       @close="closeImageGallery"
     />
   </div>
@@ -383,6 +382,7 @@ import type { Size } from '../../types/products/size.types';
 import { useCartStore } from '../../store/cart';
 import { productsApi, masterDataApi } from '../../config/index';
 import { useToast } from 'vue-toastification';
+import { useCartNotification } from '../../composables/useCartNotification';
 
 const route = useRoute();
 const product = ref<Product | null>(null);
@@ -398,6 +398,7 @@ const allSizes = ref<Size[]>([]);
 const similarProducts = ref<Product[]>([]);
 const cartStore = useCartStore();
 const toast = useToast();
+const { showError } = useCartNotification();
 
 // Image Gallery Modal states
 const showImageGallery = ref(false);
@@ -593,6 +594,8 @@ const clampQuantity = () => {
 const incrementQuantity = () => {
   if (quantity.value < (maxQuantity.value ?? 1)) {
     quantity.value++;
+  } else {
+    showError(`Podés agregar como máximo ${maxQuantity.value} unidades de este producto`);
   }
 };
 
@@ -695,22 +698,23 @@ const addToCart = () => {
     // Check why we can't add to cart and show appropriate message
     if (product.value.is_unique) {
       if ((product.value.stock ?? 0) <= 0) {
-        toast.warning('Este producto no tiene stock disponible');
+        showError('Este producto no tiene stock disponible');
       }
     } else {
       if (!selectedColor.value || !selectedSize.value) {
-        toast.warning('Por favor selecciona color y talle');
+        showError('Por favor selecciona color y talle');
       } else if (!selectedVariant.value || selectedVariant.value.stock <= 0) {
-        toast.warning('La combinación seleccionada no tiene stock disponible');
+        showError('La combinación seleccionada no tiene stock disponible');
       }
     }
     return;
   }
   
   try {
+    let added = false;
     // For unique products
     if (product.value.is_unique) {
-      cartStore.addToCart(
+      added = cartStore.addToCart(
         product.value,
         quantity.value,
         undefined,
@@ -722,7 +726,7 @@ const addToCart = () => {
     } else {
       // For products with variants
       if (selectedVariant.value && selectedColor.value && selectedSize.value) {
-        cartStore.addToCart(
+        added = cartStore.addToCart(
           product.value,
           Math.min(Math.max(1, quantity.value || 1), selectedVariant.value.stock),
           {
@@ -732,11 +736,12 @@ const addToCart = () => {
           }
         );
       } else {
-        toast.warning('Por favor selecciona color y talle');
+        showError('Por favor selecciona color y talle');
         return;
       }
     }
     
+    if (!added) return;
     // Reset quantity to 1 after adding to cart
     quantity.value = 1;
     justAdded.value = true;
@@ -744,7 +749,7 @@ const addToCart = () => {
     justAddedTimer = window.setTimeout(() => { justAdded.value = false; }, 1500);
     
   } catch (error) {
-    toast.error('Error al agregar el producto al carrito');
+    showError('Error al agregar el producto al carrito');
   }
 };
 
@@ -752,14 +757,10 @@ const addToCart = () => {
 const openImageGallery = (index: number) => {
   galleryInitialIndex.value = index;
   showImageGallery.value = true;
-  // Prevent body scroll
-  document.body.style.overflow = 'hidden';
 };
 
 const closeImageGallery = () => {
   showImageGallery.value = false;
-  // Restore body scroll
-  document.body.style.overflow = 'auto';
 };
 
 const copyLink = async () => {

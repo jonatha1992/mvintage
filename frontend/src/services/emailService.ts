@@ -229,7 +229,7 @@ class EmailService {
         scheduled_date: data.delivery_info?.scheduled_date || '',
         time_slot: data.delivery_info?.time_slot || '',
         delivery_zone: data.delivery_info?.zone || '',
-        preparation_info: 'Ten el monto exacto en efectivo y tu DNI disponible.',
+        preparation_info: 'Completá el pago online y tené tu DNI y número de pedido disponibles.',
         contact_info: 'Nos contactaremos contigo antes de la entrega.',
         ...data.additional_data
       };
@@ -252,6 +252,7 @@ class EmailService {
   private getPaymentMethodText(method: string): string {
     const methodTexts: Record<string, string> = {
       'mercadopago': 'MercadoPago',
+      'bank_transfer': 'Transferencia bancaria',
       'transfer': 'Transferencia Bancaria',
       'cash': 'Efectivo'
     };

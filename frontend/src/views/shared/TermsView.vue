@@ -70,7 +70,7 @@
             <h2 class="text-2xl font-light text-gray-900 mb-4">5. Proceso de Compra y Pago</h2>
             <p class="text-gray-700 leading-relaxed mb-4">
               Al realizar un pedido, está haciendo una oferta para comprar el producto. Todas las órdenes 
-              están sujetas a aceptación y confirmación del precio del producto.
+              están sujetas a aceptación y confirmación del precio del producto. El pago se realiza online antes del retiro, por transferencia bancaria o Mercado Pago.
             </p>
             <div class="bg-gray-50 p-4 rounded-lg mb-4">
               <h3 class="font-medium text-gray-900 mb-2">Métodos de Pago Aceptados:</h3>

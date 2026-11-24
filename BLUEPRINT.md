@@ -16,7 +16,7 @@
 
 - Modalidad explícita: el modelo no asigna envío por defecto.
 - Sin dirección ni cotización en checkout porque no existe entrega a domicilio.
-- Efectivo significa pago al retirar.
+- Solo pago online previo al retiro: `bank_transfer` o `mercadopago`. `cash` y `transfer` se conservan únicamente para lectura de históricos.
 - Identificadores técnicos existentes de Firebase, dominios y correos no se renombran sin infraestructura aprobada.
 
 - Cuotas máximas por producto (`Product.max_installments`, 1/3, default 3; migración `add_product_max_installments`); `order_max_installments` en `backend/app/services/payment_installments.py` = mínimo del pedido, con techo de 3 incluso para datos históricos de 6/12. Aún sin integrar a Mercado Pago/PayAlert.
@@ -37,7 +37,7 @@
 - Versionado del build: `/version.json` generado desde VERSION y git HEAD, sin modificar archivos versionados durante build.
 - Tests: Vitest `35 passed`; backend `140 passed / 5 failed`, mismos cinco preexistentes (auth inválida, dos de integración, maestros vacíos, actualización de variantes). Builds test/pro OK. Gate --changed exit 0.
 - Límites: metadatos de producto se renderizan con JS (SPA); robots sociales sin JS verán la portada. Para previews sociales propios por prenda hace falta prerender/SSR, fuera de este alcance. Logo usado como fallback Open Graph; no se inventa imagen panorámica.
-- Rendimiento/SOLID: cálculo puro separado de DOM y build, fetch de build inyectable. No agrega consultas de catálogo en runtime ni dependencias; medición comparable apertura/heap antes/después pendiente de publicación (sin copiar ni tocar base).
+- Rendimiento/SOLID: cálculo puro separado de DOM y build, fetch de build inyectable. No agrega consultas de catálogo en runtime ni dependencias; medición posterior y evidencia de publicación en `docs/qa/seo-test-20261124.md`; no se obtuvo baseline comparable antes del deploy. Sin copiar ni tocar base.
 
 ## Pendiente
 

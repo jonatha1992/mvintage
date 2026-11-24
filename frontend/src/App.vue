@@ -124,13 +124,11 @@ onUnmounted(() => {
 .app-container {
   overflow-x: clip;
   opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+  transition: opacity 0.25s ease-out;
 }
 
 .app-container.app-loaded {
   opacity: 1;
-  transform: translateY(0);
 }
 
 

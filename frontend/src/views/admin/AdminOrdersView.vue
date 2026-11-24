@@ -687,6 +687,7 @@ const getCustomerPhone = (order: Order | null): string => {
 const getPaymentMethodText = (method: string | undefined): string => {
   if (!method) return 'No especificado';
   const methodTexts: Record<string, string> = {
+    'bank_transfer': 'Transferencia bancaria',
     'transfer': 'Transferencia bancaria',
     'mercadopago': 'Mercado Pago',
     'cash': 'Efectivo'

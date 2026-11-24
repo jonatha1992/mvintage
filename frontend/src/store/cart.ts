@@ -107,6 +107,16 @@ export const useCartStore = defineStore('cart', {
       variantInfo?: { variant: ProductVariant; color: Color; size: Size },
       uniqueProductInfo?: { color?: Color; size?: Size }
     ) {
+      const { showError } = useCartNotification();
+      const stock = product.is_unique ? (product.stock ?? 0) : (variantInfo?.variant.stock ?? 0);
+      if (stock <= 0) {
+        showError('Este producto no tiene stock disponible');
+        return false;
+      }
+      if (!Number.isInteger(quantity) || quantity < 1 || quantity > stock) {
+        showError(`Podés agregar como máximo ${stock} unidades de este producto`);
+        return false;
+      }
       // Check session validity before adding
       if (!this.isSessionValid()) {
         this.clearCart();
@@ -154,11 +164,8 @@ export const useCartStore = defineStore('cart', {
 
       // Mostrar notificación personalizada cuando se agrega producto
       const { showNotification } = useCartNotification();
-      if (variantInfo) {
-        showNotification(product, quantity, variantInfo);
-      } else {
-        showNotification(product, quantity);
-      }
+      showNotification(product, quantity, variantInfo || uniqueProductInfo);
+      return true;
     },
 
     removeFromCart(cartItemId: string) {

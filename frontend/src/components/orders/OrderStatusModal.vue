@@ -148,6 +148,7 @@ const updateStatus = async () => {
 
 const getPaymentMethodText = (method: string): string => {
   const methods: Record<string, string> = {
+    'bank_transfer': 'Transferencia bancaria',
     'transfer': 'Transferencia bancaria',
     'mercadopago': 'Mercado Pago',
     'cash': 'Efectivo'

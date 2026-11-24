@@ -12,7 +12,7 @@ class Order(SQLModel, table=True):
     created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
     
     # Payment fields
-    payment_method: str = Field(default="transfer", max_length=20)
+    payment_method: str = Field(default="bank_transfer", max_length=20)
     payment_status: str = Field(default="pending", max_length=20)
     mercadopago_payment_id: Optional[str] = Field(default=None)
     mercadopago_preference_id: Optional[str] = Field(default=None)

@@ -62,14 +62,14 @@
 
           <!-- Desktop Auth & Cart -->
           <div class="flex items-center space-x-4">
-            <button @click="openCartModal" class="relative min-w-12 min-h-12 p-2 text-gray-900 hover:text-gray-600 focus:outline-none" :class="{ 'cart-bump': cartBump }" @animationend="cartBump = false">
+            <button @click="openCartModal" class="relative min-w-12 min-h-12 p-2 text-gray-900 hover:text-gray-600 focus:outline-none">
               <span class="sr-only">Carrito</span>
               <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
               <!-- Cart Badge -->
               <span 
-                v-if="cartStore.itemCount > 0" 
+                v-if="cartStore.itemCount > 0" :key="additionId" :class="{ 'cart-bump': additionId > 0 }"
                 class="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1  font-medium"
               >
                 {{ cartStore.itemCount > 99 ? '99+' : cartStore.itemCount }}
@@ -107,14 +107,14 @@
 
         <!-- Mobile Menu Button -->
         <div class="flex items-center lg:hidden">
-          <button @click="openCartModal" class="relative min-w-12 min-h-12 p-2 mr-4 text-gray-900 hover:text-gray-600 focus:outline-none" :class="{ 'cart-bump': cartBump }" @animationend="cartBump = false">
+          <button @click="openCartModal" class="relative min-w-12 min-h-12 p-2 mr-4 text-gray-900 hover:text-gray-600 focus:outline-none">
             <span class="sr-only">Carrito</span>
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
             <!-- Mobile Cart Badge -->
             <span 
-              v-if="cartStore.itemCount > 0" 
+              v-if="cartStore.itemCount > 0" :key="additionId" :class="{ 'cart-bump': additionId > 0 }"
               class="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 "
             >
               {{ cartStore.itemCount > 99 ? '99+' : cartStore.itemCount }}
@@ -211,10 +211,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from '../../store/auth';
 import { useCartStore } from '../../store/cart';
 import { useCartModal } from '../../composables/useCartModal';
+import { useCartNotification } from '../../composables/useCartNotification';
 import { useRouter } from 'vue-router';
 import { masterDataApi } from '../../config/index';
 import type { Category } from '../../types';
@@ -231,11 +232,10 @@ const cartStore = useCartStore();
 const router = useRouter();
 const { openCartModal } = useCartModal();
 const categories = ref<Category[]>([]);
-const cartBump = ref(false);
 
-watch(() => cartStore.itemCount, (nuevo, anterior) => {
-  if (nuevo > anterior) cartBump.value = true;
-});
+
+const { additionId } = useCartNotification();
+
 
 // Computed memoizado para admin access (evitar múltiples evaluaciones)
 const isAdmin = computed(() => authStore.hasAdminAccess);
