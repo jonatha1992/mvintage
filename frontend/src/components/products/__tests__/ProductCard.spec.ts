@@ -90,4 +90,49 @@ describe('ProductCard', () => {
     expect(img4.attributes('fetchpriority')).toBeUndefined();
     expect(img4.attributes('decoding')).toBe('async');
   });
+
+  it('renders discounted price, struck-through original price, promo badge and installments on discounted price', () => {
+    const wrapper = mountCard(
+      makeProduct({
+        price: 30000,
+        has_discount: true,
+        discount_percentage: 20,
+        discounted_price: 24000,
+        promo_label: 'Liquidación',
+        max_installments: 3,
+      })
+    );
+
+    expect(wrapper.find('[data-testid="promo-badge"]').text()).toBe('Liquidación');
+    expect(wrapper.find('[data-testid="discounted-price"]').text()).toBe('$24.000');
+    expect(wrapper.find('[data-testid="original-price"]').text()).toBe('$30.000');
+    const installments = wrapper.find('[data-testid="card-installments"]');
+    if (installments.exists()) {
+      expect(installments.text()).toContain('$8.000');
+    }
+  });
+
+  it('falls back to -XX% badge when promo_label is empty and hides expired discounts', () => {
+    const active = mountCard(
+      makeProduct({
+        price: 20000,
+        has_discount: true,
+        discount_percentage: 15,
+        promo_label: null,
+      })
+    );
+    expect(active.find('[data-testid="promo-badge"]').text()).toBe('-15%');
+    expect(active.find('[data-testid="discounted-price"]').text()).toBe('$17.000');
+
+    const expired = mountCard(
+      makeProduct({
+        price: 20000,
+        has_discount: true,
+        discount_percentage: 25,
+        discount_ends_at: '2020-01-01T00:00:00Z',
+      })
+    );
+    expect(expired.find('[data-testid="promo-badge"]').exists()).toBe(false);
+    expect(expired.find('[data-testid="discounted-price"]').exists()).toBe(false);
+  });
 });

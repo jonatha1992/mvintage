@@ -78,7 +78,7 @@
                       <p class="text-sm font-medium font-body text-body-text">
                         {{ formatPrice(cartStore.getItemTotal(item)) }}
                       </p>
-                      <p v-if="item.product.has_discount" class="text-xs line-through font-body text-body-text">
+                      <p v-if="isProductDiscountActive(item.product)" class="text-xs line-through font-body text-body-text">
                         {{ formatPrice((item.product.price * item.quantity)) }}
                       </p>
                       <p v-if="item.quantity > 1" class="text-xs text-gray-500 font-body">
@@ -282,7 +282,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatPrice } from '../../utils/price'
+import { formatPrice, getEffectivePrice, isProductDiscountActive } from '../../utils/price'
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../../store/cart';
@@ -594,9 +594,7 @@ const processOrder = async () => {
         // If it's an API error, continue with order item creation
       }
       
-      const itemPrice = item.product.has_discount && item.product.discounted_price 
-        ? item.product.discounted_price 
-        : item.product.price;
+      const itemPrice = getEffectivePrice(item.product);
       
       // Crear order item data simplificado que coincide exactamente con el backend
       const orderItemData: OrderItemCreate = {
