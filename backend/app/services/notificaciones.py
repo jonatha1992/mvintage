@@ -465,7 +465,7 @@ class NotificacionesService:
                 f"Dirección: {self.pickup_address}",
                 "Coordiná el horario por WhatsApp cuando tu pedido esté listo.",
             ]
-            if snapshot.payment_method == "transfer":
+            if snapshot.payment_method in ("transfer", "bank_transfer"):
                 lines.extend([
                     "",
                     "Para pagar, transferí al alias SHOWROOMISABELLAA indicando tu número de pedido y enviá el comprobante por WhatsApp.",

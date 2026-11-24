@@ -16,7 +16,7 @@
 
 - Modalidad explícita: el modelo no asigna envío por defecto.
 - Sin dirección ni cotización en checkout porque no existe entrega a domicilio.
-- Efectivo significa pago al retirar.
+- Solo pago online previo al retiro: `bank_transfer` o `mercadopago`. `cash` y `transfer` se conservan únicamente para lectura de históricos.
 - Identificadores técnicos existentes de Firebase, dominios y correos no se renombran sin infraestructura aprobada.
 
 - Cuotas máximas por producto (`Product.max_installments`, 1/3, default 3; migración `add_product_max_installments`); `order_max_installments` en `backend/app/services/payment_installments.py` = mínimo del pedido, con techo de 3 incluso para datos históricos de 6/12. Aún sin integrar a Mercado Pago/PayAlert.

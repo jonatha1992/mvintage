@@ -1,76 +1,52 @@
 ﻿import { ref } from 'vue'
-import type {
-  Product,
-  ProductVariant,
-  VariantOption as Color,
-  VariantOption as Size
-} from '../types/products'
+import type { Product, VariantOption } from '../types/products'
 
 interface NotificationProductData {
   image: string
   name: string
-  quantity: number
-  price: number
-  hasDiscount: boolean
-  category?: string
-  variant?: {
-    color: string
-    size: string
-  }
+  variant: { color: string; size: string }
 }
 
 const isNotificationVisible = ref(false)
 const productData = ref<NotificationProductData | null>(null)
-let autoHideTimer: number | null = null
+const errorMessage = ref('')
+const additionId = ref(0)
+let autoHideTimer: ReturnType<typeof setTimeout> | undefined
 
 export function useCartNotification() {
+  const pauseDismissal = () => {
+    clearTimeout(autoHideTimer)
+    autoHideTimer = undefined
+  }
+  const hideNotification = () => {
+    pauseDismissal()
+    isNotificationVisible.value = false
+  }
+  const resumeDismissal = () => {
+    pauseDismissal()
+    autoHideTimer = setTimeout(hideNotification, 3000)
+  }
   const showNotification = (
     product: Product,
-    quantity: number,
-    variantInfo?: { variant: ProductVariant; color: Color; size: Size }
+    _quantity: number,
+    selection?: { color?: VariantOption; size?: VariantOption }
   ) => {
-    // Preparar datos del producto para la notificación
-    const price = product.has_discount && product.discounted_price
-      ? product.discounted_price
-      : product.price
-    const image = product.images && product.images.length > 0
-      ? product.images[0].image_url
-      : '/placeholder-image.jpg'
-
+    errorMessage.value = ''
     productData.value = {
-      image,
+      image: product.images?.[0]?.image_url || '/logo_redondo.jpg',
       name: product.name,
-      quantity,
-      price: price || 0,
-      hasDiscount: product.has_discount || false,
-      category: product.categoria || undefined,
-      variant: variantInfo ? {
-        color: variantInfo.color.name,
-        size: variantInfo.size.name
-      } : undefined
+      variant: { color: selection?.color?.name || 'Único', size: selection?.size?.name || 'Único' }
     }
-
+    additionId.value++
     isNotificationVisible.value = true
-
-    // Auto hide después de 3 segundos
-    if (autoHideTimer) clearTimeout(autoHideTimer)
-    autoHideTimer = window.setTimeout(() => {
-      hideNotification()
-    }, 3000)
+    resumeDismissal()
   }
-
-  const hideNotification = () => {
-    isNotificationVisible.value = false
-    if (autoHideTimer) {
-      clearTimeout(autoHideTimer)
-      autoHideTimer = null
-    }
+  const showError = (message: string) => {
+    productData.value = null
+    errorMessage.value = message
+    isNotificationVisible.value = true
+    resumeDismissal()
   }
-
-  return {
-    isNotificationVisible,
-    productData,
-    showNotification,
-    hideNotification
-  }
+  return { isNotificationVisible, productData, errorMessage, additionId, showNotification, showError,
+    hideNotification, pauseDismissal, resumeDismissal }
 }

@@ -5,7 +5,7 @@
         Retiro en el local
       </h1>
       <p class="mt-4 text-base leading-7 text-gray-700 font-body">
-        Todas las compras en Showroom Isabella son únicamente con retiro en el local, sin costo adicional.
+        Todas las compras en Showroom Isabella son únicamente con retiro en el local, sin costo adicional. El pago se completa online antes del retiro.
       </p>
 
       <div class="pt-6 mt-6 border-t border-gray-200">

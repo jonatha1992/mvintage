@@ -222,7 +222,7 @@ class TransferController:
         try:
             pending_orders = session.exec(
                 select(Order).where(
-                    Order.payment_method == "transfer",
+                    Order.payment_method.in_(("transfer", "bank_transfer")),
                     Order.verification_required == True,
                     Order.verified_by_admin.is_(None)
                 ).order_by(Order.created_at.desc())

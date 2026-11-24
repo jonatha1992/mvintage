@@ -15,7 +15,7 @@ import PaymentFailureView from './views/checkout/PaymentFailureView.vue'
 import PaymentPendingView from './views/checkout/PaymentPendingView.vue'
 import PaymentReturnView from './views/checkout/PaymentReturnView.vue'
 import TransferInstructionsView from './views/checkout/TransferInstructionsView.vue'
-import CashConfirmationView from './views/checkout/CashConfirmationView.vue'
+
 import { useAuthStore } from './store/auth';
 import { COMPRAS_HABILITADAS } from './config/payments';
 import { auth } from './config/index'; // Importar auth
@@ -58,7 +58,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/payment/failure', component: PaymentFailureView },
   { path: '/payment/pending', component: PaymentPendingView },
   { path: '/payment/transfer-instructions', component: TransferInstructionsView },
-  { path: '/payment/cash-confirmation', component: CashConfirmationView },
+  { path: '/payment/cash-confirmation', redirect: '/checkout' },
   {
     path: '/admin',
     redirect: '/admin/products'

@@ -9,7 +9,7 @@ from app.core.config import settings
 from app.models.customer import Customer
 from app.models.order import Order
 from app.models.order_item import OrderItem
-from app.models.product import Product
+from app.models.product import Product, ProductVariant
 from app.routes.inventory import release_order_stock_once
 from app.services.notificaciones import build_order_snapshot, notificaciones_service
 from app.services.payalert_client import (
@@ -104,6 +104,18 @@ class PaymentsController:
                 detail=f"El monto debe estar entre $1 y ${MAX_CHARGE_AMOUNT_ARS:,} ARS",
             )
 
+        item_rows = session.exec(
+            select(OrderItem, Product, ProductVariant)
+            .join(Product, OrderItem.product_id == Product.id)
+            .outerjoin(ProductVariant, OrderItem.variant_id == ProductVariant.id)
+            .where(OrderItem.order_id == order.id)
+            .order_by(OrderItem.id)
+        ).all()
+        description = ", ".join(
+            f"{product.name} ({(variant.talle if variant else product.talle) or 'Único'}, "
+            f"{(variant.color if variant else product.color) or 'Único'}) x{item.quantity}"
+            for item, product, variant in item_rows
+        )[:255]
         max_installments = order_max_installments(products)
         payer_ref = (customer.email or f"customer-{customer.id}").strip()
         return_url = _build_return_url(order.id)
@@ -116,6 +128,9 @@ class PaymentsController:
                 return_url=return_url,
                 payer_email=customer.email or None,
                 max_installments=max_installments,
+                title=f"Pedido #{order.id} - Showroom Isabella",
+                description=description,
+                exclude_cash=True,
             )
         except PayAlertNotConfiguredError as exc:
             raise HTTPException(status_code=503, detail="Mercado Pago no habilitado") from exc
