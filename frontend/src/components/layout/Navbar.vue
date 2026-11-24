@@ -15,7 +15,7 @@
           <div class="flex items-center space-x-1 xl:space-x-3">
             <div class="relative">
               <button @click.stop="toggleShopMenu" :aria-expanded="isShopMenuOpen"
-                class="px-3 py-2 whitespace-nowrap text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">
+                              class="min-h-12 px-3 py-2 whitespace-nowrap text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">
                 COLECCIÓN
               </button>
               <div v-if="isShopMenuOpen" @click.stop
