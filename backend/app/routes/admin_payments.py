@@ -46,7 +46,10 @@ def get_admin_orders(
         
         # Aplicar filtros
         if payment_method and payment_method != "all":
-            query = query.where(Order.payment_method == payment_method)
+            if payment_method in ("transfer", "bank_transfer"):
+                query = query.where(Order.payment_method.in_(("transfer", "bank_transfer")))
+            else:
+                query = query.where(Order.payment_method == payment_method)
         
         if payment_status and payment_status != "all":
             query = query.where(Order.payment_status == payment_status)

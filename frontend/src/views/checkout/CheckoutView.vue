@@ -557,7 +557,7 @@ const processOrder = async () => {
     const orderData: Partial<Order> = {
       customer_id: customer.id,
       total: cartStore.totalPrice,
-      payment_method: checkoutForm.value.paymentMethod as PaymentMethod,
+      payment_method: checkoutForm.value.paymentMethod === 'transfer' ? 'bank_transfer' : 'mercadopago',
       delivery_method: deliveryMethod.value,
     };
     

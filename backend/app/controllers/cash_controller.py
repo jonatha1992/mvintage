@@ -188,68 +188,7 @@ class CashController:
             }
     
     def create_cash_order(self, order_id: int, session: Session) -> Dict[str, Any]:
-        """
-        Procesa una orden con método de pago efectivo contra entrega.
-        
-        Args:
-            order_id: ID de la orden
-            session: Sesión de base de datos
-            
-        Returns:
-            Dict con información de la entrega y costos
-        """
-        try:
-            # Obtener orden y cliente
-            order = session.get(Order, order_id)
-            if not order:
-                raise HTTPException(status_code=404, detail="Orden no encontrada")
-            
-            customer = session.get(Customer, order.customer_id)
-            if not customer:
-                raise HTTPException(status_code=404, detail="Cliente no encontrado")
-            
-            # Calcular información de entrega
-            if order.delivery_method != "retiro_local":
-                raise HTTPException(
-                    status_code=422,
-                    detail="El pago en efectivo solo está disponible para retiro en el local",
-                )
-            
-            # Actualizar orden con información de entrega
-            order.delivery_cost = 0
-            order.delivery_zone = None
-            order.delivery_status = "pending_pickup"
-            order.verification_required = True  # Requiere coordinación manual
-            order.payment_status = "pending"  # Pendiente de entrega
-            
-            # Actualizar total si hay costo de envío
-            
-            session.add(order)
-            session.commit()
-            session.refresh(order)
-            
-            logger.info("Orden %s configurada para retiro y pago en efectivo", order_id)
-            
-            return {
-                "order_id": order.id,
-                "delivery_method": "retiro_local",
-                "delivery_cost": 0,
-                "final_total": order.total,
-                "instructions": [
-                    "Te contactaremos cuando el pedido esté listo",
-                    "Coordinaremos día y horario de retiro",
-                    "Aboná el monto exacto al retirar",
-                ]
-            }
-            
-        except Exception as e:
-            logger.error(f"Error procesando orden en efectivo {order_id}: {e}")
-            if isinstance(e, HTTPException):
-                raise e
-            raise HTTPException(
-                status_code=500,
-                detail="Error procesando orden en efectivo"
-            )
+        raise HTTPException(status_code=410, detail="Pago en el local no disponible")
     
     def schedule_delivery(self, order_id: int, scheduled_date: datetime, time_slot: str, notes: str, session: Session) -> Order:
         """

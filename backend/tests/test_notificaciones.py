@@ -215,7 +215,7 @@ def test_post_orders_does_not_send_email_and_notify_created_sends_with_items_ide
         json={
             "customer_id": customer.id,
             "total": 28500.0,
-            "payment_method": "transfer",
+            "payment_method": "bank_transfer",
             "delivery_method": "retiro_local",
         },
         headers=auth_cookie,
@@ -366,7 +366,7 @@ def test_correo_failure_does_not_break_notify_created(
         json={
             "customer_id": customer.id,
             "total": 15000.0,
-            "payment_method": "transfer",
+            "payment_method": "bank_transfer",
             "delivery_method": "retiro_local",
         },
         headers=auth_cookie,

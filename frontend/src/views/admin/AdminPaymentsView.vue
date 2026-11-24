@@ -164,9 +164,8 @@
               class="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-black focus:ring-black"
             >
               <option class="font-body" value="">Todos</option>
-              <option class="font-body" value="transfer">Transferencia</option>
+              <option class="font-body" value="bank_transfer">Transferencia</option>
               <option class="font-body" value="mercadopago">MercadoPago</option>
-              <option class="font-body" value="cash">Efectivo</option>
             </select>
           </div>
 
@@ -296,29 +295,14 @@
                 <td class="px-6 py-4 space-x-2 text-sm font-medium whitespace-nowrap">
                   <!-- Transfer Actions -->
                   <button
-                    v-if="order.payment_method === 'transfer' && !order.transfer_verified"
+                    v-if="['transfer', 'bank_transfer'].includes(order.payment_method) && !order.transfer_verified"
                     @click="openTransferModal(order)"
                     class="btn-blue btn-sm"
                   >
                     <span class="font-body">Verificar</span>
                   </button>
                   
-                  <!-- Cash Delivery Actions -->
-                  <button
-                    v-if="order.payment_method === 'cash' && order.delivery_status === 'pending'"
-                    @click="openDeliveryModal(order)"
-                    class="btn-green btn-sm"
-                  >
-                    <span class="font-body">Programar</span>
-                  </button>
-                  
-                  <button
-                    v-if="order.payment_method === 'cash' && order.delivery_status === 'scheduled'"
-                    @click="markAsDelivered(order)"
-                    class="btn-purple btn-sm"
-                  >
-                    <span class="font-body">Entregado</span>
-                  </button>
+
                   
                   <!-- View Details -->
                   <button
@@ -707,6 +691,7 @@ const closeOrderModal = () => {
 // Utility functions
 const getPaymentMethodText = (method: string) => {
   const map: Record<string, string> = {
+    'bank_transfer': 'Transferencia bancaria',
     'transfer': 'Transferencia',
     'mercadopago': 'MercadoPago',
     'cash': 'Efectivo'

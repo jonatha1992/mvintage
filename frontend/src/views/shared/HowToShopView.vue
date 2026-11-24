@@ -86,7 +86,7 @@
               <h2 class="mb-2 text-xl font-semibold text-gray-800 font-heading">Elige tu método de pago y confirma</h2>
               <p class="font-body text-body-text">
                 Pagá por transferencia bancaria<span v-if="MERCADOPAGO_HABILITADO"> o Mercado Pago (tarjetas de crédito y débito)</span>.
-                Luego confirmá tu pedido para finalizarlo.
+                El pago se completa online antes de retirar el pedido.
               </p>
             </div>
           </div>

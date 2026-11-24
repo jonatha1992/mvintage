@@ -19,7 +19,7 @@ from app.models.order_item import OrderItem
 from app.models.product import Product, ProductImage
 from app.controllers.payments_controller import payments_controller
 from app.controllers.transfer_controller import transfer_controller
-from app.controllers.cash_controller import cash_controller
+
 from app.core.config import settings
 from app.core.rate_limit import rate_limit
 from app.routes.inventory import reduce_stock, release_order_stock_once, restore_stock
@@ -44,6 +44,10 @@ def create_order(
             status_code=422,
             detail="La única modalidad disponible es retiro en el local.",
         )
+
+    if order.payment_method not in ("bank_transfer", "mercadopago"):
+        detail = "Pago en el local no disponible" if order.payment_method == "cash" else "Método de pago no disponible"
+        raise HTTPException(status_code=400, detail=detail)
 
     # Verificar que el customer existe
     customer = session.get(Customer, order.customer_id)
@@ -80,15 +84,12 @@ def create_order(
     response = {"order": db_order}
 
     try:
-        if db_order.payment_method == "transfer":
+        if db_order.payment_method == "bank_transfer":
             transfer_data = transfer_controller.create_transfer_order(
                 db_order.id, session
             )
             response["transfer_info"] = transfer_data
 
-        elif db_order.payment_method == "cash":
-            cash_data = cash_controller.create_cash_order(db_order.id, session)
-            response["delivery_info"] = cash_data
 
     except Exception as e:
         response["payment_error"] = str(e)
