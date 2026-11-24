@@ -11,11 +11,11 @@
         </div>
 
         <!-- Desktop Menu -->
-        <div class="items-center hidden space-x-4 md:flex">
-          <div class="flex items-baseline space-x-4">
+        <div class="items-center hidden space-x-1 xl:space-x-3 lg:flex">
+          <div class="flex items-center space-x-1 xl:space-x-3">
             <div class="relative">
               <button @click.stop="toggleShopMenu"
-                class="px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">
+                class="px-3 py-2 whitespace-nowrap text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">
                 SHOP
               </button>
               <div v-if="isShopMenuOpen" @click.stop
@@ -55,9 +55,9 @@
               </div>
             </div>
             
-            <router-link to="/contact" class="px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">CONTACTO</router-link>
-            <router-link to="/how-to-shop" class="px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">CÓMO COMPRAR</router-link>
-            <router-link to="/shipping" class="px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">RETIRO EN EL LOCAL</router-link>
+            <router-link to="/contact" class="px-3 py-2 whitespace-nowrap text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">CONTACTO</router-link>
+            <router-link to="/how-to-shop" class="px-3 py-2 whitespace-nowrap text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">CÓMO COMPRAR</router-link>
+            <router-link to="/shipping" class="px-3 py-2 whitespace-nowrap text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">RETIRO EN LOCAL</router-link>
           </div>
 
           <!-- Desktop Auth & Cart -->
@@ -101,12 +101,12 @@
                 </div>
               </div>
             </div>
-            <router-link v-else to="/auth" class="px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">Iniciar Sesión</router-link>
+            <router-link v-else to="/auth" class="px-3 py-2 whitespace-nowrap text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">Iniciar Sesión</router-link>
           </div>
         </div>
 
         <!-- Mobile Menu Button -->
-        <div class="flex items-center md:hidden">
+        <div class="flex items-center lg:hidden">
           <button @click="openCartModal" class="relative p-2 mr-4 text-gray-900 hover:text-gray-600 focus:outline-none" :class="{ 'cart-bump': cartBump }" @animationend="cartBump = false">
             <span class="sr-only">Carrito</span>
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -131,7 +131,7 @@
 
     <!-- Mobile Menu -->
     <Transition name="menu">
-    <div v-if="isMobileMenuOpen" class="bg-white border-t border-gray-100 md:hidden">
+    <div v-if="isMobileMenuOpen" class="bg-white border-t border-gray-100 lg:hidden">
       <div class="px-4 pt-4 pb-6 space-y-2">
         <button @click.stop="toggleMobileShopMenu" class="block w-full px-3 py-3 text-sm font-normal tracking-wide text-left text-gray-900 uppercase transition-colors font-body hover:text-gray-600">SHOP</button>
         <div v-if="isMobileShopMenuOpen" class="pl-4 space-y-1">

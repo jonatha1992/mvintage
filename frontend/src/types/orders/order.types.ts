@@ -29,6 +29,9 @@ export interface Order {
   payment_status?: PaymentStatus;
   mercadopago_payment_id?: string;
   mercadopago_preference_id?: string;
+  mercadopago_checkout_url?: string;
+  payment_expires_at?: string;
+  stock_released?: boolean;
   
   // Campos de envío
   delivery_cost?: number;
@@ -79,6 +82,7 @@ export interface OrderItem {
 export interface OrderItemCreate {
   order_id: number;
   product_id: number;
+  variant_id?: number;
   quantity: number;
   price: number;
 }

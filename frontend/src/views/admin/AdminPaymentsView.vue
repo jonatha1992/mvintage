@@ -33,6 +33,49 @@
         </nav>
       </div>
 
+      <!-- Mercado Pago Connection Card -->
+      <div class="p-5 mb-6 bg-white rounded-lg shadow">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-lg font-medium text-gray-900 font-heading">Mercado Pago (PayAlert)</h2>
+            <p class="mt-1 text-sm text-gray-600">
+              <span v-if="loadingMpStatus">Verificando estado de conexión...</span>
+              <span v-else-if="mpStatus?.configured && mpStatus?.connected" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Conectado
+              </span>
+              <span v-else-if="mpStatus?.configured" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                Pendiente de conexión
+              </span>
+              <span v-else class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                No habilitado
+              </span>
+              <span v-if="!loadingMpStatus && mpStatus?.detail" class="ml-2 text-xs text-gray-500">
+                {{ mpStatus.detail }}
+              </span>
+            </p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button
+              type="button"
+              :disabled="loadingMpStatus"
+              @click="loadMpConnectionStatus"
+              class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-60"
+            >
+              Actualizar estado
+            </button>
+            <button
+              v-if="mpStatus?.configured"
+              type="button"
+              :disabled="reconcilingMp"
+              @click="reconcileMpOrders"
+              class="px-3 py-2 text-sm font-medium text-white bg-black rounded-md hover:bg-gray-800 disabled:opacity-60"
+            >
+              {{ reconcilingMp ? 'Reconciliando...' : 'Reconciliar pendientes' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Statistics Cards -->
       <div v-if="stats" class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
         <div class="overflow-hidden bg-white rounded-lg shadow">
@@ -458,7 +501,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useToast } from 'vue-toastification';
-import { ordersApi } from '../../config/api';
+import { ordersApi, paymentsApi } from '../../config/api';
 import type { Order, AdminOrderFilters, AdminStats } from '../../types';
 
 const toast = useToast();
@@ -467,6 +510,9 @@ const toast = useToast();
 const loading = ref(false);
 const orders = ref<Order[]>([]);
 const stats = ref<AdminStats | null>(null);
+const loadingMpStatus = ref(false);
+const reconcilingMp = ref(false);
+const mpStatus = ref<{ configured: boolean; connected: boolean; detail?: string } | null>(null);
 
 // Filters
 const filters = ref<AdminOrderFilters>({
@@ -530,6 +576,30 @@ const loadStats = async () => {
   try {
     stats.value = await ordersApi.getAdminStats();
   } catch (error) {
+  }
+};
+
+const loadMpConnectionStatus = async () => {
+  loadingMpStatus.value = true;
+  try {
+    mpStatus.value = await paymentsApi.getAdminConnectionStatus();
+  } catch {
+    mpStatus.value = { configured: false, connected: false, detail: 'No se pudo consultar el estado' };
+  } finally {
+    loadingMpStatus.value = false;
+  }
+};
+
+const reconcileMpOrders = async () => {
+  reconcilingMp.value = true;
+  try {
+    const summary = await paymentsApi.reconcilePendingPayments();
+    toast.success(`Reconciliación completa: ${summary.approved || 0} aprobados, ${summary.expired || 0} vencidos`);
+    await Promise.all([loadOrders(), loadStats()]);
+  } catch {
+    toast.error('Error al reconciliar pagos pendientes');
+  } finally {
+    reconcilingMp.value = false;
   }
 };
 
@@ -716,6 +786,6 @@ const formatCustomerAddress = (customer: any) => {
 
 // Initialize
 onMounted(async () => {
-  await Promise.all([loadOrders(), loadStats()]);
+  await Promise.all([loadOrders(), loadStats(), loadMpConnectionStatus()]);
 });
 </script>

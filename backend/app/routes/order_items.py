@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Body
 from app.core.security import (
@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 from app.db.session import get_session
 from app.models.order_item import OrderItem
 from app.models.order import Order
-from app.models.product import Product
+from app.models.product import Product, ProductVariant
 from app.routes.inventory import reduce_stock, restore_stock
 
 router = APIRouter()
@@ -22,6 +22,7 @@ router = APIRouter()
 class OrderItemCreate(BaseModel):
     order_id: int
     product_id: int
+    variant_id: Optional[int] = None
     quantity: int = Field(gt=0)
     price: float = Field(default=0.0, ge=0)
 
@@ -56,27 +57,44 @@ def create_order_item(
     if not product:
         raise HTTPException(status_code=404, detail=f"Product with id {order_item_data.product_id} not found")
 
-    stock_available = reduce_stock(order_item_data.product_id, order_item_data.quantity, session)
+    if order_item_data.variant_id is not None:
+        variant = session.get(ProductVariant, order_item_data.variant_id)
+        if not variant or variant.product_id != product.id:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Variante {order_item_data.variant_id} no pertenece al producto {product.id}",
+            )
+
+    stock_available = reduce_stock(
+        order_item_data.product_id,
+        order_item_data.quantity,
+        session,
+        variant_id=order_item_data.variant_id,
+        commit=False,
+    )
     if not stock_available:
         raise HTTPException(
-            status_code=400, 
-            detail=f"Stock insuficiente para el producto {order_item_data.product_id}. Cantidad solicitada: {order_item_data.quantity}"
+            status_code=400,
+            detail=f"Stock insuficiente para el producto {order_item_data.product_id}. Cantidad solicitada: {order_item_data.quantity}",
         )
-    
-    # Usar siempre el precio del producto verificado del backend
+
+    unit_price = product.price
+    if product.has_discount and product.discount_percentage:
+        unit_price = round(product.price * (1 - product.discount_percentage / 100), 2)
+
     db_order_item = OrderItem(
         order_id=order_item_data.order_id,
         product_id=order_item_data.product_id,
+        variant_id=order_item_data.variant_id,
         quantity=order_item_data.quantity,
-        price=product.price
+        price=unit_price,
     )
 
     session.add(db_order_item)
-    session.commit()
-    session.refresh(db_order_item)
-    
+    session.flush()
     _recalculate_order_total(order, session)
     session.commit()
+    session.refresh(db_order_item)
 
     return db_order_item
 
@@ -158,14 +176,15 @@ def delete_order_item(
     if not order_item:
         raise HTTPException(status_code=404, detail="Order item not found")
     
-    restore_stock(order_item.product_id, order_item.quantity, session)
+    restore_stock(order_item.product_id, order_item.quantity, session, variant_id=order_item.variant_id, commit=False)
     order_id = order_item.order_id
     session.delete(order_item)
-    session.commit()
+    session.flush()
 
     order = session.get(Order, order_id)
-    if order:
+    if order is not None:
         _recalculate_order_total(order, session)
-        session.commit()
+
+    session.commit()
 
     return {"ok": True}

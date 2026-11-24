@@ -112,6 +112,9 @@ frontend/Thumbs.db
 !.env.example
 !.env.template
 
+# Backups de migración de imágenes
+backups-imagenes/
+
 # Backend environment files
 backend/.env
 backend/.env.*
@@ -227,3 +230,6 @@ secrets.json
 config.production.json
 
 **/.env.**
+# Artefactos de build (rompian el deploy automatico)
+frontend/.firebase/
+*.tsbuildinfo

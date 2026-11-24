@@ -125,7 +125,7 @@ const createWhatsAppLink = (message: string) => {
 const botResponses: { [key: string]: { text: string; action?: 'whatsapp'; whatsappMessage?: string } } = {
   'hola': { text: '¡Hola! Bienvenido a Showroom Isabella. Para una atención personalizada, te conectamos con nuestro equipo vía WhatsApp.' },
   'retiro': {
-    text: 'Todas las compras se retiran en el local, sin costo. Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.',
+    text: 'Todas las compras se retiran sin costo en Alonso Pareja 6542, González Catán (Buenos Aires). Coordiná día y horario por WhatsApp.',
     action: 'whatsapp',
     whatsappMessage: 'Hola! Me gustaría consultar cómo coordinar el retiro de mi pedido.'
   },
@@ -135,9 +135,9 @@ const botResponses: { [key: string]: { text: string; action?: 'whatsapp'; whatsa
     whatsappMessage: 'Hola! Me gustaría consultar sobre tallas disponibles de productos.'
   },
   'política de devolución': {
-    text: 'Para información detallada sobre nuestra política de devoluciones, contacta via WhatsApp ',
+    text: 'Realizamos cambios dentro de los 7 días hábiles posteriores al retiro. Para coordinarlo, escribinos por WhatsApp.',
     action: 'whatsapp',
-    whatsappMessage: 'Hola! Me gustaría conocer más sobre la política de devoluciones.'
+    whatsappMessage: 'Hola! Me gustaría consultar por un cambio.'
   },
   'métodos de pago': {
     text: 'Para conocer todos nuestros métodos de pago disponibles, consulta via WhatsApp 💳',

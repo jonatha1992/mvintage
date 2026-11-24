@@ -150,6 +150,11 @@
                   <span class="font-medium text-gray-700 font-body">Modalidad:</span>
                   <span class="text-gray-900 font-body">Retiro en el local</span>
                 </div>
+                <div class="flex justify-between gap-4">
+                  <span class="font-medium text-gray-700 font-body">Dirección:</span>
+                  <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="text-right text-gray-900 underline font-body hover:text-gray-600">{{ STORE_PICKUP_ADDRESS }}</a>
+                </div>
+                <p class="text-xs text-gray-600 font-body">{{ STORE_PICKUP_HOURS }}.</p>
               </div>
             </div>
           </div>
@@ -283,10 +288,11 @@ import { useRouter } from 'vue-router';
 import { useCartStore } from '../../store/cart';
 import { useAuthStore } from '../../store/auth';
 import { useToast } from 'vue-toastification';
-import { ordersApi, customersApi, orderItemsApi } from '../../config/api';
-import { COMPRAS_HABILITADAS, MERCADOPAGO_HABILITADO } from '../../config/payments';
+import { ordersApi, customersApi, orderItemsApi, paymentsApi } from '../../config/api';
+import { COMPRAS_HABILITADAS, MERCADOPAGO_HABILITADO } from '../../config/payments'
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store'
 import { stockService } from '../../services/stockService';
-import { isValidPhone, formatE164, validationMessages } from '../../composables/useValidators';
+import { isValidPhone, formatE164, splitStoredPhone, validationMessages } from '../../composables/useValidators';
 import { useUserData } from '../../composables/useUserData';
 import type { PaymentMethod, Order, CustomerCreate, OrderItemCreate } from '../../types';
 import DeliveryProgress from '../../components/ui/DeliveryProgress.vue';
@@ -412,6 +418,9 @@ onMounted(async () => {
       // User has previous purchase data - auto-populate form
       const formData = getCheckoutFormData();
       Object.assign(checkoutForm.value, formData);
+      const storedPhone = splitStoredPhone(checkoutForm.value.phone, checkoutForm.value.phoneCountryCode || 'AR');
+      checkoutForm.value.phone = storedPhone.national;
+      checkoutForm.value.phoneCountryCode = storedPhone.country;
       
       usingPreviousData.value = true;
       
@@ -593,6 +602,7 @@ const processOrder = async () => {
       const orderItemData: OrderItemCreate = {
         order_id: response.order.id,
         product_id: item.product.id,
+        variant_id: item.variant?.variant.id,
         quantity: item.quantity,
         price: itemPrice
       };
@@ -603,24 +613,34 @@ const processOrder = async () => {
         throw error; // Re-throw to be caught by outer try-catch
       }
     }
-    
+
+    try {
+      await ordersApi.notifyOrderCreated(response.order.id);
+    } catch (notifyError) {
+      console.warn('No se pudo enviar la notificación del pedido:', notifyError);
+    }
     
     // Step 4: Handle different payment methods
     if (checkoutForm.value.paymentMethod === 'mercadopago') {
-      if (!response.payment_preference?.init_point) {
-        toast.error('El pago con Mercado Pago no está disponible en este momento. Probá con transferencia o escribinos por WhatsApp.');
+      try {
+        const preference = await paymentsApi.createPreference(response.order.id);
+        const checkoutUrl = preference?.checkoutUrl || preference?.checkout_url || preference?.init_point;
+        if (!checkoutUrl) {
+          toast.error('No se pudo obtener el enlace de pago de Mercado Pago. Tu carrito sigue guardado.');
+          return;
+        }
+        localStorage.setItem('pending_order', JSON.stringify({
+          order_id: response.order.id,
+          customer: customer,
+          total: cartStore.totalPrice,
+          items: cartStore.items
+        }));
+        window.location.href = checkoutUrl;
+      } catch (mpError: any) {
+        const detail = mpError?.response?.data?.detail;
+        toast.error(detail || 'El pago con Mercado Pago no está disponible en este momento. Tu carrito sigue guardado.');
         return;
       }
-      // Store order info for success page
-      localStorage.setItem('pending_order', JSON.stringify({
-        order_id: response.order.id,
-        customer: customer,
-        total: cartStore.totalPrice,
-        items: cartStore.items
-      }));
-      
-      // Redirect to MercadoPago
-      window.location.href = response.payment_preference.init_point;
     } else if (checkoutForm.value.paymentMethod === 'transfer') {
       // Clear cart and redirect to transfer instructions
       cartStore.clearCart();

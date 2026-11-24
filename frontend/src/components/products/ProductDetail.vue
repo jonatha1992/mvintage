@@ -49,11 +49,13 @@
               @click="openImageGallery(index)"
             >
               <img
-                :src="image.image_url"
+                :src="buildImageVariantUrl(image.image_url, 800)"
+                :srcset="buildImageSrcset(image.image_url, [400, 800])"
+                sizes="(max-width: 1023px) 100vw, 50vw"
                 :alt="`${product.name} - imagen ${index + 1}`"
                 :loading="index === 0 ? 'eager' : 'lazy'"
                 :fetchpriority="index === 0 ? 'high' : undefined"
-                decoding="async"
+                :decoding="index === 0 ? undefined : 'async'"
                 width="800"
                 height="1000"
                 class="object-cover object-center w-full h-full"
@@ -88,7 +90,7 @@
             :aria-label="`Ir a la imagen ${index + 1}`"
             @click="goToImage(index)"
           >
-            <img :src="image.image_url" alt="" loading="lazy" decoding="async" width="80" height="80" class="object-cover w-full h-full" />
+            <img :src="buildImageVariantUrl(image.image_url, 400)" alt="" loading="lazy" decoding="async" width="80" height="80" class="object-cover w-full h-full" />
           </button>
         </div>
       </section>
@@ -257,7 +259,12 @@
 
     <dialog ref="pickupDialog" closedby="any" aria-labelledby="retiro-titulo" class="info-dialog" @click="closeOnBackdrop">
       <h2 id="retiro-titulo" class="text-lg font-medium text-gray-900">Retiro en el local</h2>
-      <p class="mt-3 text-sm text-gray-700">Todas las compras se retiran en el local, sin costo. Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.</p>
+      <p class="mt-3 text-sm text-gray-700">
+        Todas las compras se retiran sin costo en
+        <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="underline text-gray-900 hover:text-gray-600">{{ STORE_PICKUP_ADDRESS }}</a>.
+        {{ STORE_PICKUP_HOURS }}.
+      </p>
+      <p class="mt-2 text-xs text-gray-600">Cambios dentro de los 7 días hábiles posteriores al retiro.</p>
       <a :href="whatsappUrl" target="_blank" rel="noopener" class="block mt-3 text-sm underline text-gray-900">Coordinar por WhatsApp</a>
       <form method="dialog" class="mt-5"><button class="dialog-close" autofocus>Cerrar</button></form>
     </dialog>
@@ -365,6 +372,7 @@
 
 <script setup lang="ts">
 import { formatPrice } from '../../utils/price'
+import { buildImageVariantUrl, buildImageSrcset } from '../../utils/imageUrl'
 import { ref, onMounted, computed, watch } from 'vue';
 import ImageGalleryModal from '../ui/ImageGalleryModal.vue';
 import { useRoute } from 'vue-router';
@@ -402,6 +410,7 @@ const pickupDialog = ref<HTMLDialogElement | null>(null);
 const shareDialog = ref<HTMLDialogElement | null>(null);
 
 import { MERCADOPAGO_HABILITADO, WHATSAPP_NUMBER } from '../../config/payments';
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store';
 
 const finalPrice = computed(() => product.value?.has_discount && product.value.discounted_price ? product.value.discounted_price : product.value?.price ?? 0);
 const installments = computed(() => product.value?.max_installments ?? 1);

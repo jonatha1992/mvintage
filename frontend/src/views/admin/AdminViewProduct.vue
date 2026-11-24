@@ -107,7 +107,7 @@
                 v-model.number="product.max_installments"
                 class="w-full py-2 pl-3 pr-3 mt-1 text-sm leading-5 text-gray-900 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
               >
-                <option v-for="n in [1, 3, 6, 12]" :key="n" :value="n">{{ n }}</option>
+                <option v-for="n in [1, 3]" :key="n" :value="n">{{ n === 1 ? 'Sin cuotas' : '3 cuotas sin interés' }}</option>
               </select>
             </div>
           </div>
@@ -723,7 +723,7 @@ import ProductCard from '../../components/products/ProductCard.vue';
 import { useAuthStore } from '../../store/auth';
 import { useLoading } from '../../composables/useLoading';
 import { useProducts } from '../../store/products';
-import { masterDataApi, usersApi, config } from '../../config/index';
+import { masterDataApi, usersApi, apiClient } from '../../config/index';
 import type { Color, Category, Size, Product } from '../../types/products/product.types';
 import type { Product as GlobalProduct } from '../../types/products/product.types';
 import type { AdminProduct, AdminProductVariant, AdminProductImage, AdminProductCreate } from '../../types/products/admin.types';
@@ -1193,51 +1193,47 @@ function removeNewImage(index: number) {
   toast.info('Nueva imagen eliminada del preview');
 }
 
-async function compressToWebP(file: File): Promise<File> {
+async function compressToWebP(file: File, maxWidthOrHeight = 800): Promise<File> {
   const options = {
-    maxSizeMB: 1,                    // Maximo 1MB
-    useWebWorker: true,              // Usar Web Worker para no bloquear UI
-    fileType: 'image/webp',          // Convertir a WebP
-    initialQuality: 0.85,            // Calidad inicial 85%
-    maxWidthOrHeight: 1920,          // Redimensionar si es muy grande
+    maxSizeMB: maxWidthOrHeight <= 400 ? 0.1 : 0.25,
+    useWebWorker: true,
+    fileType: 'image/webp',
+    initialQuality: 0.8,
+    maxWidthOrHeight,
   };
 
-  try {
-    const compressedFile = await imageCompression(file, options);
-    return compressedFile;
-  } catch (error) {
-    throw error;
-  }
+  return imageCompression(file, options);
+}
+
+async function uploadFileToImgServer(file: File, folder: 'productos' | 'productos/originals', filename: string): Promise<string> {
+  const formData = new FormData();
+  formData.append('folder', folder);
+  formData.append('file', file, filename);
+
+  const { data } = await apiClient.post<{ secure_url: string }>('/admin/images/upload', formData, {
+    headers: { 'Content-Type': undefined },
+    timeout: 60000,
+  });
+  return data.secure_url;
 }
 
 async function uploadImages(): Promise<string[]> {
   try {
-    if (!config.imgServer.apiKey) {
-      throw new Error('Falta configurar VITE_IMG_API_KEY para subir imágenes');
-    }
+
 
     const uploadPromises = selectedFiles.value.map(async (file) => {
-      const compressedFile = await compressToWebP(file);
+      const ts = Date.now();
       const originalName = file.name.replace(/\.[^/.]+$/, '');
-      const formData = new FormData();
-      formData.append('folder', 'productos');
-      formData.append('file', compressedFile, `${Date.now()}_${originalName}.webp`);
+      const compressed800 = await compressToWebP(file, 800);
 
-      const response = await fetch(`${config.imgServer.url}/v1/showroomisabella/upload`, {
-        method: 'POST',
-        headers: {
-          'X-API-Key': config.imgServer.apiKey,
-        },
-        body: formData,
-      });
+      // Respaldar original sin bloquear la subida principal y subir versión WebP 800px
+      // (img-server sirve la variante 400px vía w_400,q_80,f_webp con cache inmutable)
+      const [, webpUrl] = await Promise.all([
+        uploadFileToImgServer(file, 'productos/originals', `${ts}_${file.name}`),
+        uploadFileToImgServer(compressed800, 'productos', `${ts}_${originalName}.webp`),
+      ]);
 
-      if (!response.ok) {
-        const errText = await response.text().catch(() => '');
-        throw new Error(`HTTP ${response.status} ${errText}`);
-      }
-
-      const data = await response.json();
-      return data.secure_url as string;
+      return webpUrl;
     });
 
     return await Promise.all(uploadPromises);

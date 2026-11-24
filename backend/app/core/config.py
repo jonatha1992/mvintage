@@ -72,7 +72,16 @@ class Settings(BaseSettings):
     # Alternativa: lista separada por comas, tiene prioridad si se define
     CORS_ORIGINS: Optional[str] = None
 
-    # MercadoPago Configuration
+    IMG_SERVER_URL: str = "https://img.tecnofusion.dev"
+    IMG_SERVER_API_KEY: str = ""
+
+    # PayAlert (Mercado Pago) Configuration
+    PAYALERT_URL: str = "https://payalert.tecnofusion.dev"
+    PAYALERT_API_KEY: str = ""
+    PAYALERT_ORIGIN: str = "https://showroomisabella-api.tecnofusion.dev"
+    PAYMENT_RETURN_URL: Optional[str] = None
+
+    # MercadoPago Configuration (legacy, unused)
     MERCADOPAGO_ACCESS_TOKEN: str = ""
     MERCADOPAGO_PUBLIC_KEY: str = ""
     MERCADOPAGO_WEBHOOK_SECRET: str = ""
@@ -80,14 +89,17 @@ class Settings(BaseSettings):
     MERCADOPAGO_FAILURE_URL: str = "http://localhost:5173/payment/failure"
     MERCADOPAGO_PENDING_URL: str = "http://localhost:5173/payment/pending"
 
-    # Email Configuration
-    SMTP_HOST: str = "smtp.gmail.com"
-    SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASS: str = ""
-    MAIL_FROM: str = ""
+    # Email Configuration (correo-central)
+    CORREO_CENTRAL_URL: str = "https://correo.tecnofusion.dev"
+    CORREO_CENTRAL_API_KEY: str = ""
+    NOTIFY_OWNER_EMAIL: str = "Showroomisabella@gmail.com"
+    NOTIFY_WHATSAPP_NUMBER: str = "5491176372876"
+    STORE_PUBLIC_URL: str = "https://showroomisabella-ar.web.app"
+    STORE_PICKUP_ADDRESS: str = "Alonso Pareja 6542, González Catán (Buenos Aires)"
+
+    # App branding
     APP_NAME: str = "Showroom Isabella"
-    APP_URL: str = "https://m-vintage.web.app"
+    APP_URL: str = "https://showroomisabella-ar.web.app"
 
     # Shipping Quotes API Configuration
     SHIPPING_API_URL: str = "https://apilogistica-production.up.railway.app/api/v1"
@@ -103,6 +115,7 @@ class Settings(BaseSettings):
         env_file = ENV_FILE_MAP.get(RAW_ENV, ".env.dev")
         env_file_encoding = "utf-8"
         case_sensitive = False
+        extra = "ignore"
 
     # ----------------- Validaciones -----------------
     @field_validator("SECRET_KEY")

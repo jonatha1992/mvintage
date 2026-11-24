@@ -6,6 +6,7 @@ from app.controllers.user_controller import get_user_by_firebase_uid, create_use
 from app.core.auth_firebase import verify_firebase_token
 from app.controllers.role_controller import get_user_roles, assign_role_to_user
 from app.core.security import require_manager_or_admin
+from app.core.rate_limit import rate_limit
 from firebase_admin import auth as firebase_auth
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
@@ -77,7 +78,7 @@ def sync_firebase_users(
     total = len(db.exec(select(User)).all())
     return {"imported": imported, "total_users": total}
 
-@router.post("/create", response_model=dict)
+@router.post("/create", response_model=dict, dependencies=[Depends(rate_limit("users_create", limit=20, window_seconds=60))])
 def create_new_user(
     user_data: CreateUserRequest,
     db: Session = Depends(get_session),
@@ -200,7 +201,7 @@ def list_users(
         })
     return enriched
 
-@router.get("/me", response_model=UserRead)
+@router.get("/me", response_model=UserRead, dependencies=[Depends(rate_limit("auth_me", limit=30, window_seconds=60))])
 async def get_or_create_me(
     db: Session = Depends(get_session),
     firebase_user: dict = Depends(verify_firebase_token)
@@ -319,45 +320,3 @@ async def debug_user_auth(
         "has_admin_role": any(role.lower() == "admin" for role in role_names),
         "has_manager_role": any(role.lower() == "manager" for role in role_names)
     }
-
-@router.get("/test-auth")
-async def test_auth_endpoint():
-    """
-    Endpoint simple que no requiere autenticación para verificar que el routing funciona.
-    """
-    return {"message": "Auth endpoint is working", "timestamp": "2025-08-07"}
-
-@router.get("/test-firebase")
-async def test_firebase_config():
-    """
-    Endpoint para verificar la configuración de Firebase sin autenticación.
-    """
-    import firebase_admin
-    from app.core.config import settings
-    
-    try:
-        app_instance = firebase_admin.get_app()
-        return {
-            "status": "Firebase initialized",
-            "app_name": app_instance.name,
-            "project_id": app_instance.project_id,
-            "environment": settings.ENVIRONMENT,
-            "has_firebase_key": bool(settings.FIREBASE_SERVICE_ACCOUNT_KEY),
-            "firebase_project_id": settings.FIREBASE_PROJECT_ID
-        }
-    except ValueError:
-        return {
-            "status": "Firebase not initialized", 
-            "error": "No app instance found",
-            "environment": settings.ENVIRONMENT,
-            "has_firebase_key": bool(settings.FIREBASE_SERVICE_ACCOUNT_KEY),
-            "firebase_project_id": settings.FIREBASE_PROJECT_ID
-        }
-    except Exception as e:
-        return {
-            "status": "Firebase error", 
-            "error": str(e),
-            "environment": settings.ENVIRONMENT,
-            "has_firebase_key": bool(settings.FIREBASE_SERVICE_ACCOUNT_KEY),
-            "firebase_project_id": settings.FIREBASE_PROJECT_ID
-        }

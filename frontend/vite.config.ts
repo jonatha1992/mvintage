@@ -4,7 +4,7 @@ import { fileURLToPath, URL } from 'node:url';
 
 // https://vite.dev/config/
 // Configuración base Vite; las variables que empiecen por VITE_ se exponen automáticamente
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     vue({
       script: {
@@ -45,7 +45,7 @@ export default defineConfig({
     target: 'esnext',
     outDir: 'dist',
     assetsDir: 'assets',
-    sourcemap: true,
+    sourcemap: mode === 'dev' || mode === 'development',
     minify: 'esbuild',
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
@@ -63,4 +63,4 @@ export default defineConfig({
     __INTLIFY_PROD_DEVTOOLS__: false,
     'process.env': {}
   }
-});
+}));

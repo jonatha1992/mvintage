@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from app.routes.admin_images import router as admin_images_router
 from app.routes.products import router as products_router
 from app.routes.customers import router as customers_router
 from app.routes.orders import router as orders_router
@@ -17,23 +18,12 @@ from app.routes.shipping_quotes import router as shipping_quotes_router
 
 # Email functionality moved to /routes/ (standard approach)
 from app.core.config import settings
-from fastapi import Depends
 import os
 import re
 import subprocess
 from pathlib import Path
-from app.db.session import get_session
 from app.db.migrations import run_migrations
-from sqlmodel import Session, select
-from app.models.user import User
-from app.models.role import Role
-from app.models.user_role import UserRole
-from app.models.product import Product, ProductImage, ProductVariant
-from app.models.customer import Customer
-from app.models.order import Order
-from app.models.order_item import OrderItem
-from app.models.inventory import Inventory
-from app.models.email_verification import EmailVerificationToken
+import app.models  # noqa: F401
 import logging
 
 logger = logging.getLogger(__name__)
@@ -73,6 +63,7 @@ app.add_middleware(
     max_age=600,  # Cache preflight requests for 10 minutes
 )
 
+app.include_router(admin_images_router, prefix="/api/v1")
 app.include_router(products_router, prefix="/api/v1")
 app.include_router(customers_router, prefix="/api/v1")
 app.include_router(orders_router, prefix="/api/v1")
@@ -118,43 +109,3 @@ def version_json():
         except (OSError, subprocess.CalledProcessError):
             sha = "unknown"
     return {"version": version, "sha": sha[:7]}
-
-
-@app.get("/debug/auth")
-def debug_auth():
-    """Endpoint para debuggear la configuración de Firebase"""
-    import firebase_admin
-
-    try:
-        app_instance = firebase_admin.get_app()
-        return {
-            "status": "Firebase initialized",
-            "app_name": app_instance.name,
-            "project_id": app_instance.project_id,
-        }
-    except ValueError:
-        return {"status": "Firebase not initialized", "error": "No app instance found"}
-    except Exception as e:
-        return {"status": "Firebase error", "error": str(e)}
-
-
-@app.get("/debug/dump", response_model=None)
-def debug_dump(db: Session = Depends(get_session)):
-    """Devuelve un volcado compacto de tablas principales (solo para desarrollo)."""
-
-    def rows(model):
-        return [r.__dict__ for r in db.exec(select(model)).all()]
-
-    return {
-        "environment": settings.ENVIRONMENT,
-        "users": rows(User),
-        "roles": rows(Role),
-        "user_roles": rows(UserRole),
-        "products": rows(Product),
-        "product_images": rows(ProductImage),
-        "product_variants": rows(ProductVariant),
-        "customers": rows(Customer),
-        "orders": rows(Order),
-        "order_items": rows(OrderItem),
-        "inventory": rows(Inventory),
-    }

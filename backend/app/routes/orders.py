@@ -1,9 +1,8 @@
 from typing import List, Optional
-import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import logging
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi import Body
 from app.core.security import (
     get_current_user,
@@ -21,113 +20,20 @@ from app.models.product import Product, ProductImage
 from app.controllers.payments_controller import payments_controller
 from app.controllers.transfer_controller import transfer_controller
 from app.controllers.cash_controller import cash_controller
-from app.core.mailer import send_email, render_template
 from app.core.config import settings
-from app.routes.inventory import reduce_stock, restore_stock
+from app.core.rate_limit import rate_limit
+from app.routes.inventory import reduce_stock, release_order_stock_once, restore_stock
+from app.services.notificaciones import build_order_snapshot, notificaciones_service
 
 # Configurar logger
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-async def send_order_confirmation_email(
-    order: Order, customer: Customer, session: Session
-):
-    """Send order confirmation email asynchronously"""
-    try:
-        # Get order items with product details
-        order_items = session.exec(
-            select(OrderItem, Product)
-            .where(OrderItem.order_id == order.id)
-            .join(Product, OrderItem.product_id == Product.id)
-        ).all()
-
-        # Format order items for email
-        items_for_email = []
-        subtotal = 0
-        for order_item, product in order_items:
-            item_total = order_item.price * order_item.quantity
-            subtotal += item_total
-            items_for_email.append(
-                {
-                    "product_name": product.name,
-                    "quantity": order_item.quantity,
-                    "price": order_item.price,
-                    "total": item_total,
-                    "product_image": None,  # Add product image logic if needed
-                    "variant_info": None,  # Add variant info if needed
-                }
-            )
-
-        # Get payment method text
-        payment_methods = {
-            "transfer": "Transferencia Bancaria",
-            "mercadopago": "MercadoPago",
-            "cash": "Efectivo Contra Entrega",
-        }
-        payment_method_text = payment_methods.get(
-            order.payment_method, order.payment_method
-        )
-
-        # Payment instructions based on method
-        payment_instructions = None
-        if order.payment_method == "transfer":
-            payment_instructions = (
-                "Realiza la transferencia e incluye como referencia: ORD-"
-                + str(order.id)
-            )
-        elif order.payment_method == "cash":
-            payment_instructions = (
-                "Ten el monto exacto disponible al momento de la entrega"
-            )
-
-        # Render email template
-        html_content = render_template(
-            "email_order_confirmation.html",
-            app_name=settings.APP_NAME,
-            app_url=settings.APP_URL,
-            order_number=str(order.id),
-            order_date=(
-                order.created_at.strftime("%d/%m/%Y %H:%M")
-                if order.created_at
-                else datetime.now().strftime("%d/%m/%Y %H:%M")
-            ),
-            customer_name=customer.name,
-            order_items=items_for_email,
-            subtotal=subtotal,
-            discount=0.0,  # Add discount logic if needed
-            shipping_cost=0.0,  # Add shipping cost if needed
-            total=order.total,
-            shipping_address=customer.address,
-            shipping_city=customer.city,
-            shipping_postal_code=customer.postal_code,
-            delivery_notes=customer.delivery_notes,
-            payment_method_text=payment_method_text,
-            payment_instructions=payment_instructions,
-        )
-
-        # Send email
-        success = send_email(
-            to=customer.email,
-            subject=f"Confirmación de pedido #{order.id} - {settings.APP_NAME}",
-            html_content=html_content,
-        )
-
-        if success:
-            print(
-                f"✅ Email de confirmación enviado para pedido #{order.id} a {customer.email}"
-            )
-        else:
-            print(f"❌ Error enviando email de confirmación para pedido #{order.id}")
-
-    except Exception as e:
-        print(f"❌ Error procesando email de confirmación: {str(e)}")
-
-
 from pydantic import ValidationError
 
 
-@router.post("/orders/")
+@router.post("/orders/", dependencies=[Depends(rate_limit("orders_create", limit=10, window_seconds=60))])
 def create_order(
     session: Session = Depends(get_session),
     order: Order = Body(...),
@@ -161,6 +67,8 @@ def create_order(
     # Establecer estado inicial según método de pago
     if db_order.payment_method == "mercadopago":
         db_order.payment_status = "pending_payment"
+        if db_order.payment_expires_at is None:
+            db_order.payment_expires_at = datetime.utcnow() + timedelta(minutes=15)
     else:
         db_order.payment_status = "pending"
 
@@ -172,53 +80,58 @@ def create_order(
     response = {"order": db_order}
 
     try:
-        if db_order.payment_method == "mercadopago":
-            # MercadoPago: Crear preferencia automáticamente
-            preference_data = payments_controller.create_preference(
-                db_order.id, session
-            )
-            response["payment_preference"] = preference_data
-
-        elif db_order.payment_method == "transfer":
-            # Transferencia: Configurar y obtener datos bancarios
+        if db_order.payment_method == "transfer":
             transfer_data = transfer_controller.create_transfer_order(
                 db_order.id, session
             )
             response["transfer_info"] = transfer_data
 
         elif db_order.payment_method == "cash":
-            # Efectivo: Calcular entrega y costos
             cash_data = cash_controller.create_cash_order(db_order.id, session)
             response["delivery_info"] = cash_data
 
     except Exception as e:
-        # Si falla la configuración específica, mantener la orden pero informar el error
         response["payment_error"] = str(e)
 
-    # Send order confirmation email asynchronously
-    try:
-        print(
-            f"🔄 Iniciando envío de email de confirmación para orden #{db_order.id} a {customer.email}"
-        )
-        # Run email sending in background
-        import threading
-
-        email_thread = threading.Thread(
-            target=lambda: asyncio.run(
-                send_order_confirmation_email(db_order, customer, session)
-            )
-        )
-        email_thread.daemon = True  # Ensure thread doesn't prevent app shutdown
-        email_thread.start()
-        print(f"✅ Thread de email iniciado para orden #{db_order.id}")
-    except Exception as e:
-        print(f"❌ Error iniciando envío de email para orden #{db_order.id}: {str(e)}")
-        # Don't fail the order creation if email fails
-        import traceback
-
-        traceback.print_exc()
-
     return response
+
+
+@router.post(
+    "/orders/{order_id}/notify-created",
+    dependencies=[Depends(rate_limit("orders_notify_created", limit=10, window_seconds=60))],
+)
+def notify_order_created(
+    order_id: int,
+    background_tasks: BackgroundTasks,
+    session: Session = Depends(get_session),
+    user=Depends(get_current_user),
+):
+    order = session.get(Order, order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    check_order_ownership_or_admin(order, user, session)
+
+    if order.notified_created_at is not None:
+        return {
+            "order_id": order.id,
+            "notified": False,
+            "already_notified": True,
+        }
+
+    order.notified_created_at = datetime.utcnow()
+    session.add(order)
+    session.commit()
+    session.refresh(order)
+
+    snapshot = build_order_snapshot(order, session)
+    background_tasks.add_task(notificaciones_service.notificar_pedido_creado, snapshot)
+
+    return {
+        "order_id": order.id,
+        "notified": True,
+        "already_notified": False,
+    }
 
 
 @router.get("/orders/", response_model=List[Order])
@@ -532,6 +445,7 @@ def update_order(
 @router.put("/orders/{order_id}/status")
 def update_order_status(
     *,
+    background_tasks: BackgroundTasks,
     session: Session = Depends(get_session),
     order_id: int,
     status_data: dict,
@@ -545,15 +459,19 @@ def update_order_status(
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
-    # Update payment status ONLY - do not touch shipping status
+    prev_payment_status = order.payment_status
+
     if "status" in status_data:
         new_status = status_data["status"]
         if new_status in ["pending", "paid", "cancelled"]:
             logger.info(
                 f"Updating payment_status for order {order.id} from {order.payment_status} to {new_status}"
             )
+            if new_status == "cancelled":
+                release_order_stock_once(
+                    order, session, new_payment_status="cancelled", commit=False
+                )
             order.payment_status = new_status
-            # NOTE: We do NOT update order.status here - that's for shipping status only
         else:
             raise HTTPException(status_code=400, detail="Invalid payment status")
 
@@ -569,12 +487,17 @@ def update_order_status(
     session.commit()
     session.refresh(order)
 
+    if order.payment_status == "paid" and prev_payment_status not in ("paid", "approved"):
+        snapshot = build_order_snapshot(order, session)
+        background_tasks.add_task(notificaciones_service.notificar_pago_confirmado, snapshot)
+
     return {"message": "Order status updated successfully", "order_id": order.id}
 
 
 @router.put("/orders/{order_id}/shipping-status")
 def update_order_shipping_status(
     *,
+    background_tasks: BackgroundTasks,
     session: Session = Depends(get_session),
     order_id: int,
     status_data: dict,
@@ -589,6 +512,8 @@ def update_order_shipping_status(
     order = session.get(Order, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+
+    prev_status = order.status
 
     # Update shipping status manually
     if "shipping_status" in status_data:
@@ -618,6 +543,10 @@ def update_order_shipping_status(
     session.add(order)
     session.commit()
     session.refresh(order)
+
+    if order.status == "ready_for_pickup" and prev_status != "ready_for_pickup":
+        snapshot = build_order_snapshot(order, session)
+        background_tasks.add_task(notificaciones_service.notificar_listo_para_retirar, snapshot)
 
     return {
         "message": "Order status updated successfully",
@@ -708,12 +637,7 @@ def delete_order(
         try:
             logger.info(f"Attempting to delete order {order_id}")
 
-            # Restaurar el stock de cada producto
-            for item in order_items:
-                if not restore_stock(item.product_id, item.quantity, session):
-                    logger.warning(
-                        f"No se pudo restaurar el stock para el producto {item.product_id}"
-                    )
+            release_order_stock_once(order, session, commit=False)
 
             # Eliminar la orden (los order_items se eliminarán en cascada)
             session.delete(order)

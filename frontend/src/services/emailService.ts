@@ -124,7 +124,7 @@ class EmailService {
         payment_method: this.getPaymentMethodText(data.payment_method),
         failure_message: 'Tu pago no pudo ser procesado correctamente.',
         retry_instructions: 'Puedes intentar nuevamente o contactarnos para asistencia.',
-        support_email: 'Showroomisabellaa@gmail.com',
+        support_email: 'Showroomisabella@gmail.com',
         ...data.additional_data
       };
 
@@ -191,7 +191,7 @@ class EmailService {
         bank_name: data.bank_info?.bank_name || '',
         cbu: data.bank_info?.cbu || '',
         alias: data.bank_info?.alias || '',
-        holder_name: data.bank_info?.holder_name || '',
+        holder_name: data.bank_info?.holder_name || 'Priscila Moyano',
         reference: `ORD-${data.order_id}`,
         instructions: 'Realiza la transferencia incluyendo la referencia para identificar tu pago.',
         verification_info: 'Verificaremos tu pago y te notificaremos la confirmación.',

@@ -44,10 +44,21 @@
                 Realizado el {{ formatDate(order.created_at) }}
               </p>
             </div>
-            <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full"
-              :class="getOrderPickupStatusConfig(order).class">
-              {{ getOrderPickupStatusConfig(order).text }}
-            </span>
+            <div class="flex items-center space-x-3">
+              <button
+                v-if="canPayNow(order)"
+                type="button"
+                :disabled="payingNow"
+                @click="payOrderNow"
+                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-black border border-transparent rounded-md shadow-sm hover:bg-gray-800 disabled:opacity-60"
+              >
+                {{ payingNow ? 'Redirigiendo...' : 'Pagar ahora' }}
+              </button>
+              <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full"
+                :class="getOrderPickupStatusConfig(order).class">
+                {{ getOrderPickupStatusConfig(order).text }}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -235,7 +246,11 @@
           <h2 class="mb-4 text-lg font-medium text-gray-900">Información de retiro</h2>
           <div class="space-y-1 text-sm text-gray-600">
             <p class="font-medium text-gray-900">{{ order.customer_name }}</p>
-            <p>Retiro en el local. Te avisamos por WhatsApp cuando tu pedido esté listo para retirar.</p>
+            <p>
+              Retiro en el local:
+              <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="underline text-gray-900 hover:text-gray-600">{{ STORE_PICKUP_ADDRESS }}</a>.
+              {{ STORE_PICKUP_HOURS }} cuando tu pedido esté listo para retirar.
+            </p>
             <p v-if="order.delivery_notes" class="mt-2">
               <span class="font-medium">Notas:</span> {{ order.delivery_notes }}
             </p>
@@ -268,7 +283,9 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../../store/auth';
 import { useToast } from 'vue-toastification';
-import { ordersApi } from '../../config/api';
+import { ordersApi, paymentsApi } from '../../config/api';
+import { MERCADOPAGO_HABILITADO } from '../../config/payments';
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store';
 import { 
   getOrderPickupStatusConfig,
   getPaymentStatusText 
@@ -281,6 +298,36 @@ const toast = useToast();
 
 const loading = ref(true);
 const order = ref<any>(null);
+const payingNow = ref(false);
+
+const canPayNow = (o: any) => {
+  if (!MERCADOPAGO_HABILITADO || !o) return false;
+  if (o.payment_method !== 'mercadopago' || o.payment_status !== 'pending_payment') return false;
+  if (o.payment_expires_at && new Date(o.payment_expires_at).getTime() <= Date.now()) return false;
+  return true;
+};
+
+const payOrderNow = async () => {
+  if (!order.value || !canPayNow(order.value)) return;
+  if (order.value.mercadopago_checkout_url) {
+    window.location.href = order.value.mercadopago_checkout_url;
+    return;
+  }
+  payingNow.value = true;
+  try {
+    const pref = await paymentsApi.createPreference(order.value.id);
+    const url = pref?.checkoutUrl || pref?.checkout_url || pref?.init_point;
+    if (!url) {
+      toast.error('No se pudo generar el enlace de pago.');
+      return;
+    }
+    window.location.href = url;
+  } catch (error: any) {
+    toast.error(error?.response?.data?.detail || 'No se pudo iniciar el pago con Mercado Pago.');
+  } finally {
+    payingNow.value = false;
+  }
+};
 
 const orderId = computed(() => route.params.id as string);
 

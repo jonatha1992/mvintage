@@ -55,46 +55,9 @@
                       </div>
                     </div>
 
-                    <!-- Remove Button -->
-                    <button
-                      @click="cartStore.removeFromCart(item.id)"
-                      class="ml-4 text-gray-400 hover:text-gray-500"
-                      title="Eliminar producto"
-                    >
-                      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <!-- Quantity Controls -->
-                  <div class="flex items-center justify-between mt-4">
-                    <div class="flex items-center border border-gray-300 rounded-md">
-                      <button
-                        @click="updateQuantity(item, item.quantity - 1)"
-                        :disabled="item.quantity <= 1"
-                        class="px-3 py-1 font-body text-body-text hover:text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed"
-                      >
-                        -
-                      </button>
-                      <input
-                        :value="item.quantity"
-                        @input="updateQuantity(item, parseInt(($event.target as HTMLInputElement).value))"
-                        type="number"
-                        min="1"
-                        class="w-16 px-2 py-1 text-center border-0 font-body focus:ring-0"
-                      >
-                      <button
-                        @click="updateQuantity(item, item.quantity + 1)"
-                        class="px-3 py-1 font-body text-body-text hover:text-gray-800"
-                      >
-                        +
-                      </button>
-                    </div>
-
                     <!-- Item Total -->
-                    <div class="text-right">
-                      <p class="text-lg font-medium font-body text-body-text">
+                    <div class="ml-3 text-right shrink-0">
+                      <p class="text-base font-semibold text-gray-900 font-body">
                         {{ formatPrice(cartStore.getItemTotal(item)) }}
                       </p>
                       <div v-if="item.product.has_discount" class="flex items-center justify-end space-x-1.5">
@@ -109,6 +72,35 @@
                         {{ formatPrice(cartStore.getItemPrice(item)) }} c/u
                       </p>
                     </div>
+                  </div>
+
+                  <!-- Quantity Controls -->
+                  <div class="flex items-center justify-between mt-3">
+                    <div class="inline-flex items-center h-9 border border-gray-300 rounded-md">
+                      <button
+                        @click="updateQuantity(item, item.quantity - 1)"
+                        :disabled="item.quantity <= 1"
+                        class="w-9 h-full text-gray-700 hover:text-black disabled:text-gray-300 disabled:cursor-not-allowed"
+                        aria-label="Restar uno"
+                      >
+                        −
+                      </button>
+                      <span class="w-8 text-sm text-center text-gray-900 tabular-nums" aria-live="polite">{{ item.quantity }}</span>
+                      <button
+                        @click="updateQuantity(item, item.quantity + 1)"
+                        class="w-9 h-full text-gray-700 hover:text-black"
+                        aria-label="Sumar uno"
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <button
+                      @click="cartStore.removeFromCart(item.id)"
+                      class="text-xs text-gray-500 underline underline-offset-2 hover:text-gray-800"
+                    >
+                      Eliminar
+                    </button>
                   </div>
                 </div>
               </div>
@@ -140,6 +132,9 @@
               <span class="text-gray-600 font-body">Retiro en el local</span>
               <span class="text-gray-900 font-body">Gratis</span>
             </div>
+            <p class="text-xs text-gray-500 font-body">
+              <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-800">{{ STORE_PICKUP_ADDRESS }}</a> · {{ STORE_PICKUP_HOURS }}.
+            </p>
 
             <!-- Total -->
             <div class="pt-2 border-t border-gray-200">
@@ -180,16 +175,16 @@
             <button
               v-if="COMPRAS_HABILITADAS"
               @click="proceedToCheckout"
-              class="w-full px-4 py-3 font-medium text-white transition-colors bg-black rounded-md hover:bg-gray-800"
+              class="w-full px-4 py-3 text-sm font-medium tracking-wide text-white uppercase whitespace-nowrap transition-colors bg-black rounded-md hover:bg-gray-800"
             >
-              {{ authStore.isAuthenticated ? 'Finalizar la compra' : 'Iniciar sesión y finalizar la compra' }}
+              {{ authStore.isAuthenticated ? 'Finalizar compra' : 'Iniciar sesión para comprar' }}
             </button>
             <a
               v-else
               :href="whatsappCartUrl"
               target="_blank"
               rel="noopener noreferrer"
-              class="flex items-center justify-center w-full px-4 py-3 font-medium text-white transition-colors bg-green-600 rounded-md hover:bg-green-700"
+              class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium tracking-wide text-white uppercase whitespace-nowrap transition-colors bg-green-600 rounded-md hover:bg-green-700"
             >
               Consultar por WhatsApp
             </a>
@@ -236,6 +231,7 @@ import { useAuthStore } from '../../store/auth';
 import { useToast } from 'vue-toastification';
 import { useCartModal } from '../../composables/useCartModal';
 import { COMPRAS_HABILITADAS, WHATSAPP_NUMBER } from '../../config/payments';
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store';
 
 // Props
 interface Props {

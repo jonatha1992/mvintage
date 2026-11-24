@@ -230,16 +230,26 @@
               </p>
               <div class="space-y-2 text-gray-700">
                 <p><strong>Email:</strong> 
-                  <a href="mailto:Showroomisabellaa@gmail.com" class="text-blue-600 hover:text-blue-800">
-                    Showroomisabellaa@gmail.com
+                  <a href="mailto:Showroomisabella@gmail.com" class="text-blue-600 hover:text-blue-800">
+                    Showroomisabella@gmail.com
                   </a>
                 </p>
-                <p><strong>Teléfono:</strong> 
-                  <a href="tel:+5491176372876" class="text-blue-600 hover:text-blue-800">
+                <p><strong>WhatsApp:</strong> 
+                  <a href="https://wa.me/5491176372876" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800">
                     +54 9 11 7637-2876
                   </a>
                 </p>
-                <p><strong>Dirección:</strong> Buenos Aires, Argentina</p>
+                <p><strong>Instagram:</strong> 
+                  <a href="https://www.instagram.com/showroomisabella_/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800">
+                    @showroomisabella_
+                  </a>
+                </p>
+                <p><strong>Dirección del local:</strong> 
+                  <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">
+                    {{ STORE_PICKUP_ADDRESS }}
+                  </a>
+                </p>
+                <p><strong>Horarios:</strong> {{ STORE_PICKUP_HOURS }}.</p>
               </div>
               
               <div class="mt-4 pt-4 border-t border-gray-300">
@@ -258,6 +268,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store'
 
 const lastUpdated = computed(() => {
   return new Date().toLocaleDateString('es-AR', {
