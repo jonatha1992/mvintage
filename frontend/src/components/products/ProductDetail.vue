@@ -283,7 +283,6 @@
       :images="product?.images || []"
       :initial-index="galleryInitialIndex"
       :alt="product?.name || ''"
-      :shared-selector="'.product-main-image'"
       @close="closeImageGallery"
     />
   </div>
@@ -758,14 +757,10 @@ const addToCart = () => {
 const openImageGallery = (index: number) => {
   galleryInitialIndex.value = index;
   showImageGallery.value = true;
-  // Prevent body scroll
-  document.body.style.overflow = 'hidden';
 };
 
 const closeImageGallery = () => {
   showImageGallery.value = false;
-  // Restore body scroll
-  document.body.style.overflow = 'auto';
 };
 
 const copyLink = async () => {
