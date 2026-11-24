@@ -37,7 +37,7 @@
 - Versionado del build: `/version.json` generado desde VERSION y git HEAD, sin modificar archivos versionados durante build.
 - Tests: Vitest `35 passed`; backend `140 passed / 5 failed`, mismos cinco preexistentes (auth inválida, dos de integración, maestros vacíos, actualización de variantes). Builds test/pro OK. Gate --changed exit 0.
 - Límites: metadatos de producto se renderizan con JS (SPA); robots sociales sin JS verán la portada. Para previews sociales propios por prenda hace falta prerender/SSR, fuera de este alcance. Logo usado como fallback Open Graph; no se inventa imagen panorámica.
-- Rendimiento/SOLID: cálculo puro separado de DOM y build, fetch de build inyectable. No agrega consultas de catálogo en runtime ni dependencias; medición comparable apertura/heap antes/después pendiente de publicación (sin copiar ni tocar base).
+- Rendimiento/SOLID: cálculo puro separado de DOM y build, fetch de build inyectable. No agrega consultas de catálogo en runtime ni dependencias; medición posterior y evidencia de publicación en `docs/qa/seo-test-20261124.md`; no se obtuvo baseline comparable antes del deploy. Sin copiar ni tocar base.
 
 ## Pendiente
 
