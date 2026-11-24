@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /checkout
+Disallow: /cart
+Disallow: /account
+Disallow: /auth
+Disallow: /verify-email
+Disallow: /orders
+Disallow: /profile
+Disallow: /payment
+
+Sitemap: https://showroomisabella-ar.web.app/sitemap.xml

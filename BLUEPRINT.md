@@ -28,6 +28,17 @@
 - Rotación manual (repositorio `E:/img-server`, solo lectura): sustituir `API_KEY_SHOWROOMISABELLA` en el entorno del img-server y reiniciarlo; actualizar `IMG_SERVER_API_KEY` del backend al mismo valor y reiniciar el backend. No existe endpoint de rotación; no se ejecutó ninguna rotación. El img-server actual limita archivos a 10 MiB, aunque el proxy permite 15 MiB.
 - Correos transaccionales (pedidos, bienvenida y verificación de email): unificados en `correo-central` (`CorreoCentralClient`, plantillas `aviso`, `bienvenida`, `codigo`). Se eliminó `backend/app/core/mailer.py` y las variables SMTP de `config.py`.
 
+## SEO (Control Apps 39265, 39266, 39279)
+
+- Versión 0.1.1. Canónico: `https://showroomisabella-ar.web.app`; test: `https://showroomisabella-ar-test.web.app`.
+- `src/seo/site.ts` concentra rutas públicas, dominio y ClothingStore. `utils/seo.ts` calcula metas y actualiza el DOM sin dependencias; reutiliza el catálogo ya cargado por ProductDetail, sin consultas adicionales.
+- Plugin Vite `scripts/seo-build.ts`: sitemap con 8 rutas estáticas y productos de la API pública; timeout de 15 s y fallback estático con warning. `lastmod` es fecha del snapshot de build (la API no expone updated_at). Regenerar con cada publicación del catálogo.
+- Firebase sirve archivos existentes antes del rewrite SPA; headers explícitos para robots (text/plain) y sitemap (application/xml). Test bloqueado por robots y meta noindex; producción indexable excepto rutas privadas/404.
+- Versionado del build: `/version.json` generado desde VERSION y git HEAD, sin modificar archivos versionados durante build.
+- Tests: Vitest `35 passed`; backend `140 passed / 5 failed`, mismos cinco preexistentes (auth inválida, dos de integración, maestros vacíos, actualización de variantes). Builds test/pro OK. Gate --changed exit 0.
+- Límites: metadatos de producto se renderizan con JS (SPA); robots sociales sin JS verán la portada. Para previews sociales propios por prenda hace falta prerender/SSR, fuera de este alcance. Logo usado como fallback Open Graph; no se inventa imagen panorámica.
+- Rendimiento/SOLID: cálculo puro separado de DOM y build, fetch de build inyectable. No agrega consultas de catálogo en runtime ni dependencias; medición comparable apertura/heap antes/después pendiente de publicación (sin copiar ni tocar base).
+
 ## Pendiente
 
 - Proveer paquetes Python offline o habilitar conectividad a PyPI para instalar `sqlmodel` en `backend/.venv` (red aislada WinError 10061) y correr pytest.
