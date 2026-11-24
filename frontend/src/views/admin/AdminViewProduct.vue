@@ -112,6 +112,117 @@
             </div>
           </div>
 
+          <!-- Sección Descuento / Promoción -->
+          <div class="p-4 mt-4 border border-gray-200 rounded-lg bg-gray-50">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h3 class="text-base font-semibold text-gray-900">Descuento / Promoción</h3>
+                <p class="text-xs text-gray-500">Activá una promo por porcentaje o precio final (redondeado a pesos enteros).</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  id="has_discount"
+                  type="checkbox"
+                  v-model="product.has_discount"
+                  @change="onDiscountToggle"
+                  class="sr-only peer"
+                >
+                <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-focus:ring-2 peer-focus:ring-teal-500 peer-checked:bg-gray-900 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+                <span class="ml-2 text-sm font-medium text-gray-700">{{ product.has_discount ? 'Activo' : 'Inactivo' }}</span>
+              </label>
+            </div>
+
+            <div v-if="product.has_discount" class="mt-4 space-y-4">
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label for="discount_percentage" class="block mb-1 text-sm font-semibold text-gray-700">Porcentaje de descuento (1-90%)</label>
+                  <div class="relative">
+                    <input
+                      id="discount_percentage"
+                      type="number"
+                      min="1"
+                      max="90"
+                      step="0.01"
+                      :value="product.discount_percentage ?? ''"
+                      @input="onDiscountPercentageInput($event)"
+                      placeholder="Ej: 20"
+                      class="w-full py-2 pl-3 pr-8 text-sm text-gray-900 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    >
+                    <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">%</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label for="discount_final_price" class="block mb-1 text-sm font-semibold text-gray-700">O precio final con descuento</label>
+                  <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-gray-500">$</span>
+                    <input
+                      id="discount_final_price"
+                      type="number"
+                      min="1"
+                      step="1"
+                      :value="discountFinalPriceInput ?? ''"
+                      @input="onDiscountFinalPriceInput($event)"
+                      placeholder="Ej: 36000"
+                      class="w-full py-2 pl-8 pr-3 text-sm text-gray-900 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <div
+                v-if="discountPreviewSummary"
+                data-testid="admin-discount-preview"
+                class="flex flex-wrap items-center gap-2 px-3 py-2 text-sm border rounded-md bg-rose-50 border-rose-200 text-rose-900"
+              >
+                <span class="font-medium">Vista previa:</span>
+                <span class="text-gray-500 line-through">{{ formatPrice(product.price) }}</span>
+                <span aria-hidden="true">→</span>
+                <span class="font-bold text-rose-700">{{ formatPrice(discountPreviewSummary.finalPrice) }}</span>
+                <span class="px-2 py-0.5 text-xs font-semibold text-white uppercase rounded bg-rose-700">
+                  {{ discountPreviewSummary.badge }}
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                  <label for="promo_label" class="block mb-1 text-sm font-semibold text-gray-700">
+                    Etiqueta opcional
+                    <span class="font-normal text-gray-400">({{ (product.promo_label || '').length }}/20)</span>
+                  </label>
+                  <input
+                    id="promo_label"
+                    type="text"
+                    maxlength="20"
+                    v-model="product.promo_label"
+                    placeholder="Promo, Liquidación, Black Friday"
+                    class="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  >
+                </div>
+
+                <div>
+                  <label for="discount_starts_at" class="block mb-1 text-sm font-semibold text-gray-700">Desde (opcional)</label>
+                  <input
+                    id="discount_starts_at"
+                    type="datetime-local"
+                    v-model="discountStartsAtLocal"
+                    class="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  >
+                </div>
+
+                <div>
+                  <label for="discount_ends_at" class="block mb-1 text-sm font-semibold text-gray-700">Hasta (opcional)</label>
+                  <input
+                    id="discount_ends_at"
+                    type="datetime-local"
+                    v-model="discountEndsAtLocal"
+                    class="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
 
           <!-- Sección de atributos de producto en tres columnas -->
           <div class="mt-4">
@@ -663,7 +774,14 @@
             </td>
             <!-- Precio -->
             <td class="px-4 py-3 text-center border-b">
-              <div class="text-sm font-semibold text-gray-900">${{ p.price.toFixed(2) }}</div>
+              <div v-if="isProductDiscountActive(p)" class="space-y-0.5">
+                <div class="text-sm font-semibold text-rose-700">{{ formatPrice(getEffectivePrice(p)) }}</div>
+                <div class="text-xs text-gray-400 line-through">{{ formatPrice(p.price) }}</div>
+                <span v-if="getPromoBadgeText(p)" class="inline-block px-1.5 py-0.5 text-[10px] font-semibold text-white uppercase rounded bg-rose-700">
+                  {{ getPromoBadgeText(p) }}
+                </span>
+              </div>
+              <div v-else class="text-sm font-semibold text-gray-900">{{ formatPrice(p.price) }}</div>
             </td>
             <!-- Pedido -->
             <td class="px-4 py-3 text-center border-b">
@@ -713,7 +831,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, nextTick } from 'vue';
+import { ref, onMounted, computed, nextTick, watch } from 'vue';
 import { useToast } from 'vue-toastification';
 import imageCompression from 'browser-image-compression';
 import { Combobox, ComboboxInput, ComboboxButton, ComboboxOptions, ComboboxOption } from '@headlessui/vue';
@@ -724,6 +842,17 @@ import { useAuthStore } from '../../store/auth';
 import { useLoading } from '../../composables/useLoading';
 import { useProducts } from '../../store/products';
 import { masterDataApi, usersApi, apiClient } from '../../config/index';
+import {
+  MAX_DISCOUNT_PERCENTAGE,
+  MAX_PROMO_LABEL_LENGTH,
+  MIN_DISCOUNT_PERCENTAGE,
+  calculateDiscountedPrice,
+  calculatePercentageFromFinalPrice,
+  formatPrice,
+  getEffectivePrice,
+  getPromoBadgeText,
+  isProductDiscountActive,
+} from '../../utils/price';
 import type { Color, Category, Size, Product } from '../../types/products/product.types';
 import type { Product as GlobalProduct } from '../../types/products/product.types';
 import type { AdminProduct, AdminProductVariant, AdminProductImage, AdminProductCreate } from '../../types/products/admin.types';
@@ -751,7 +880,94 @@ const product = ref<AdminProductCreate>({
   images: [],
   variants: [],
   has_discount: false,
+  discount_percentage: null,
+  promo_label: null,
+  discount_starts_at: null,
+  discount_ends_at: null,
   max_installments: 3,
+});
+
+const discountFinalPriceInput = ref<number | null>(null);
+const discountStartsAtLocal = ref('');
+const discountEndsAtLocal = ref('');
+
+function toDatetimeLocalValue(iso?: string | null): string {
+  if (!iso) return '';
+  const normalized = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(iso) ? iso : `${iso}Z`;
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function fromDatetimeLocalValue(localValue: string): string | null {
+  if (!localValue.trim()) return null;
+  const date = new Date(localValue);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function onDiscountToggle() {
+  if (!product.value.has_discount) {
+    product.value.discount_percentage = null;
+    product.value.promo_label = null;
+    product.value.discount_starts_at = null;
+    product.value.discount_ends_at = null;
+    discountFinalPriceInput.value = null;
+    discountStartsAtLocal.value = '';
+    discountEndsAtLocal.value = '';
+  } else if (product.value.discount_percentage && product.value.price > 0) {
+    discountFinalPriceInput.value = calculateDiscountedPrice(product.value.price, product.value.discount_percentage);
+  }
+}
+
+function onDiscountPercentageInput(event: Event) {
+  const raw = (event.target as HTMLInputElement).value;
+  if (!raw.trim()) {
+    product.value.discount_percentage = null;
+    discountFinalPriceInput.value = null;
+    return;
+  }
+  const pct = Number(raw);
+  product.value.discount_percentage = Number.isFinite(pct) ? pct : null;
+  if (Number.isFinite(pct) && pct >= MIN_DISCOUNT_PERCENTAGE && pct <= MAX_DISCOUNT_PERCENTAGE && product.value.price > 0) {
+    discountFinalPriceInput.value = calculateDiscountedPrice(product.value.price, pct);
+  } else {
+    discountFinalPriceInput.value = null;
+  }
+}
+
+function onDiscountFinalPriceInput(event: Event) {
+  const raw = (event.target as HTMLInputElement).value;
+  if (!raw.trim()) {
+    discountFinalPriceInput.value = null;
+    product.value.discount_percentage = null;
+    return;
+  }
+  const finalPrice = Math.round(Number(raw));
+  discountFinalPriceInput.value = Number.isFinite(finalPrice) ? finalPrice : null;
+  if (Number.isFinite(finalPrice) && product.value.price > 0) {
+    product.value.discount_percentage = calculatePercentageFromFinalPrice(product.value.price, finalPrice);
+  }
+}
+
+watch(() => product.value.price, (newPrice) => {
+  const pct = Number(product.value.discount_percentage);
+  if (product.value.has_discount && Number.isFinite(pct) && pct >= MIN_DISCOUNT_PERCENTAGE && pct <= MAX_DISCOUNT_PERCENTAGE && newPrice > 0) {
+    discountFinalPriceInput.value = calculateDiscountedPrice(newPrice, pct);
+  }
+});
+
+const discountPreviewSummary = computed(() => {
+  const price = Number(product.value.price);
+  const pct = Number(product.value.discount_percentage);
+  if (!product.value.has_discount || !Number.isFinite(price) || price <= 0) return null;
+  if (!Number.isFinite(pct) || pct < MIN_DISCOUNT_PERCENTAGE || pct > MAX_DISCOUNT_PERCENTAGE) return null;
+  const finalPrice = calculateDiscountedPrice(price, pct);
+  const label = product.value.promo_label?.trim();
+  return {
+    finalPrice,
+    badge: label || `-${Math.round(pct)}%`,
+  };
 });
 
 const selectedFiles = ref<File[]>([]);
@@ -944,8 +1160,16 @@ const previewProduct = computed((): GlobalProduct => {
     });
   }
 
-  // Precio del producto
+  // Precio y descuento para la vista previa
   const price = Number(product.value.price) || 0;
+  const pct = Number(product.value.discount_percentage);
+  const validDiscount =
+    product.value.has_discount &&
+    Number.isFinite(pct) &&
+    pct >= MIN_DISCOUNT_PERCENTAGE &&
+    pct <= MAX_DISCOUNT_PERCENTAGE &&
+    price > 0;
+  const previewDiscountedPrice = validDiscount ? calculateDiscountedPrice(price, pct) : undefined;
 
   // Crear variantes para la vista previa
   const previewVariants = product.value.is_unique 
@@ -973,10 +1197,13 @@ const previewProduct = computed((): GlobalProduct => {
     color: product.value.color || null,
     talle: product.value.talle || null,
     stock: product.value.stock || 0,
-    has_discount: false,
-    discount_percentage: null,
-    discounted_price: undefined,
-    discount_amount: 0,
+    has_discount: validDiscount,
+    discount_percentage: validDiscount ? pct : null,
+    promo_label: validDiscount ? (product.value.promo_label?.trim() || null) : null,
+    discount_starts_at: validDiscount ? fromDatetimeLocalValue(discountStartsAtLocal.value) : null,
+    discount_ends_at: validDiscount ? fromDatetimeLocalValue(discountEndsAtLocal.value) : null,
+    discounted_price: previewDiscountedPrice,
+    discount_amount: validDiscount && previewDiscountedPrice !== undefined ? Math.max(0, price - previewDiscountedPrice) : 0,
     max_installments: Number(product.value.max_installments ?? 3),
     images: allImages,
     variants: previewVariants,
@@ -1120,8 +1347,39 @@ async function saveProduct() {
   }
 
 
+  // Validar descuento / promoción
+  if (product.value.has_discount) {
+    const pct = Number(product.value.discount_percentage);
+    if (!Number.isFinite(pct) || pct < MIN_DISCOUNT_PERCENTAGE || pct > MAX_DISCOUNT_PERCENTAGE) {
+      toast.error('El porcentaje de descuento debe estar entre 1 y 90');
+      hideLoading();
+      return;
+    }
+    const cleanedLabel = product.value.promo_label?.trim() || null;
+    if (cleanedLabel && cleanedLabel.length > MAX_PROMO_LABEL_LENGTH) {
+      toast.error('La etiqueta de promoción no puede superar los 20 caracteres');
+      hideLoading();
+      return;
+    }
+    const startsAt = fromDatetimeLocalValue(discountStartsAtLocal.value);
+    const endsAt = fromDatetimeLocalValue(discountEndsAtLocal.value);
+    if (startsAt && endsAt && new Date(endsAt).getTime() < new Date(startsAt).getTime()) {
+      toast.error('La fecha de fin del descuento debe ser posterior a la de inicio');
+      hideLoading();
+      return;
+    }
+    product.value.discount_percentage = pct;
+    product.value.promo_label = cleanedLabel;
+    product.value.discount_starts_at = startsAt;
+    product.value.discount_ends_at = endsAt;
+  } else {
+    product.value.discount_percentage = null;
+    product.value.promo_label = null;
+    product.value.discount_starts_at = null;
+    product.value.discount_ends_at = null;
+  }
+
   try {
-    // Preparar array de imágenes final
     let finalImageUrls: string[] = [];
     
     // Agregar imágenes existentes que no fueron eliminadas
@@ -1285,8 +1543,18 @@ function editProduct(p: any) {
     images: p.images.map((img: any) => img.image_url),
     variants: p.variants?.map((v: any) => ({ id: v.id, color: v.color || v.size, talle: v.talle || v.size, stock: v.stock })) || [],
     has_discount: p.has_discount || false,
+    discount_percentage: p.discount_percentage ?? null,
+    promo_label: p.promo_label ?? null,
+    discount_starts_at: p.discount_starts_at ?? null,
+    discount_ends_at: p.discount_ends_at ?? null,
     max_installments: p.max_installments ?? 3
   };
+  discountStartsAtLocal.value = toDatetimeLocalValue(p.discount_starts_at);
+  discountEndsAtLocal.value = toDatetimeLocalValue(p.discount_ends_at);
+  discountFinalPriceInput.value =
+    p.has_discount && p.discount_percentage && p.price > 0
+      ? calculateDiscountedPrice(Number(p.price), Number(p.discount_percentage))
+      : null;
   
   // Separar imágenes existentes de nuevas imágenes
   existingImages.value = p.images.map((img: any) => ({ 
@@ -1368,8 +1636,15 @@ function resetForm() {
     images: [], 
     variants: [],
     has_discount: false,
+    discount_percentage: null,
+    promo_label: null,
+    discount_starts_at: null,
+    discount_ends_at: null,
     max_installments: 3
   };
+  discountFinalPriceInput.value = null;
+  discountStartsAtLocal.value = '';
+  discountEndsAtLocal.value = '';
   
   // Limpiar URLs de objeto para liberar memoria antes de limpiar arrays
   imagePreviews.value.forEach(url => {

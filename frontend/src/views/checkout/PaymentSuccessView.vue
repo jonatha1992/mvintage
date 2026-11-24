@@ -57,7 +57,7 @@
               <div class="space-y-2">
                 <div v-for="item in pendingOrderData.items" :key="item.id" class="flex justify-between text-sm">
                   <span class="text-gray-600">{{ item.product.name }} (x{{ item.quantity }})</span>
-                  <span class="font-medium">{{ formatPrice((item.product.has_discount && item.product.discounted_price ? item.product.discounted_price * item.quantity : item.product.price * item.quantity)) }}</span>
+                  <span class="font-medium">{{ formatPrice(getEffectivePrice(item.product) * item.quantity) }}</span>
                 </div>
               </div>
             </div>
@@ -95,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatPrice } from '../../utils/price'
+import { formatPrice, getEffectivePrice } from '../../utils/price'
 import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store'
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';

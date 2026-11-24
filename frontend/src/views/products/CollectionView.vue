@@ -84,6 +84,22 @@
               </div>
             </div>
 
+            <!-- Promo Filter -->
+            <div class="py-6 border-b border-gray-200">
+              <h3 class="mb-4 text-lg font-medium text-gray-900">Promociones</h3>
+              <label class="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  v-model="filters.onlyPromos"
+                  @change="applyFilters"
+                  data-testid="filter-only-promos"
+                  class="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-500"
+                >
+                <span class="ml-3 text-sm text-gray-700">En promoción</span>
+                <span class="ml-auto text-xs text-gray-500">({{ promoProductsCount }})</span>
+              </label>
+            </div>
+
             <!-- Sort Options -->
             <div class="py-6">
               <h3 class="mb-4 text-lg font-medium text-gray-900">Ordenar por</h3>
@@ -93,6 +109,7 @@
                 class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
               >
                 <option value="">Recomendados</option>
+                <option value="promo">En promoción</option>
                 <option value="price-asc">Precio: Menor a Mayor</option>
                 <option value="price-desc">Precio: Mayor a Menor</option>
                 <option value="name-asc">Nombre: A-Z</option>
@@ -218,10 +235,18 @@
             Todos los precios
           </label>
         </fieldset>
+        <fieldset>
+          <legend class="mb-3 font-medium">Promociones</legend>
+          <label class="flex items-center min-h-12 gap-3">
+            <input type="checkbox" v-model="filters.onlyPromos" @change="applyFilters">
+            En promoción ({{ promoProductsCount }})
+          </label>
+        </fieldset>
         <div>
           <label for="mobile-sort" class="block mb-3 font-medium">Ordenar por</label>
           <select id="mobile-sort" v-model="filters.sortBy" @change="applyFilters" class="w-full min-h-12 px-3 border border-gray-400 rounded-md">
             <option value="">Recomendados</option>
+            <option value="promo">En promoción</option>
             <option value="price-asc">Precio: Menor a Mayor</option>
             <option value="price-desc">Precio: Mayor a Menor</option>
             <option value="name-asc">Nombre: A-Z</option>
@@ -244,6 +269,7 @@ import ProductCardSkeleton from '../../components/products/ProductCardSkeleton.v
 import { masterDataApi } from '../../config/index'
 import type { Product, Category } from '../../types'
 import { useProducts } from '../../store/products'
+import { getDiscountPercentage, getEffectivePrice, isProductDiscountActive } from '../../utils/price'
 
 const route = useRoute()
 const router = useRouter()
@@ -261,8 +287,13 @@ const currentPage = ref(1)
 const filters = ref({
   category: '',
   priceRange: '',
+  onlyPromos: false,
   sortBy: ''
 })
+
+const promoProductsCount = computed(() =>
+  products.value.filter(product => isProductDiscountActive(product)).length
+)
 
 // Price ranges
 const priceRanges = [
@@ -293,11 +324,16 @@ const filteredProducts = computed(() => {
     )
   }
 
+  // Filter by promo
+  if (filters.value.onlyPromos) {
+    filteredProducts = filteredProducts.filter(product => isProductDiscountActive(product))
+  }
+
   // Filter by price range
   if (filters.value.priceRange) {
     const [min, max] = filters.value.priceRange.split('-').map(Number)
     filteredProducts = filteredProducts.filter(product => {
-      const price = Number(product.price)
+      const price = getEffectivePrice(product)
       if (max) {
         return price >= min && price <= max
       } else {
@@ -309,11 +345,21 @@ const filteredProducts = computed(() => {
   // Sort products
   if (filters.value.sortBy) {
     switch (filters.value.sortBy) {
+      case 'promo':
+        filteredProducts.sort((a, b) => {
+          const aPromo = isProductDiscountActive(a) ? 1 : 0
+          const bPromo = isProductDiscountActive(b) ? 1 : 0
+          if (aPromo !== bPromo) return bPromo - aPromo
+          const pctDiff = getDiscountPercentage(b) - getDiscountPercentage(a)
+          if (pctDiff !== 0) return pctDiff
+          return b.id - a.id
+        })
+        break
       case 'price-asc':
-        filteredProducts.sort((a, b) => Number(a.price) - Number(b.price))
+        filteredProducts.sort((a, b) => getEffectivePrice(a) - getEffectivePrice(b))
         break
       case 'price-desc':
-        filteredProducts.sort((a, b) => Number(b.price) - Number(a.price))
+        filteredProducts.sort((a, b) => getEffectivePrice(b) - getEffectivePrice(a))
         break
       case 'name-asc':
         filteredProducts.sort((a, b) => a.name.localeCompare(b.name))
@@ -348,6 +394,7 @@ const activeFiltersCount = computed(() => {
   let count = 0
   if (filters.value.category) count++
   if (filters.value.priceRange) count++
+  if (filters.value.onlyPromos) count++
   if (filters.value.sortBy) count++
   return count
 })
@@ -365,6 +412,7 @@ const applyFilters = () => {
   const query: any = {}
   if (filters.value.category) query.category = filters.value.category
   if (filters.value.priceRange) query.price = filters.value.priceRange
+  if (filters.value.onlyPromos) query.promo = '1'
   if (filters.value.sortBy) query.sort = filters.value.sortBy
   
   router.push({ query })
@@ -374,6 +422,7 @@ const clearFilters = () => {
   filters.value = {
     category: '',
     priceRange: '',
+    onlyPromos: false,
     sortBy: ''
   }
   currentPage.value = 1
@@ -408,6 +457,7 @@ const loadCategories = async () => {
 watch(() => route.query, (newQuery) => {
   filters.value.category = (newQuery.category as string) || ''
   filters.value.priceRange = (newQuery.price as string) || ''
+  filters.value.onlyPromos = newQuery.promo === '1' || newQuery.promo === 'true'
   filters.value.sortBy = (newQuery.sort as string) || ''
   currentPage.value = 1
 }, { immediate: true })

@@ -138,6 +138,17 @@ def update_product(
     for key, value in product_data.items():
         setattr(db_product, key, value)
 
+    if not product.has_discount:
+        db_product.discount_percentage = None
+        db_product.promo_label = None
+        db_product.discount_starts_at = None
+        db_product.discount_ends_at = None
+    else:
+        db_product.discount_percentage = product.discount_percentage
+        db_product.promo_label = product.promo_label
+        db_product.discount_starts_at = product.discount_starts_at
+        db_product.discount_ends_at = product.discount_ends_at
+
     existing_images = list(db_product.images)
     desired_urls = list(product.images)
     if [img.image_url for img in existing_images] != desired_urls:

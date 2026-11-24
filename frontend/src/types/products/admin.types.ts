@@ -26,6 +26,11 @@ export interface AdminProduct {
   stock?: number | null;
   has_discount: boolean;
   discount_percentage?: number | null;
+  promo_label?: string | null;
+  discount_starts_at?: string | null;
+  discount_ends_at?: string | null;
+  discount_active?: boolean;
+  discounted_price?: number;
   max_installments?: number;
   images: AdminProductImage[];
   variants: AdminProductVariant[];
@@ -44,6 +49,9 @@ export interface AdminProductCreate {
   stock?: number | null;
   has_discount: boolean;
   discount_percentage?: number | null;
+  promo_label?: string | null;
+  discount_starts_at?: string | null;
+  discount_ends_at?: string | null;
   max_installments?: number;
   images: string[];
   variants: AdminProductVariant[];

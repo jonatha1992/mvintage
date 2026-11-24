@@ -9,6 +9,7 @@ import { useCartNotification } from '../composables/useCartNotification';
 import { stockService } from '../services/stockService';
 import type { StockCheckItem, StockCheckResponse } from '../types/stock';
 import { useToast } from 'vue-toastification';
+import { getEffectivePrice, isProductDiscountActive } from '../utils/price';
 
 export interface CartItem {
   id: string; // Unique identifier for cart item
@@ -34,10 +35,7 @@ export const useCartStore = defineStore('cart', {
     // Calculate total price considering discounts
     totalPrice: (state) => {
       return state.items.reduce((total, item) => {
-        const price = item.product.has_discount && item.product.discounted_price
-          ? item.product.discounted_price
-          : item.product.price;
-        return total + (price * item.quantity);
+        return total + (getEffectivePrice(item.product) * item.quantity);
       }, 0);
     },
 
@@ -49,8 +47,9 @@ export const useCartStore = defineStore('cart', {
     // Calculate total savings
     totalSavings: (state) => {
       return state.items.reduce((total, item) => {
-        if (item.product.has_discount && item.product.discount_amount) {
-          return total + (item.product.discount_amount * item.quantity);
+        if (isProductDiscountActive(item.product)) {
+          const saving = Math.max(0, item.product.price - getEffectivePrice(item.product));
+          return total + (saving * item.quantity);
         }
         return total;
       }, 0);
@@ -58,15 +57,13 @@ export const useCartStore = defineStore('cart', {
 
     // Calculate average discount percentage across all items
     averageDiscountPercentage: (state) => {
-      const discountedItems = state.items.filter(item => item.product.has_discount && item.product.discount_amount);
+      const discountedItems = state.items.filter(item => isProductDiscountActive(item.product));
       if (discountedItems.length === 0) return 0;
 
       const totalOriginal = discountedItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
       const totalSavings = discountedItems.reduce((total, item) => {
-        if (item.product.discount_amount) {
-          return total + (item.product.discount_amount * item.quantity);
-        }
-        return total;
+        const saving = Math.max(0, item.product.price - getEffectivePrice(item.product));
+        return total + (saving * item.quantity);
       }, 0);
 
       return totalOriginal > 0 ? Math.round((totalSavings / totalOriginal) * 100) : 0;
@@ -81,7 +78,7 @@ export const useCartStore = defineStore('cart', {
 
     // Get items with discount
     discountedItems: (state) => {
-      return state.items.filter(item => item.product.has_discount);
+      return state.items.filter(item => isProductDiscountActive(item.product));
     },
 
     // Calculate total weight for shipping quotes (estimated weight per item: 0.5kg for clothing)
@@ -338,9 +335,7 @@ export const useCartStore = defineStore('cart', {
 
     // Get item price (considering discounts)
     getItemPrice(item: CartItem): number {
-      return item.product.has_discount && item.product.discounted_price
-        ? item.product.discounted_price
-        : item.product.price;
+      return getEffectivePrice(item.product);
     },
 
     // Get item total price
@@ -350,20 +345,19 @@ export const useCartStore = defineStore('cart', {
 
     // Get item discount percentage
     getItemDiscountPercentage(item: CartItem): number {
-      if (!item.product.has_discount || !item.product.discount_amount) {
+      if (!isProductDiscountActive(item.product) || item.product.price <= 0) {
         return 0;
       }
-
-      return Math.round((item.product.discount_amount / item.product.price) * 100);
+      const saving = Math.max(0, item.product.price - getEffectivePrice(item.product));
+      return Math.round((saving / item.product.price) * 100);
     },
 
     // Get item total savings
     getItemSavings(item: CartItem): number {
-      if (!item.product.has_discount || !item.product.discount_amount) {
+      if (!isProductDiscountActive(item.product)) {
         return 0;
       }
-
-      return item.product.discount_amount * item.quantity;
+      return Math.max(0, item.product.price - getEffectivePrice(item.product)) * item.quantity;
     },
 
     // Debug function to check cart state
