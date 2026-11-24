@@ -1,6 +1,7 @@
 import axios, { type AxiosInstance } from 'axios';
 import { auth } from './firebase';
 import { config } from './app';
+import { orderAccessToken } from '../utils/orderAccess';
 
 // Importar tipos de usuarios
 import type {
@@ -346,7 +347,9 @@ export const paymentsApi = {
 
   // Get payment status for an order
   async getPaymentStatus(orderId: number): Promise<any> {
-    const response = await apiClient.get(`/payments/status/${orderId}`);
+    const response = await apiClient.get(`/payments/status/${orderId}`, {
+      params: { access_token: orderAccessToken(orderId) },
+    });
     return response.data;
   },
 
@@ -388,7 +391,9 @@ export const ordersApi = {
 
   // Get order by ID
   async getOrder(id: number): Promise<any> {
-    const response = await apiClient.get(`/orders/${id}`);
+    const response = await apiClient.get(`/orders/${id}`, {
+      params: { access_token: orderAccessToken(id) },
+    });
     return response.data;
   },
 

@@ -9,6 +9,7 @@ import httpx
 from sqlmodel import Session, select
 
 from app.core.config import settings
+from app.core.order_access import order_public_url
 from app.models.customer import Customer
 from app.models.order import Order
 from app.models.order_item import OrderItem
@@ -464,6 +465,8 @@ class NotificacionesService:
                 "Entrega: Retiro en el local",
                 f"Dirección: {self.pickup_address}",
                 "Coordiná el horario por WhatsApp cuando tu pedido esté listo.",
+                f"Ver mi pedido: {order_public_url(snapshot.order_id, self.site_url)}",
+                "Este enlace es privado. No lo compartas.",
             ]
             if snapshot.payment_method in ("transfer", "bank_transfer"):
                 lines.extend([
@@ -481,7 +484,7 @@ class NotificacionesService:
             else:
                 boton = {
                     "texto": "Ver mi pedido",
-                    "url": f"{self.site_url}/orders/{snapshot.order_id}",
+                    "url": order_public_url(snapshot.order_id, self.site_url),
                 }
 
             self._safe_send(
@@ -564,7 +567,7 @@ class NotificacionesService:
             idempotency_key=f"showroomisabella-order-{snapshot.order_id}-paid-client",
             boton={
                 "texto": "Ver mi pedido",
-                "url": f"{self.site_url}/orders/{snapshot.order_id}",
+                "url": order_public_url(snapshot.order_id, self.site_url),
             },
         )
 

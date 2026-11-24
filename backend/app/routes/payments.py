@@ -10,6 +10,7 @@ from app.core.security import (
 )
 from app.db.session import get_session
 from app.models.order import Order
+from app.core.order_access import get_accessible_order
 
 router = APIRouter()
 
@@ -32,12 +33,8 @@ def get_payment_status(
     order_id: int,
     background_tasks: BackgroundTasks,
     session: Session = Depends(get_session),
-    user=Depends(get_current_user),
+    order: Order = Depends(get_accessible_order),
 ) -> Dict[str, Any]:
-    order = session.get(Order, order_id)
-    if not order:
-        raise HTTPException(status_code=404, detail="Orden no encontrada")
-    check_order_ownership_or_admin(order, user, session)
     return payments_controller.get_payment_status(
         order_id, session, background_tasks=background_tasks
     )

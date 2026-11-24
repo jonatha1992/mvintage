@@ -6,6 +6,8 @@ from fastapi import BackgroundTasks, HTTPException
 from sqlmodel import Session, select
 
 from app.core.config import settings
+from app.core.order_access import order_access_token
+from urllib.parse import urlencode
 from app.models.customer import Customer
 from app.models.order import Order
 from app.models.order_item import OrderItem
@@ -49,7 +51,7 @@ def _is_order_expired(order: Order, now: Optional[datetime] = None) -> bool:
 def _build_return_url(order_id: int) -> str:
     base = (settings.PAYMENT_RETURN_URL or f"{settings.FRONTEND_URL.rstrip('/')}/payment/return").strip()
     sep = "&" if "?" in base else "?"
-    return f"{base}{sep}order_id={order_id}"
+    return f"{base}{sep}{urlencode({'order_id': order_id, 'access_token': order_access_token(order_id)})}"
 
 
 class PaymentsController:
@@ -328,11 +330,14 @@ class PaymentsController:
         now: Optional[datetime] = None,
         background_tasks: Optional[BackgroundTasks] = None,
     ) -> Dict[str, int]:
+        current = now or datetime.utcnow()
         pending_orders = session.exec(
             select(Order).where(
                 Order.payment_method == "mercadopago",
                 Order.payment_status == "pending_payment",
-            )
+                Order.created_at > current - timedelta(hours=settings.PENDING_ORDER_TTL_HOURS),
+                Order.stock_released == False,
+            ).order_by(Order.created_at)
         ).all()
 
         summary = {
@@ -356,6 +361,7 @@ class PaymentsController:
                 else:
                     summary["still_pending"] += 1
             except Exception as exc:
+                session.rollback()
                 logger.error(f"Error reconciliando orden {order.id}: {exc}")
                 summary["errors"] += 1
 

@@ -279,6 +279,7 @@
 
 <script setup lang="ts">
 import { formatPrice } from '../../utils/price'
+import { orderAccessToken } from '../../utils/orderAccess'
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../../store/auth';
@@ -333,7 +334,8 @@ const orderId = computed(() => route.params.id as string);
 
 onMounted(async () => {
   // Check authentication
-  if (!authStore.isAuthenticated) {
+  const token = orderAccessToken(Number(orderId.value), route.query.access_token);
+  if (!authStore.isAuthenticated && !token) {
     toast.warning('Debes iniciar sesión para ver tus pedidos');
     router.push('/auth');
     return;
@@ -345,6 +347,11 @@ onMounted(async () => {
 const loadOrderDetails = async () => {
   try {
     loading.value = true;
+
+    if (!authStore.isAuthenticated) {
+      order.value = await ordersApi.getOrder(Number(orderId.value));
+      return;
+    }
 
     // First, check if the OrdersView passed the order via history.state
     const passedOrder = (window.history && (window.history.state as any)?.order) ? (window.history.state as any).order : null;

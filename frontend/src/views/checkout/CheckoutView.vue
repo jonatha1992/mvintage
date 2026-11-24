@@ -282,6 +282,7 @@
 </template>
 
 <script setup lang="ts">
+import { orderAccessToken } from '../../utils/orderAccess';
 import { formatPrice, getEffectivePrice, isProductDiscountActive } from '../../utils/price'
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
@@ -562,6 +563,7 @@ const processOrder = async () => {
     };
     
     const response = await ordersApi.createOrder(orderData);
+    orderAccessToken(response.order.id, response.access_token);
     
     // Step 3: Create order items
     for (const item of cartStore.items) {
