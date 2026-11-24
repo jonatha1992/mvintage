@@ -269,7 +269,7 @@
           </svg>
         </div>
         <h3 class="mb-2 text-lg font-medium text-gray-900 font-heading">Tu carrito está vacío</h3>
-        <p class="mb-6 font-body text-body-text">Agrega algunos productos antes de proceder al checkout</p>
+        <p class="mb-6 font-body text-body-text">Agrega algunos productos antes de finalizar tu compra</p>
         <router-link
           to="/shop"
           class="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-black border border-transparent rounded-md hover:bg-gray-800"
@@ -394,7 +394,7 @@ onMounted(async () => {
 
   // Check authentication first
   if (!authStore.isAuthenticated) {
-    toast.warning('Debes iniciar sesión para acceder al checkout');
+    toast.warning('Debes iniciar sesión para finalizar tu compra');
     router.push('/auth');
     return;
   }

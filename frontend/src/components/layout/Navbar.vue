@@ -14,9 +14,9 @@
         <div class="items-center hidden space-x-1 xl:space-x-3 lg:flex">
           <div class="flex items-center space-x-1 xl:space-x-3">
             <div class="relative">
-              <button @click.stop="toggleShopMenu"
+              <button @click.stop="toggleShopMenu" :aria-expanded="isShopMenuOpen"
                 class="px-3 py-2 whitespace-nowrap text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">
-                SHOP
+                COLECCIÓN
               </button>
               <div v-if="isShopMenuOpen" @click.stop
                 class="absolute z-10 w-48 mt-2 bg-white border border-gray-100 shadow-lg">
@@ -62,7 +62,7 @@
 
           <!-- Desktop Auth & Cart -->
           <div class="flex items-center space-x-4">
-            <button @click="openCartModal" class="relative p-2 text-gray-900 hover:text-gray-600 focus:outline-none" :class="{ 'cart-bump': cartBump }" @animationend="cartBump = false">
+            <button @click="openCartModal" class="relative min-w-12 min-h-12 p-2 text-gray-900 hover:text-gray-600 focus:outline-none" :class="{ 'cart-bump': cartBump }" @animationend="cartBump = false">
               <span class="sr-only">Carrito</span>
               <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -107,7 +107,7 @@
 
         <!-- Mobile Menu Button -->
         <div class="flex items-center lg:hidden">
-          <button @click="openCartModal" class="relative p-2 mr-4 text-gray-900 hover:text-gray-600 focus:outline-none" :class="{ 'cart-bump': cartBump }" @animationend="cartBump = false">
+          <button @click="openCartModal" class="relative min-w-12 min-h-12 p-2 mr-4 text-gray-900 hover:text-gray-600 focus:outline-none" :class="{ 'cart-bump': cartBump }" @animationend="cartBump = false">
             <span class="sr-only">Carrito</span>
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -120,8 +120,8 @@
               {{ cartStore.itemCount > 99 ? '99+' : cartStore.itemCount }}
             </span>
           </button>
-          <button @click.stop="toggleMobileMenu" class="inline-flex items-center justify-center p-2 text-gray-900 transition-colors hover:text-gray-600 focus:outline-none">
-            <span class="sr-only">Open main menu</span>
+          <button @click.stop="toggleMobileMenu" :aria-expanded="isMobileMenuOpen" aria-controls="mobile-menu" class="inline-flex items-center justify-center min-w-12 min-h-12 p-2 text-gray-900 transition-colors hover:text-gray-600 focus:outline-none">
+            <span class="sr-only">Abrir menú</span>
             <svg v-if="!isMobileMenuOpen" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
             <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
@@ -131,9 +131,9 @@
 
     <!-- Mobile Menu -->
     <Transition name="menu">
-    <div v-if="isMobileMenuOpen" class="bg-white border-t border-gray-100 lg:hidden">
+    <div v-if="isMobileMenuOpen" id="mobile-menu" class="bg-white border-t border-gray-100 lg:hidden">
       <div class="px-4 pt-4 pb-6 space-y-2">
-        <button @click.stop="toggleMobileShopMenu" class="block w-full px-3 py-3 text-sm font-normal tracking-wide text-left text-gray-900 uppercase transition-colors font-body hover:text-gray-600">SHOP</button>
+        <button @click.stop="toggleMobileShopMenu" class="block w-full px-3 py-3 text-sm font-normal tracking-wide text-left text-gray-900 uppercase transition-colors font-body hover:text-gray-600">COLECCIÓN</button>
         <div v-if="isMobileShopMenuOpen" class="pl-4 space-y-1">
           <div v-if="categories.length === 0" class="px-3 py-2 text-sm italic text-gray-500 font-body">
             - No hay stock con categorías

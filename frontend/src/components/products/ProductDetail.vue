@@ -1,10 +1,10 @@
 <template>
   <div class="min-h-screen bg-white">
-    <nav class="px-4 py-4 mx-auto max-w-6xl lg:px-8" aria-label="Breadcrumb">
+    <nav class="px-4 py-4 mx-auto max-w-6xl lg:px-8" aria-label="Ubicación">
       <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 sm:text-sm">
         <li><router-link to="/" class="hover:text-gray-900">Inicio</router-link></li>
         <li aria-hidden="true">/</li>
-        <li><router-link to="/shop" class="hover:text-gray-900">Shop</router-link></li>
+        <li><router-link to="/shop" class="hover:text-gray-900">Colección</router-link></li>
         <template v-if="product">
           <template v-if="product.categoria">
             <li aria-hidden="true">/</li>
@@ -119,7 +119,7 @@
               type="button"
               @click="selectColor(color)"
               :disabled="!isColorAvailable(color)"
-              class="px-4 py-2 text-sm font-medium transition-colors border rounded-md disabled:cursor-not-allowed disabled:text-gray-400 disabled:line-through disabled:bg-gray-50"
+              class="min-h-12 min-w-12 px-4 py-2 text-sm font-medium transition-colors border rounded-md disabled:cursor-not-allowed disabled:text-gray-400 disabled:line-through disabled:bg-gray-50"
               :class="selectedColor?.id === color.id
                 ? 'border-black bg-black text-white'
                 : 'border-gray-300 bg-white text-gray-900 hover:border-gray-400'"
@@ -146,7 +146,7 @@
               type="button"
               @click="selectedSize = size"
               :disabled="!isSizeAvailable(size)"
-              class="min-w-[3rem] px-4 py-2 text-sm font-medium transition-colors border rounded-md disabled:cursor-not-allowed disabled:text-gray-400 disabled:line-through disabled:bg-gray-50"
+              class="min-h-12 min-w-[3rem] px-4 py-2 text-sm font-medium transition-colors border rounded-md disabled:cursor-not-allowed disabled:text-gray-400 disabled:line-through disabled:bg-gray-50"
               :class="selectedSize?.id === size.id
                 ? 'border-black bg-black text-white'
                 : 'border-gray-300 bg-white text-gray-900 hover:border-gray-400'"
@@ -161,13 +161,13 @@
 
         <div class="mt-5">
           <h3 class="mb-2 text-sm font-medium text-gray-900">Cantidad</h3>
-          <div class="flex items-center w-32 border border-gray-300 rounded-md">
+          <div class="flex items-center w-40 border border-gray-300 rounded-md">
             <button type="button" aria-label="Disminuir cantidad" @click="decrementQuantity" :disabled="quantity <= 1"
-              class="px-3 py-2 text-gray-700 disabled:text-gray-300 disabled:cursor-not-allowed">-</button>
-            <input v-model.number="quantity" type="number" min="1" :max="maxQuantity ?? undefined" aria-label="Cantidad"
+              class="min-h-12 min-w-12 px-3 py-2 text-gray-700 disabled:text-gray-300 disabled:cursor-not-allowed">-</button>
+            <input v-model.number="quantity" @blur="clampQuantity" type="number" step="1" min="1" :max="maxQuantity ?? undefined" aria-label="Cantidad"
               class="flex-1 w-full min-w-0 px-1 py-2 text-center border-none focus:ring-0 focus:outline-none" />
             <button type="button" aria-label="Aumentar cantidad" @click="incrementQuantity" :disabled="quantity >= (maxQuantity ?? 1)"
-              class="px-3 py-2 text-gray-700 disabled:text-gray-300 disabled:cursor-not-allowed">+</button>
+              class="min-h-12 min-w-12 px-3 py-2 text-gray-700 disabled:text-gray-300 disabled:cursor-not-allowed">+</button>
           </div>
         </div>
 
@@ -185,11 +185,11 @@
         </button>
 
         <div class="flex flex-col gap-3 mt-5 text-sm text-gray-800">
-          <button type="button" class="flex items-center gap-2 underline text-start" @click="paymentDialog?.showModal()">
+          <button type="button" class="flex items-center min-h-12 gap-2 underline text-start" @click="paymentDialog?.showModal()">
             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" /></svg>
             Medios de pago
           </button>
-          <button type="button" class="flex items-center gap-2 underline text-start" @click="pickupDialog?.showModal()">
+          <button type="button" class="flex items-center min-h-12 gap-2 underline text-start" @click="pickupDialog?.showModal()">
             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
             Retiro en el local
           </button>
@@ -207,10 +207,10 @@
       </section>
     </div>
 
-    <div v-else class="flex items-center justify-center min-h-[50vh]">
+    <div v-else-if="!loading" class="flex items-center justify-center min-h-[50vh]">
       <div class="text-center">
-        <div class="w-8 h-8 mx-auto mb-4 border-b-2 border-gray-600 rounded-full animate-spin"></div>
-        <p class="text-gray-600">Cargando producto...</p>
+        <h1 class="text-xl text-gray-900">Producto no encontrado</h1>
+        <router-link to="/shop" class="inline-flex items-center min-h-12 underline">Volver a la tienda</router-link>
       </div>
     </div>
 
@@ -507,8 +507,8 @@ watch(selectedVariant, () => {
 
 // Check if can add to cart
 const canAddToCart = computed(() => {
-  if (!product.value) return false;
-  
+  if (!product.value || !Number.isInteger(quantity.value) || quantity.value < 1 || quantity.value > maxQuantity.value) return false;
+
   // For unique products (no variants)
   if (product.value.is_unique) {
     return (product.value.stock ?? 0) > 0;
@@ -559,7 +559,7 @@ const buttonText = computed(() => {
 // Determinar si el producto está sin stock
 const isOutOfStock = computed(() => {
   if (!product.value) return false;
-  
+
   // Para productos unicos (is_unique = true), verificar el stock directo
   if (product.value.is_unique) {
     return (product.value.stock ?? 0) === 0;
@@ -582,6 +582,11 @@ const discountPercentage = computed(() => {
   
   return Math.round((product.value.discount_amount / product.value.price) * 100);
 });
+
+const clampQuantity = () => {
+  const value = Number(quantity.value);
+  quantity.value = Math.min(Math.max(1, Math.floor(Number.isFinite(value) ? value : 1)), Math.max(1, maxQuantity.value));
+};
 
 // Quantity functions
 const incrementQuantity = () => {

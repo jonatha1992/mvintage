@@ -34,6 +34,7 @@ import SizeGuideView from './views/shared/SizeGuideView.vue';
 
 const routes: RouteRecordRaw[] = [
   { path: '/', component: HomeView },
+  { path: '/:pathMatch(.*)*', component: () => import('./views/shared/NotFoundView.vue') },
   { path: '/shop', component: CollectionView },
   { path: '/product/:id/:name?', component: ProductDetailView },
   { path: '/cart', component: CartView },
