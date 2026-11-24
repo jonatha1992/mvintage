@@ -372,8 +372,9 @@
 
 <script setup lang="ts">
 import { formatPrice } from '../../utils/price'
+import { applySeo, productSeo, routeSeo } from '../../utils/seo'
 import { buildImageVariantUrl, buildImageSrcset } from '../../utils/imageUrl'
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import ImageGalleryModal from '../ui/ImageGalleryModal.vue';
 import { useRoute } from 'vue-router';
 import type { Product, ProductVariant, VariantOption } from '../../types/products/product.types';
@@ -619,18 +620,30 @@ const loadSimilarProducts = (all: Product[], current: Product) => {
   similarProducts.value = [...sameCategory, ...rest].slice(0, 6);
 };
 
-onMounted(async () => {
-  const productId = parseInt(route.params.id as string);
+watch(() => route.params.id, async (id, _oldId, onCleanup) => {
+  if (!id) return;
+  let cancelled = false;
+  onCleanup(() => { cancelled = true; });
+  product.value = null;
+  selectedColor.value = null;
+  selectedSize.value = null;
+  quantity.value = 1;
+  selectedImage.value = 0;
+  loading.value = true;
+  const productId = Number(id);
   try {
     // Load all products and find by ID
     const response = await productsApi.getProducts();
     const foundProduct = response.products.find((p: Product) => p.id === productId);
     
+    if (cancelled) return;
     if (!foundProduct) {
+      applySeo({ ...routeSeo(route.path, true), title: 'Prenda no encontrada | Showroom Isabella' });
       return;
     }
     
     product.value = foundProduct;
+    applySeo(productSeo(foundProduct, !['pro', 'production'].includes(import.meta.env.MODE)));
     
     // Load colors and sizes for variants
     if (product.value && !product.value.is_unique && product.value.variants) {
@@ -639,12 +652,14 @@ onMounted(async () => {
           masterDataApi.getColors(),
           masterDataApi.getSizes()
         ]);
+        if (cancelled) return;
         allColors.value = colorsResponse;
         allSizes.value = sizesResponse;
       } catch (error) {
         // El maestro solo aporta hex_code; sin él se usan los textos de las variantes
       }
       
+      if (cancelled) return;
       // Auto-select first combination with stock
       const firstInStock = product.value.variants.find(v => v.stock > 0);
       if (firstInStock) {
@@ -658,10 +673,18 @@ onMounted(async () => {
       loadSimilarProducts(response.products, product.value);
     }
   } catch (error) {
+    console.error('No se pudo cargar la prenda', error);
+    if (!cancelled) applySeo({ ...routeSeo(route.path, true), title: 'Prenda no disponible | Showroom Isabella' });
   } finally {
-    loading.value = false;
+    if (!cancelled) loading.value = false;
   }
-});
+}, { immediate: true });
+
+watch(() => route.fullPath, () => {
+  if (product.value && product.value.id === Number(route.params.id)) {
+    applySeo(productSeo(product.value, !['pro', 'production'].includes(import.meta.env.MODE)));
+  }
+}, { flush: 'post' });
 
 const addToCart = () => {
   if (!product.value) {
