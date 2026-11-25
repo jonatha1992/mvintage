@@ -145,7 +145,7 @@
           </div>
 
           <!-- Collection Header -->
-          <div class="flex items-center justify-between mb-8">
+          <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div>
               <h1 class="text-3xl font-light tracking-wide text-gray-800">
                 {{ collectionTitle }}
@@ -153,6 +153,23 @@
               <p class="mt-1 text-sm text-gray-400">
                 {{ filteredProducts.length }} producto{{ filteredProducts.length !== 1 ? 's' : '' }}
               </p>
+            </div>
+            <div
+              v-if="searchQuery"
+              data-testid="active-search-chip"
+              class="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-gray-800 bg-white border border-gray-200 rounded-full shadow-sm"
+            >
+              <span>Buscando: <strong>«{{ searchQuery }}»</strong></span>
+              <button
+                type="button"
+                @click="clearSearchQuery"
+                aria-label="Limpiar búsqueda"
+                class="inline-flex items-center justify-center w-6 h-6 text-gray-500 transition-colors rounded-full hover:bg-gray-100 hover:text-gray-900"
+              >
+                <svg class="w-3.5 h-3.5" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -309,7 +326,26 @@ const selectedCategory = computed(() => {
   return filters.value.category || (route.query.category as string) || ''
 })
 
+const searchQuery = computed(() => {
+  const raw = route.query.q
+  if (Array.isArray(raw)) return (raw[0] || '').trim()
+  return typeof raw === 'string' ? raw.trim() : ''
+})
+
+const matchesSearchQuery = (product: Product, term: string): boolean => {
+  const needle = term.toLowerCase()
+  if (product.name?.toLowerCase().includes(needle)) return true
+  if (product.categoria?.toLowerCase().includes(needle)) return true
+  if (product.categoria && categoryLabel(product.categoria).toLowerCase().includes(needle)) return true
+  if (product.description?.toLowerCase().includes(needle)) return true
+  if (product.color?.toLowerCase().includes(needle)) return true
+  return Boolean(product.variants?.some(v => v.color?.toLowerCase().includes(needle)))
+}
+
 const collectionTitle = computed(() => {
+  if (searchQuery.value && !selectedCategory.value) {
+    return `Resultados para «${searchQuery.value}»`
+  }
   if (selectedCategory.value) {
     return `Colección ${categoryLabel(selectedCategory.value)}`
   }
@@ -318,6 +354,13 @@ const collectionTitle = computed(() => {
 
 const filteredProducts = computed(() => {
   let filteredProducts = [...products.value]
+
+  // Filter by search query (?q=)
+  if (searchQuery.value) {
+    filteredProducts = filteredProducts.filter(product =>
+      matchesSearchQuery(product, searchQuery.value)
+    )
+  }
 
   // Filter by category
   if (filters.value.category) {
@@ -394,6 +437,7 @@ const hasMoreProducts = computed(() => {
 
 const activeFiltersCount = computed(() => {
   let count = 0
+  if (searchQuery.value) count++
   if (filters.value.category) count++
   if (filters.value.priceRange) count++
   if (filters.value.onlyPromos) count++
@@ -412,12 +456,19 @@ const applyFilters = () => {
   currentPage.value = 1
   // Update URL query params
   const query: any = {}
+  if (searchQuery.value) query.q = searchQuery.value
   if (filters.value.category) query.category = filters.value.category
   if (filters.value.priceRange) query.price = filters.value.priceRange
   if (filters.value.onlyPromos) query.promo = '1'
   if (filters.value.sortBy) query.sort = filters.value.sortBy
   
   router.push({ query })
+}
+
+const clearSearchQuery = () => {
+  const { q: _removed, ...rest } = route.query
+  currentPage.value = 1
+  router.replace({ query: rest })
 }
 
 const clearFilters = () => {

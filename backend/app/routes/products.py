@@ -1,6 +1,7 @@
 
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, Body
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Body, Query
+from sqlalchemy import exists, or_
 from sqlmodel import Session, col, select
 
 from app.db.session import get_session
@@ -47,8 +48,32 @@ def create_product(
     return db_product
 
 @router.get("/products/", response_model=List[ProductRead])
-def read_products(session: Session = Depends(get_session), skip: int = 0, limit: int = 100):
-    products = session.exec(select(Product).offset(skip).limit(limit)).all()
+def read_products(
+    session: Session = Depends(get_session),
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=100),
+    q: Optional[str] = Query(default=None),
+):
+    statement = select(Product)
+    term = q.strip() if q else ""
+    if term:
+        pattern = f"%{term}%"
+        variant_color_match = exists(
+            select(ProductVariant.id).where(
+                ProductVariant.product_id == Product.id,
+                col(ProductVariant.color).ilike(pattern),
+            )
+        )
+        statement = statement.where(
+            or_(
+                col(Product.name).ilike(pattern),
+                col(Product.categoria).ilike(pattern),
+                col(Product.description).ilike(pattern),
+                col(Product.color).ilike(pattern),
+                variant_color_match,
+            )
+        )
+    products = session.exec(statement.offset(skip).limit(limit)).all()
     return [ProductRead.model_validate(p) for p in products]
 
 @router.get("/products/{product_id}", response_model=ProductRead)
