@@ -63,7 +63,7 @@
               </div>
               <div class="flex-1 w-0 ml-5">
                 <dl>
-                  <dt class="text-sm font-medium text-gray-600 truncate font-body">Enviados</dt>
+                  <dt class="text-sm font-medium text-gray-600 truncate font-body">Listos para retirar</dt>
                   <dd class="text-lg font-medium text-gray-900 font-body">{{ statistics.shipped_orders }}</dd>
                 </dl>
               </div>
@@ -113,13 +113,12 @@
         <div class="flex items-center space-x-4">
           <div class="flex items-center space-x-2">
             <label for="statusFilter" class="text-sm font-medium text-gray-700">Filtrar por estado:</label>
-            <select v-model="statusFilter" @change="loadOrders" 
+            <select id="statusFilter" v-model="statusFilter" @change="loadOrders" 
               class="w-full max-w-xs px-3 py-2 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
               <option value="">Todos</option>
               <option value="pending">Pendientes</option>
-              <option value="prepared">Preparados</option>
-              <option value="shipped">Enviados</option>
-              <option value="with_tracking">Con Tracking</option>
+              <option value="prepared">Listos para retirar</option>
+              <option value="delivered">Retirados</option>
             </select>
           </div>
           
@@ -175,7 +174,7 @@
                       <span class="sr-only">Seleccionar pedidos</span>
                     </label>
                   </div>
-                  <div class="absolute inset-0" title="Seleccionar todos los pedidos" data-tooltip-placement="bottom"></div>
+
                 </th>
                 <th scope="col" class="px-3 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                   Pedido
@@ -196,7 +195,7 @@
                   Estado
                 </th>
                 <th scope="col" class="px-2 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                  Seguimiento
+                  Notas de retiro
                 </th>
                 <th scope="col" class="px-3 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">
                   Acciones
@@ -214,13 +213,13 @@
                         :checked="selectedOrders.includes(order.order_id)"
                         @change="(e) => toggleRowSelection(order.order_id, (e.target as HTMLInputElement).checked)"
                         class="sr-only peer"
-                        :title="order.can_mark_shipped ? 'Marcar como enviado' : 'Agregar seguimiento'">
+                        title="Seleccionar pedido">
                       <div class="relative w-5 h-5 transition-colors duration-200 bg-white border-2 border-blue-500 rounded-md peer-checked:bg-blue-500 peer-checked:border-blue-500 peer-hover:bg-blue-50">
                         <svg class="absolute inset-0 w-4 h-4 m-auto text-white transition-opacity duration-200 opacity-0 peer-checked:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
-                      <span class="sr-only">{{ order.can_mark_shipped ? 'Marcar como enviado' : 'Agregar seguimiento' }}</span>
+                      <span class="sr-only">Seleccionar pedido #{{ order.order_id }}</span>
                     </label>
                   </div>
                 </td>
@@ -263,37 +262,33 @@
                   </span>
                 </td>
                 <td class="px-2 py-3 whitespace-nowrap">
-                  <div v-if="order.tracking_number" class="text-xs">
-                    <div class="font-mono text-gray-900 truncate max-w-24">{{ order.tracking_number }}</div>
-                    <div v-if="order.provider_name" class="text-gray-500 truncate">{{ order.provider_name }}</div>
-                  </div>
-                  <div v-else class="text-xs text-gray-400">Sin asignar</div>
+                  <div class="text-xs text-gray-700 max-w-32">{{ order.notes || 'Sin notas' }}</div>
                 </td>
                 <td class="px-3 py-3 text-sm font-medium text-right whitespace-nowrap">
                   <div class="flex items-center justify-end space-x-2">
                     <!-- Verify Payment Button -->
-                    <button @click="openPaymentVerificationModal(order)" class="p-1 text-orange-600 hover:text-orange-800" title="Verificar pago">
+                    <button @click="openPaymentVerificationModal(order)" class="p-1 text-orange-600 hover:text-orange-800" title="Verificar pago" aria-label="Verificar pago">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </button>
 
                     <!-- Add Tracking Button -->
-                    <button @click="openTrackingModal(order)" class="p-1 text-green-600 hover:text-green-800" title="Agregar seguimiento">
+                    <button @click="openTrackingModal(order)" class="p-1 text-green-600 hover:text-green-800" title="Gestionar retiro" aria-label="Gestionar retiro">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                       </svg>
                     </button>
 
                     <!-- Delete Order Button -->
-                    <button @click="deleteIndividualOrder(order.order_id)" class="p-1 text-red-600 hover:text-red-800" title="Eliminar pedido">
+                    <button @click="deleteIndividualOrder(order.order_id)" class="p-1 text-red-600 hover:text-red-800" title="Eliminar pedido" aria-label="Eliminar pedido">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
                     
                     <!-- View Details Button -->
-                    <button @click="viewOrderDetails(order)" class="p-1 text-gray-600 hover:text-gray-800" title="Ver detalles">
+                    <button @click="viewOrderDetails(order)" class="p-1 text-gray-600 hover:text-gray-800" title="Ver detalles" aria-label="Ver detalles">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -359,28 +354,11 @@
                         </select>
                       </div>
                       
-                      <!-- Divider -->
-                      <div class="pt-4 border-t border-gray-200">
-                        <h4 class="mb-3 text-sm font-medium text-gray-700">Información de Seguimiento (Opcional)</h4>
-                      </div>
-                      
                       <div>
-                        <label class="block mb-1 text-sm font-medium text-gray-700">
-                          Número de seguimiento
-                        </label>
-                        <input 
-                          v-model="trackingForm.trackingNumber"
-                          type="text" 
-                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Ingrese el número de seguimiento"
-                        >
-                      </div>
-
-                      <div>
-                        <label class="block mb-1 text-sm font-medium text-gray-700">
+                        <label for="pickup-notes" class="block mb-1 text-sm font-medium text-gray-700">
                           Notas del pedido
                         </label>
-                        <textarea 
+                        <textarea id="pickup-notes"
                           v-model="trackingForm.shippingNotes"
                           rows="3"
                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -734,11 +712,9 @@ const filteredOrders = computed(() => {
       case 'pending':
         return order.status === 'pending';
       case 'prepared':
-        return order.status === 'prepared';
-      case 'shipped':
-        return order.status === 'shipped';
-      case 'with_tracking':
-        return Boolean(order.tracking_number) && order.status === 'shipped';
+        return getOrderPickupStatusConfig(order).text === 'Listo para retirar';
+      case 'delivered':
+        return getOrderPickupStatusConfig(order).text === 'Retirado';
       default:
         return true;
     }
@@ -911,9 +887,9 @@ const saveTrackingInfo = async () => {
       const statusMessages: Record<string, string> = {
         'pending': 'Pendiente',
         'prepared': 'Preparado', 
-        'shipped': 'Enviado'
+        'shipped': 'Listo para retirar'
       };
-      toast.success(`Estado cambiado a ${statusMessages[newShippingStatus.value] || newShippingStatus.value} y tracking agregado`);
+      toast.success(`Estado cambiado a ${statusMessages[newShippingStatus.value] || newShippingStatus.value}`);
     } else if (newShippingStatus.value) {
       const statusMessages: Record<string, string> = {
         'pending': 'Estado cambiado a Pendiente de pago',
@@ -962,9 +938,9 @@ const markAsShipped = async (order: Order | number) => {
     loading.value = true;
     await ordersApi.updateOrderShippingStatus(orderId, 'shipped');
     await loadOrders();
-    toast.success('Pedido marcado como enviado');
+    toast.success('Pedido listo para retirar');
   } catch (error) {
-    toast.error('Error al marcar el pedido como enviado');
+    toast.error('Error al marcar el pedido listo para retirar');
   } finally {
     loading.value = false;
   }
@@ -1035,7 +1011,7 @@ const bulkMarkShipped = async () => {
     await loadOrders();
     selectedOrders.value = [];
     selectAll.value = false;
-    toast.success('Pedidos marcados como enviados correctamente');
+    toast.success('Pedidos listos para retirar');
   } catch (error) {
     toast.error('Error al actualizar los pedidos');
   } finally {
@@ -1195,3 +1171,14 @@ onMounted(async () => {
   }
 });
 </script>
+
+<style scoped>
+button, select, textarea, label:has(input[type="checkbox"]) {
+  min-block-size: 44px;
+}
+button, label:has(input[type="checkbox"]) {
+  min-inline-size: 44px;
+  align-items: center;
+  justify-content: center;
+}
+</style>
