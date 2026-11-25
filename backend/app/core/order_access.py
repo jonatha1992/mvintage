@@ -45,7 +45,7 @@ def get_accessible_order(
     from app.core.security import check_order_ownership_or_admin
 
     if access_token is not None:
-        if not hmac.compare_digest(access_token, order_access_token(order_id)):
+        if not hmac.compare_digest(access_token.encode(), order_access_token(order_id).encode()):
             raise HTTPException(status_code=403, detail="El enlace del pedido no es válido")
     elif user is None:
         raise HTTPException(status_code=401, detail="Iniciá sesión o usá el enlace de tu pedido")
