@@ -72,7 +72,7 @@
           <h4 class="mb-4 text-sm font-medium tracking-wide text-white uppercase font-body">Tienda</h4>
           <ul class="space-y-3">
             <li><router-link to="/shop" class="text-sm text-gray-300 transition-colors duration-200 font-body hover:text-white">Nueva Colección</router-link></li>
-            <li v-for="category in categories" :key="category"><router-link :to="`/shop?category=${category.toLowerCase()}`" class="text-sm text-gray-300 transition-colors duration-200 font-body hover:text-white">{{ category.charAt(0) + category.slice(1).toLowerCase() }}</router-link></li>
+            <li v-for="category in categories" :key="category"><router-link :to="`/shop?category=${category.toLowerCase()}`" class="text-sm text-gray-300 transition-colors duration-200 font-body hover:text-white">{{ categoryLabel(category) }}</router-link></li>
             <li><router-link to="/shop?sort=newest" class="text-sm text-gray-300 transition-colors duration-200 font-body hover:text-white">Nuevos Arribos</router-link></li>
           </ul>
         </div>
@@ -117,6 +117,7 @@
 </template>
 
 <script setup lang="ts">
+import { categoryLabel } from '../../utils/category'
 import { MERCADOPAGO_HABILITADO } from '../../config/payments'
 import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store'
 

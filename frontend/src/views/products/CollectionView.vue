@@ -17,7 +17,7 @@
             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
           </svg>
           <span v-if="selectedCategory" class="font-medium text-gray-900">
-            {{ selectedCategory }}
+            {{ categoryLabel(selectedCategory) }}
           </span>
         </div>
       </div>
@@ -40,7 +40,7 @@
                     @change="applyFilters"
                     class="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-500"
                   >
-                  <span class="ml-3 text-sm text-gray-700">{{ category.name }}</span>
+                  <span class="ml-3 text-sm text-gray-700">{{ categoryLabel(category.name) }}</span>
                   <span class="ml-auto text-xs text-gray-500">({{ getCategoryCount(category.name) }})</span>
                 </label>
                 <label class="flex items-center min-h-11 cursor-pointer">
@@ -189,7 +189,7 @@
               </svg>
             </div>
             <template v-if="selectedCategory && getCategoryCount(selectedCategory) === 0">
-              <h3 class="mb-2 text-lg font-medium text-gray-900">No hay productos en la categoría «{{ selectedCategory }}»</h3>
+              <h3 class="mb-2 text-lg font-medium text-gray-900">No hay productos en la categoría «{{ categoryLabel(selectedCategory) }}»</h3>
               <p class="mb-4 text-gray-500">Mirá el resto de la colección.</p>
               <button @click="clearFilters" class="btn-minimal btn-dark">
                 Ver todos los productos
@@ -217,7 +217,7 @@
           <legend class="mb-3 font-medium">Categorías</legend>
           <label v-for="category in categories" :key="category.id" class="flex items-center min-h-12 gap-3">
             <input type="radio" name="mobile-category" :value="category.name" v-model="filters.category" @change="applyFilters">
-            {{ category.name }}
+            {{ categoryLabel(category.name) }}
           </label>
           <label class="flex items-center min-h-12 gap-3">
             <input type="radio" name="mobile-category" value="" v-model="filters.category" @change="applyFilters">
@@ -262,6 +262,7 @@
 </template>
 
 <script setup lang="ts">
+import { categoryLabel } from '../../utils/category'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProductCard from '../../components/products/ProductCard.vue'
@@ -309,7 +310,7 @@ const selectedCategory = computed(() => {
 
 const collectionTitle = computed(() => {
   if (selectedCategory.value) {
-    return `Colección ${selectedCategory.value.charAt(0).toUpperCase() + selectedCategory.value.slice(1).toLowerCase()}`
+    return `Colección ${categoryLabel(selectedCategory.value)}`
   }
   return 'Toda la Colección'
 })
