@@ -78,7 +78,7 @@
             <!-- User Account Menu -->
             <div v-if="authStore.isAuthenticated" class="relative">
               <button @click.stop="toggleAccountMenu"
-                class="px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">
+                class="min-h-11 px-3 py-2 text-sm font-normal tracking-wide text-gray-900 uppercase transition-colors font-body hover:text-gray-600">
                 MI CUENTA
               </button>
               <div v-if="isAccountMenuOpen" @click.stop

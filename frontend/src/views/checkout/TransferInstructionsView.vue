@@ -86,7 +86,7 @@
               <div class="p-4 border border-gray-200 rounded">
                 <h3 class="mb-3 font-medium text-gray-900">Monto a Transferir</h3>
                 <div class="text-center">
-                  <div class="text-3xl font-bold text-green-600">
+                  <div class="text-3xl font-bold text-green-700">
                     {{ formatPrice(transferInfo.total_amount) }}
                   </div>
                   <p class="mt-1 text-sm text-gray-600">Monto exacto</p>
