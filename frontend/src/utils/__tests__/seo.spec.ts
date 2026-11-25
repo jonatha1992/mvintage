@@ -8,6 +8,17 @@ describe('metadatos de navegación', () => {
   it.each(['/admin/products', '/checkout', '/cart', '/account', '/auth', '/profile', '/orders/2', '/payment/success', '/ruta-inexistente'])('no indexa %s', path => {
     expect(routeSeo(path, false).noindex).toBe(true)
   })
+  it('distingue categoría, canonical y combinaciones de filtros', () => {
+    const category = routeSeo('/shop?category=SHOE', false)
+    expect(category.title).toBe('Calzado | Showroom Isabella')
+    expect(category.description).toContain('categoría Calzado')
+    expect(category.canonical).toMatch(/\/shop\?category=shoe$/)
+    expect(category.noindex).toBe(false)
+    expect(routeSeo('/shop?category=shoe', true).noindex).toBe(true)
+    expect(routeSeo('/shop?category=shoe&price=0-20000', false).noindex).toBe(true)
+    expect(routeSeo('/shop?category=desconocida', false).noindex).toBe(true)
+    expect(routeSeo('/shop?category=blusa', false).title).not.toBe(category.title)
+  })
   it('mantiene producción indexable y test bloqueado', () => {
     expect(routeSeo('/shop', false).noindex).toBe(false)
     expect(routeSeo('/shop', true).noindex).toBe(true)
