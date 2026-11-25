@@ -8,9 +8,9 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h1 class="text-3xl font-light text-gray-900">¡Pedido Confirmado!</h1>
+        <h1 class="text-3xl font-light text-gray-900">Pedido recibido · Esperando tu transferencia</h1>
         <p class="mt-2 text-lg text-gray-600">
-          Orden #{{ orderData?.order_id || 'Cargando...' }}
+          Recibimos tu pedido #{{ orderData?.order_id || 'Cargando...' }}
         </p>
       </div>
 
@@ -110,7 +110,7 @@
         <div class="p-6 text-center bg-white rounded-lg shadow">
           <h2 class="mb-2 text-xl font-medium text-gray-900">Enviá el comprobante por WhatsApp</h2>
           <p class="mb-4 text-sm text-gray-600">
-            Una vez realizada la transferencia al alias <strong class="font-mono text-gray-900">{{ displayAlias }}</strong>, envianos el comprobante para confirmar tu pedido.
+            Mandá el comprobante por WhatsApp e indicá el número de pedido #{{ orderData?.order_id }}. Te confirmamos el pago por mail y coordinamos el retiro en el local.
           </p>
           <a
             :href="whatsappTransferUrl"
@@ -123,7 +123,7 @@
         </div>
 
         <!-- Instrucciones -->
-        <div v-if="transferInfo.instructions?.length" class="p-6 bg-white rounded-lg shadow">
+        <div class="p-6 bg-white rounded-lg shadow">
           <h2 class="flex items-center mb-4 text-xl font-medium text-gray-900">
             <svg class="w-6 h-6 mr-2 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -132,12 +132,13 @@
           </h2>
           
           <div class="space-y-3">
-            <div v-for="(instruction, index) in transferInfo.instructions" :key="index" class="flex items-start">
-              <div class="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-medium mr-3 mt-0.5">
-                {{ index + 1 }}
-              </div>
-              <p class="text-gray-700">{{ instruction }}</p>
-            </div>
+            <ol class="pl-5 space-y-3 text-gray-900 list-decimal">
+              <li>Transferí <strong>{{ formatPrice(transferInfo.total_amount) }}</strong> al alias <strong>{{ displayAlias }}</strong>, a nombre de <strong>{{ transferInfo.bank_info?.holder_name || 'Priscila Moyano' }}</strong>.</li>
+              <li>Mandá el comprobante por WhatsApp e indicá el número de pedido <strong>#{{ orderData?.order_id }}</strong>.</li>
+              <li>Te confirmamos el pago por mail y coordinamos el retiro en el local.</li>
+            </ol>
+            <p class="mt-4 text-gray-700">Tu pedido queda pendiente de pago hasta que verifiquemos la transferencia. Crear el pedido no confirma el pago. La reserva vence a las 24 horas.</p>
+
           </div>
         </div>
 

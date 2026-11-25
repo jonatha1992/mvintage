@@ -471,7 +471,12 @@ class NotificacionesService:
             if snapshot.payment_method in ("transfer", "bank_transfer"):
                 lines.extend([
                     "",
-                    "Para pagar, transferí al alias SHOWROOMISABELLAA indicando tu número de pedido y enviá el comprobante por WhatsApp.",
+                    "Estado: Esperando tu transferencia",
+                    f"Total a transferir: {total_str}",
+                    f"1. Transferí {total_str} al alias SHOWROOMISABELLAA, a nombre de Priscila Moyano.",
+                    f"2. Mandá el comprobante por WhatsApp e indicá el número de pedido #{snapshot.order_id}.",
+                    "3. Te confirmamos el pago por mail y coordinamos el retiro en el local.",
+                    "Tu pedido queda pendiente de pago hasta que verifiquemos la transferencia.",
                 ])
                 wa_text = (
                     f"Hola! Hice la transferencia del pedido #{snapshot.order_id} "
@@ -492,7 +497,9 @@ class NotificacionesService:
                 event="creado",
                 order_id=snapshot.order_id,
                 to=snapshot.customer_email,
-                subject=f"Recibimos tu pedido #{snapshot.order_id} - Showroom Isabella",
+                subject=(f"Pedido #{snapshot.order_id} recibido · Esperando tu transferencia"
+                         if snapshot.payment_method in ("transfer", "bank_transfer")
+                         else f"Recibimos tu pedido #{snapshot.order_id} - Showroom Isabella"),
                 titulo=f"Recibimos tu pedido #{snapshot.order_id}",
                 mensaje="\n".join(lines),
                 idempotency_key=f"showroomisabella-order-{snapshot.order_id}-created-client",
@@ -559,7 +566,9 @@ class NotificacionesService:
         metodo_str = format_payment_method(snapshot.payment_method)
         items_lines = _format_items_lines(snapshot.items)
         lines = [
-            f"Hola {snapshot.customer_name}, confirmamos el pago de tu pedido #{snapshot.order_id}.",
+            (f"Hola, {snapshot.customer_name}. Ya verificamos tu transferencia por {total_str} y confirmamos el pago."
+             if snapshot.payment_method in ("transfer", "bank_transfer")
+             else f"Hola {snapshot.customer_name}, confirmamos el pago de tu pedido #{snapshot.order_id}."),
         ]
         if items_lines:
             lines.extend(["", "Prendas:", *items_lines])
@@ -569,7 +578,7 @@ class NotificacionesService:
             f"Método de pago: {metodo_str}",
             "Entrega: Retiro en el local",
             "",
-            "Te avisaremos por este medio cuando tu pedido esté listo para retirar.",
+            "Te avisamos por mail cuando tu pedido esté listo para retirar y coordinamos el día y horario por WhatsApp.",
         ])
         self._safe_send(
             role="cliente",
@@ -577,7 +586,7 @@ class NotificacionesService:
             order_id=snapshot.order_id,
             to=snapshot.customer_email,
             subject=f"Pago confirmado - Pedido #{snapshot.order_id} - Showroom Isabella",
-            titulo=f"Confirmamos tu pago (#{snapshot.order_id})",
+            titulo=f"Confirmamos el pago de tu pedido #{snapshot.order_id}",
             mensaje="\n".join(lines),
             idempotency_key=f"showroomisabella-order-{snapshot.order_id}-paid-client",
             boton={

@@ -49,7 +49,7 @@
     
     <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div>
-        <label for="email" class="font-body block text-sm font-medium text-body-text">Email</label>
+        <label for="email" class="font-body block text-sm font-medium text-body-text">Correo electrónico</label>
         <input
           :value="email"
           @input="$emit('update:email', ($event.target as HTMLInputElement).value)"

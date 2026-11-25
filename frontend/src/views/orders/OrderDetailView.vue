@@ -35,6 +35,15 @@
 
       <!-- Order Details -->
       <div v-else-if="order" class="space-y-6">
+        <section v-if="order.payment_method === 'bank_transfer' && order.payment_status === 'pending_payment'" class="p-6 space-y-3 text-gray-900 bg-white rounded-lg shadow">
+          <h2 class="text-lg font-medium">Pedido recibido · {{ order.transfer_receipt_url ? 'Estamos verificando tu transferencia' : 'Esperando tu transferencia' }}</h2>
+          <ol class="pl-5 space-y-2 list-decimal">
+            <li>Transferí {{ formatPrice(order.total) }} al alias SHOWROOMISABELLAA, a nombre de Priscila Moyano.</li>
+            <li>Mandá el comprobante por WhatsApp e indicá el número de pedido #{{ order.id }}.</li>
+            <li>Te confirmamos el pago por mail y coordinamos el retiro en el local.</li>
+          </ol>
+          <p>Tu pedido queda pendiente de pago hasta que verifiquemos la transferencia. Crear el pedido no confirma el pago.</p>
+        </section>
         <PendingTransferActions :order-id="Number(orderId)" @updated="loadOrderDetails" />
         <!-- Order Header -->
         <div class="p-6 bg-white rounded-lg shadow">
@@ -518,12 +527,12 @@ const getPaymentDescription = (paymentMethod: string, paymentStatus: string) => 
       case 'mercadopago':
         return 'Completá el pago en Mercado Pago para continuar';
       case 'transfer':
-        return 'Realizá la transferencia para confirmar tu pedido';
+        return order.value.transfer_receipt_url ? 'Estamos verificando tu transferencia' : 'Esperando tu transferencia';
       default:
         return 'Pago pendiente de confirmación';
     }
   } else if (paymentStatus === 'pending') {
-    return 'Estamos verificando tu pago';
+    return 'Esperando tu transferencia';
   }
   return 'Verificá el estado de tu pago';
 };

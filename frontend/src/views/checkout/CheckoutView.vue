@@ -18,7 +18,7 @@
                 <svg class="flex-shrink-0 w-4 h-4 text-gray-300" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                 </svg>
-                <span class="ml-2 text-sm font-medium font-body text-body-text">Checkout</span>
+                <span class="ml-2 text-sm font-medium font-body text-body-text">Finalizar compra</span>
               </div>
             </li>
           </ol>
@@ -166,7 +166,10 @@
                     class="w-4 h-4 text-black border-gray-300 focus:ring-black"
                   >
                   <BanknotesIcon class="w-5 h-5 ml-3 text-blue-600" />
-                  <span class="ml-2 text-sm font-body">Transferencia bancaria</span>
+                  <div class="ml-2">
+                    <span class="text-sm font-body">Transferencia bancaria</span>
+                    <p class="mt-1 text-sm text-gray-700">Al confirmar el pedido, te mostramos los datos para transferir. El pago no se realiza automáticamente. Después de transferir, mandanos el comprobante por WhatsApp. Vamos a verificarlo y te confirmamos el pago por mail.</p>
+                  </div>
                 </label>
                 
                 <label
@@ -198,7 +201,7 @@
                   class="w-full px-6 py-3 font-medium text-white transition-all duration-200 bg-black rounded-md hover:bg-gray-800 motion-safe:active:scale-[0.98] disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   <span v-if="processing" class="text-white">Procesando...</span>
-                  <span v-else class="text-white">Finalizar compra</span>
+                  <span v-else class="text-white">{{ checkoutForm.paymentMethod === 'transfer' ? 'Confirmar pedido y ver datos para transferir' : 'Continuar a Mercado Pago' }}</span>
                 </button>
                 
                 <p class="mt-3 text-xs text-center font-body text-body-text">
@@ -604,7 +607,7 @@ const processOrder = async () => {
         transfer_info: response.transfer_info
       }));
       
-      toast.success('¡Pedido confirmado! Te mostraremos los datos de transferencia.');
+      toast.success('Pedido recibido · Esperando tu transferencia');
       router.push('/payment/transfer-instructions');
     } else {
       toast.error('Método de pago no disponible. Seleccioná transferencia bancaria.');
