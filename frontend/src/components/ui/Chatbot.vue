@@ -1,7 +1,7 @@
 ﻿<template>
   <div class="chatbot-container">
     <!-- Botón flotante del chatbot -->
-    <button @click="toggleChat"
+    <button ref="chatTrigger" @click="toggleChat" :aria-expanded="isChatOpen" :aria-label="isChatOpen ? 'Cerrar chat' : 'Abrir chat'"
       class="fixed z-50 flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 text-black transition-all duration-300 bg-white border border-black rounded-full shadow-lg hover:bg-gray-100"
       style="right: max(1rem, env(safe-area-inset-right, 0px)); bottom: max(1rem, env(safe-area-inset-bottom, 0px));"
       :class="{ 'rotate-45': isChatOpen }">
@@ -48,7 +48,8 @@
         <!-- Indicador de escritura -->
         <div v-if="isTyping" class="flex justify-start">
           <div class="px-4 py-2 text-gray-900 bg-white border border-gray-200 rounded-lg">
-            <div class="flex space-x-1">
+            <span role="status" class="typing-label sr-only">Preparando la respuesta…</span>
+            <div class="flex space-x-1 typing-dots" aria-hidden="true">
               <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
               <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
               <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
@@ -60,11 +61,11 @@
       <!-- Input de mensaje -->
       <div class="p-4 bg-white border-t border-gray-200 rounded-b-lg">
         <div class="flex space-x-2">
-          <input v-model="newMessage" @keypress.enter="sendMessage" @input="handleTyping"
+          <input ref="chatInput" aria-label="Tu consulta" v-model="newMessage" @keypress.enter="sendMessage" @input="handleTyping"
             placeholder="Escribe tu mensaje..."
-            class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent" />
-          <button @click="sendMessage" :disabled="!newMessage.trim()"
-            class="px-4 py-2 text-white transition-colors bg-black rounded-md hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed">
+            class="flex-1 min-w-0 min-h-11 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent" />
+          <button aria-label="Enviar consulta" @click="sendMessage" :disabled="!newMessage.trim()"
+            class="min-w-11 min-h-11 px-4 py-2 text-white transition-colors bg-black rounded-md hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -78,7 +79,7 @@
         <p class="font-body mb-2 text-xs text-body-text">Preguntas frecuentes:</p>
         <div class="flex flex-wrap gap-1">
           <button v-for="suggestion in quickSuggestions" :key="suggestion" @click="sendQuickMessage(suggestion)"
-            class="px-2 py-1 text-xs transition-colors bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+            class="min-h-11 px-2 py-1 text-xs transition-colors bg-white border border-gray-300 rounded-md hover:bg-gray-50">
             <span class="font-body">{{ suggestion }}</span>
           </button>
         </div>
@@ -88,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted } from 'vue';
+import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue';
 
 interface ChatMessage {
   id: number;
@@ -100,6 +101,12 @@ interface ChatMessage {
 }
 
 const isChatOpen = ref(false);
+const chatInput = ref<HTMLInputElement>();
+const chatTrigger = ref<HTMLButtonElement>();
+watch(isChatOpen, async (open) => {
+  await nextTick();
+  (open ? chatInput.value : chatTrigger.value)?.focus();
+});
 const newMessage = ref('');
 const isTyping = ref(false);
 const showSuggestions = ref(true);
@@ -308,9 +315,7 @@ onMounted(() => {
   document.addEventListener('keydown', handleEscape);
 
   // Cleanup
-  return () => {
-    document.removeEventListener('keydown', handleEscape);
-  };
+  onUnmounted(() => document.removeEventListener('keydown', handleEscape));
 });
 </script>
 
@@ -360,5 +365,23 @@ onMounted(() => {
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: #a1a1a1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chatbot-container *, .chatbot-container *::before, .chatbot-container *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .typing-dots { display: none; }
+  .typing-label {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
 }
 </style>

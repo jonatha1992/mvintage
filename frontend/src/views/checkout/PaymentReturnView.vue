@@ -4,7 +4,7 @@
       <div class="bg-white py-8 px-6 shadow sm:rounded-lg text-center">
         <div v-if="viewState === 'checking'" class="space-y-4">
           <div class="mx-auto w-12 h-12 border-b-2 border-gray-900 rounded-full animate-spin"></div>
-          <h1 class="text-2xl font-light text-gray-900">Verificando tu pago...</h1>
+          <h1 class="text-2xl font-light text-gray-900">Estamos confirmando tu pago</h1>
           <p class="text-sm text-gray-600">
             Estamos confirmando el estado de tu pedido <span v-if="orderId">#{{ orderId }}</span> con Mercado Pago.
           </p>
@@ -26,16 +26,16 @@
           <div class="pt-4 space-y-3">
             <router-link
               v-if="orderId"
-              :to="`/orders/${orderId}`"
+              :to="orderLink(orderId)"
               class="w-full inline-flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800"
             >
               Ver mi pedido
             </router-link>
             <router-link
-              to="/orders"
+              :to="orderId ? orderLink(orderId) : '/shop'"
               class="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-800 bg-white hover:bg-gray-50"
             >
-              Ir a Mis Pedidos
+              Volver a la tienda
             </router-link>
           </div>
         </div>
@@ -58,10 +58,10 @@
               Volver a la tienda
             </router-link>
             <router-link
-              to="/orders"
+              :to="orderId ? orderLink(orderId) : '/shop'"
               class="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-800 bg-white hover:bg-gray-50"
             >
-              Ver Mis Pedidos
+              Ver mi pedido
             </router-link>
           </div>
         </div>
@@ -85,10 +85,10 @@
               Volver a verificar
             </button>
             <router-link
-              to="/orders"
+              :to="orderId ? orderLink(orderId) : '/shop'"
               class="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-800 bg-white hover:bg-gray-50"
             >
-              Ver Mis Pedidos
+              Ver mi pedido
             </router-link>
           </div>
         </div>
@@ -102,9 +102,10 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { paymentsApi } from '../../config/api';
 import { useCartStore } from '../../store/cart';
+import { orderAccessToken, orderLink } from '../../utils/orderAccess';
 import { formatPrice } from '../../utils/price';
 
-const POLL_INTERVAL_MS = 3000;
+const POLL_INTERVAL_MS = 5000;
 const MAX_POLL_DURATION_MS = 120000;
 
 const route = useRoute();
@@ -191,6 +192,7 @@ const startPolling = () => {
 
 onMounted(() => {
   orderId.value = resolveOrderId();
+  if (orderId.value) orderAccessToken(orderId.value, route.query.access_token);
   startPolling();
 });
 

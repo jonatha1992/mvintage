@@ -27,7 +27,7 @@
                   <router-link v-else v-for="category in categories" :key="category.id"
                     :to="`/shop?category=${category.name.toLowerCase()}`" @click="closeMenus"
                     class="block px-4 py-2 text-sm tracking-wide text-gray-900 uppercase transition-colors font-body hover:bg-gray-50" role="menuitem">{{
-                    category.name }}</router-link>
+                    categoryLabel(category.name) }}</router-link>
                 </div>
               </div>
             </div>
@@ -138,7 +138,7 @@
           <div v-if="categories.length === 0" class="px-3 py-2 text-sm italic text-gray-500 font-body">
             - No hay stock con categorías
           </div>
-          <router-link v-else v-for="category in categories" :key="category.id" :to="`/shop?category=${category.name.toLowerCase()}`" @click="closeMenus" class="block px-3 py-2 text-sm tracking-wide text-gray-700 uppercase transition-colors font-body hover:text-gray-900">- {{ category.name }}</router-link>
+          <router-link v-else v-for="category in categories" :key="category.id" :to="`/shop?category=${category.name.toLowerCase()}`" @click="closeMenus" class="block px-3 py-2 text-sm tracking-wide text-gray-700 uppercase transition-colors font-body hover:text-gray-900">- {{ categoryLabel(category.name) }}</router-link>
         </div>
         <!-- Admin Menu Mobile - Solo visible para administradores -->
         <div v-if="isAdmin">
@@ -211,6 +211,7 @@
 </template>
 
 <script setup lang="ts">
+import { categoryLabel } from '../../utils/category'
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from '../../store/auth';
 import { useCartStore } from '../../store/cart';

@@ -21,6 +21,7 @@ from app.controllers.payments_controller import payments_controller
 from app.controllers.transfer_controller import transfer_controller
 
 from app.core.config import settings
+from app.core.order_access import get_accessible_order, order_access_token
 from app.core.rate_limit import rate_limit
 from app.routes.inventory import reduce_stock, release_order_stock_once, restore_stock
 from app.services.notificaciones import build_order_snapshot, notificaciones_service
@@ -81,7 +82,7 @@ def create_order(
     session.refresh(db_order)
 
     # Manejar según método de pago
-    response = {"order": db_order}
+    response = {"order": db_order, "access_token": order_access_token(db_order.id)}
 
     try:
         if db_order.payment_method == "bank_transfer":
@@ -411,16 +412,7 @@ def read_my_orders(
 
 
 @router.get("/orders/{order_id}", response_model=Order)
-def read_order(
-    *,
-    session: Session = Depends(get_session),
-    order_id: int,
-    user=Depends(get_current_user),
-):
-    order = session.get(Order, order_id)
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    check_order_ownership_or_admin(order, user, session)
+def read_order(order: Order = Depends(get_accessible_order)):
     return order
 
 

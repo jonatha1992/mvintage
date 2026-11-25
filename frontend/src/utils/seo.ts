@@ -1,4 +1,5 @@
 import { PUBLIC_PAGES, PRIVATE_PATHS, SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_IMAGE, productPath } from '../seo/site'
+import { categoryLabel } from './category'
 import type { Product } from '../types/products/product.types'
 
 export interface SeoMeta {
@@ -16,12 +17,17 @@ export function routeSeo(path: string, test: boolean): SeoMeta {
   const page = PUBLIC_PAGES[canonicalPath]
   const privatePath = PRIVATE_PATHS.find(prefix => cleanPath === prefix || cleanPath.startsWith(`${prefix}/`))
   const titles: Record<string, string> = { '/cart': 'Carrito', '/checkout': 'Finalizar compra', '/auth': 'Ingresar', '/profile': 'Mi perfil', '/orders': 'Mis pedidos', '/payment': 'Estado del pago', '/admin': 'Administración', '/verify-email': 'Verificar email', '/account': 'Mi cuenta' }
+  const query = new URL(path, SITE_URL).searchParams
+  const category = query.get('category')?.toUpperCase()
+  const knownCategory = cleanPath === '/shop' && !!category && ['BASICA', 'BLUSA', 'BODY', 'CONJUNTO', 'PANTALON', 'REMERA', 'SHOE', 'SHORT', 'TOP', 'VESTIDO'].includes(category)
+  const categoryName = knownCategory ? categoryLabel(category) : ''
+  const filteredCollection = cleanPath === '/shop' && [...query.keys()].some(key => key !== 'category')
   const productRoute = /^\/product\/\d+(\/[^/]+)?\/?$/.test(cleanPath)
   return {
-    title: `${page?.title ?? (privatePath ? titles[privatePath] : productRoute ? 'Prenda' : 'Página no encontrada')} | ${SITE_NAME}`,
-    description: page?.description ?? SITE_DESCRIPTION,
-    canonical: `${SITE_URL}${canonicalPath}`, image: SITE_IMAGE,
-    noindex: test || !!privatePath || (!page && !productRoute),
+    title: categoryName ? `${categoryName} | ${SITE_NAME}` : `${page?.title ?? (privatePath ? titles[privatePath] : productRoute ? 'Prenda' : 'Página no encontrada')} | ${SITE_NAME}`,
+    description: categoryName ? `Explorá la categoría ${categoryName} en Showroom Isabella. Consultá talles y stock. Retiro en Alonso Pareja 6542, González Catán.` : page?.description ?? SITE_DESCRIPTION,
+    canonical: `${SITE_URL}${canonicalPath}${categoryName ? `?category=${category!.toLowerCase()}` : ''}`, image: SITE_IMAGE,
+    noindex: test || !!privatePath || (!page && !productRoute) || filteredCollection || (cleanPath === '/shop' && !!category && !knownCategory),
   }
 }
 

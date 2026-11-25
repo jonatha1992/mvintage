@@ -3,9 +3,11 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import BackgroundTasks, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 from app.core.config import settings
+from app.core.order_access import order_access_token
+from urllib.parse import urlencode
 from app.models.customer import Customer
 from app.models.order import Order
 from app.models.order_item import OrderItem
@@ -49,7 +51,7 @@ def _is_order_expired(order: Order, now: Optional[datetime] = None) -> bool:
 def _build_return_url(order_id: int) -> str:
     base = (settings.PAYMENT_RETURN_URL or f"{settings.FRONTEND_URL.rstrip('/')}/payment/return").strip()
     sep = "&" if "?" in base else "?"
-    return f"{base}{sep}order_id={order_id}"
+    return f"{base}{sep}{urlencode({'order_id': order_id, 'access_token': order_access_token(order_id)})}"
 
 
 class PaymentsController:
@@ -328,15 +330,9 @@ class PaymentsController:
         now: Optional[datetime] = None,
         background_tasks: Optional[BackgroundTasks] = None,
     ) -> Dict[str, int]:
-        pending_orders = session.exec(
-            select(Order).where(
-                Order.payment_method == "mercadopago",
-                Order.payment_status == "pending_payment",
-            )
-        ).all()
-
+        current = now or datetime.utcnow()
         summary = {
-            "checked": len(pending_orders),
+            "checked": 0,
             "approved": 0,
             "expired": 0,
             "cancelled": 0,
@@ -346,18 +342,34 @@ class PaymentsController:
             "errors": 0,
         }
 
-        for order in pending_orders:
-            try:
-                status = self.sync_order_payment(
-                    order, session, now=now, background_tasks=background_tasks
-                )
-                if status in summary:
-                    summary[status] += 1
-                else:
-                    summary["still_pending"] += 1
-            except Exception as exc:
-                logger.error(f"Error reconciliando orden {order.id}: {exc}")
-                summary["errors"] += 1
+        last_id = 0
+        while True:
+            pending_orders = session.exec(
+                select(Order).where(
+                    col(Order.id) > last_id,
+                    Order.payment_method == "mercadopago",
+                    Order.payment_status == "pending_payment",
+                    col(Order.created_at) > current - timedelta(hours=settings.PENDING_ORDER_TTL_HOURS),
+                    Order.stock_released == False,
+                ).order_by(Order.id).limit(100)
+            ).all()
+            if not pending_orders:
+                break
+            for order in pending_orders:
+                last_id = order.id
+                summary["checked"] += 1
+                try:
+                    status = self.sync_order_payment(
+                        order, session, now=now, background_tasks=background_tasks
+                    )
+                    if status in summary:
+                        summary[status] += 1
+                    else:
+                        summary["still_pending"] += 1
+                except Exception as exc:
+                    session.rollback()
+                    logger.error(f"Error reconciliando orden {order.id}: {exc}")
+                    summary["errors"] += 1
 
         return summary
 

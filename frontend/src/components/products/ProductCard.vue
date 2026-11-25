@@ -80,7 +80,7 @@
 
         <!-- Categoría -->
         <p v-if="product.categoria" class="mb-2 text-xs tracking-wider text-gray-500 uppercase">
-          {{ product.categoria }}
+          {{ categoryLabel(product.categoria) }}
         </p>
         
         <!-- Precios -->
@@ -120,6 +120,7 @@
 </template>
 
 <script setup lang="ts">
+import { categoryLabel } from '../../utils/category'
 import { formatPrice, getEffectivePrice, getPromoBadgeText, isProductDiscountActive } from '../../utils/price'
 import { MERCADOPAGO_HABILITADO } from '../../config/payments'
 import { vReveal } from '../../composables/useReveal'

@@ -8,7 +8,7 @@
         <template v-if="product">
           <template v-if="product.categoria">
             <li aria-hidden="true">/</li>
-            <li>{{ product.categoria }}</li>
+            <li>{{ categoryLabel(product.categoria) }}</li>
           </template>
           <li aria-hidden="true">/</li>
           <li class="font-medium text-gray-900" aria-current="page">{{ product.name }}</li>
@@ -386,6 +386,7 @@
 </style>
 
 <script setup lang="ts">
+import { categoryLabel } from '../../utils/category'
 import {
   formatPrice,
   getDiscountPercentage,

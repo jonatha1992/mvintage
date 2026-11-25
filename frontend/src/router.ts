@@ -50,7 +50,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/size-guide', component: SizeGuideView, alias: '/guia-de-talles' },
   // Orders routes
   { path: '/orders', component: OrdersView, meta: { requiresAuth: true } },
-  { path: '/orders/:id', component: OrderDetailView, meta: { requiresAuth: true } },
+  { path: '/orders/:id', component: OrderDetailView },
   { path: '/profile', component: ProfileView, meta: { requiresAuth: true } },
   // Payment result routes
   { path: '/payment/return', component: PaymentReturnView },
