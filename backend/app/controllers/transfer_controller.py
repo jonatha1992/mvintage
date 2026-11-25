@@ -191,6 +191,11 @@ class TransferController:
             if not order:
                 raise HTTPException(status_code=404, detail="Orden no encontrada")
             
+            session.refresh(order, with_for_update=True)
+            if (order.payment_method not in ("transfer", "bank_transfer")
+                    or order.payment_status != "pending_payment" or order.stock_released):
+                raise HTTPException(status_code=409, detail="Este pedido ya no permite verificar una transferencia")
+
             # Actualizar estado de verificación
             order.transfer_verified = verified
             order.verified_by_admin = verified
