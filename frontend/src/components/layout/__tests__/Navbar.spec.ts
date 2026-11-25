@@ -39,11 +39,21 @@ describe('Navbar móvil', () => {
     expect(logoContainer.className).toContain('min-w-0')
     expect(brandText.classes()).toContain('truncate')
     expect(mobileActions.className).toContain('flex-shrink-0')
-    expect(mobileButtons).toHaveLength(2)
+    expect(mobileButtons).toHaveLength(3)
     for (const btn of mobileButtons) {
       expect(btn.className).toContain('flex-shrink-0')
       expect(btn.className).toContain('min-w-11')
       expect(btn.className).toContain('min-h-11')
     }
+  })
+
+  it('incluye el botón de búsqueda en desktop y mobile y abre el dialog nativo', async () => {
+    const wrapper = mount(Navbar, { global })
+    const searchButtons = wrapper.findAll('button[aria-label="Buscar prendas"]')
+    expect(searchButtons).toHaveLength(2)
+    const dialog = wrapper.get('dialog').element as HTMLDialogElement
+    expect(dialog.open).toBe(false)
+    await searchButtons[0].trigger('click')
+    expect(dialog.open).toBe(true)
   })
 })

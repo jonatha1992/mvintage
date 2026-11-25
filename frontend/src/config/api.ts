@@ -639,20 +639,36 @@ export const shippingQuotesApi = {
 // API functions for products
 export const productsApi = {
   // Get all products
-  async getProducts(params?: {
-    categoryId?: number;
-    colorId?: number;
-    sizeId?: number;
-    search?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    inStock?: boolean;
-    sortBy?: 'name' | 'price' | 'created_at';
-    sortOrder?: 'asc' | 'desc';
-    page?: number;
-    limit?: number;
-  }): Promise<{ products: Product[]; total: number }> {
-    const response = await apiClient.get('/products/', { params });
+  async getProducts(
+    params?: {
+      categoryId?: number;
+      colorId?: number;
+      sizeId?: number;
+      search?: string;
+      q?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      inStock?: boolean;
+      sortBy?: 'name' | 'price' | 'created_at';
+      sortOrder?: 'asc' | 'desc';
+      page?: number;
+      limit?: number;
+    },
+    options?: { signal?: AbortSignal }
+  ): Promise<{ products: Product[]; total: number }> {
+    const queryParams: Record<string, unknown> = {};
+    if (params) {
+      const { search, q, ...rest } = params;
+      Object.assign(queryParams, rest);
+      const queryText = (q ?? search)?.trim();
+      if (queryText) {
+        queryParams.q = queryText;
+      }
+    }
+    const response = await apiClient.get('/products/', {
+      params: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+      signal: options?.signal,
+    });
     // Backend returns array directly, not wrapped in object
     const products = Array.isArray(response.data) ? response.data : [];
     return { products, total: products.length };

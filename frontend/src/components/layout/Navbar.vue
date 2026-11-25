@@ -61,7 +61,17 @@
           </div>
 
           <!-- Desktop Auth & Cart -->
-          <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2">
+            <button
+              type="button"
+              @click="openSearchDialog"
+              aria-label="Buscar prendas"
+              class="inline-flex items-center justify-center min-w-11 min-h-11 p-2 text-gray-900 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 rounded-md"
+            >
+              <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 105.25 5.25a7.5 7.5 0 0011.4 11.4z" />
+              </svg>
+            </button>
             <button @click="openCartModal" class="relative min-w-12 min-h-12 p-2 text-gray-900 hover:text-gray-600 focus:outline-none">
               <span class="sr-only">Carrito</span>
               <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -107,6 +117,16 @@
 
         <!-- Mobile Menu Button -->
         <div class="flex items-center flex-shrink-0 gap-1 lg:hidden">
+          <button
+            type="button"
+            @click="openSearchDialog"
+            aria-label="Buscar prendas"
+            class="inline-flex items-center justify-center flex-shrink-0 min-w-11 min-h-11 sm:min-w-12 sm:min-h-12 p-2 text-gray-900 hover:text-gray-600 focus:outline-none"
+          >
+            <svg class="w-5 h-5" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 105.25 5.25a7.5 7.5 0 0011.4 11.4z" />
+            </svg>
+          </button>
           <button @click="openCartModal" class="relative inline-flex items-center justify-center flex-shrink-0 min-w-11 min-h-11 sm:min-w-12 sm:min-h-12 p-2 text-gray-900 hover:text-gray-600 focus:outline-none">
             <span class="sr-only">Carrito</span>
             <svg class="w-5 h-5" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -207,6 +227,7 @@
       </div>
     </div>
     </Transition>
+    <ProductSearchDialog ref="searchDialogRef" />
   </nav>
 </template>
 
@@ -220,7 +241,9 @@ import { useCartNotification } from '../../composables/useCartNotification';
 import { useRouter } from 'vue-router';
 import { masterDataApi } from '../../config/index';
 import type { Category } from '../../types';
+import ProductSearchDialog from './ProductSearchDialog.vue';
 
+const searchDialogRef = ref<InstanceType<typeof ProductSearchDialog> | null>(null);
 const isMobileMenuOpen = ref(false);
 const isMobileShopMenuOpen = ref(false);
 const isMobileAdminMenuOpen = ref(false);
@@ -289,6 +312,11 @@ const loadCategories = async () => {
     } catch (fallbackError) {
     }
   }
+};
+
+const openSearchDialog = () => {
+  closeMenus();
+  searchDialogRef.value?.open();
 };
 
 const closeMenus = () => {
