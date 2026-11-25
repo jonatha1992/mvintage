@@ -373,8 +373,8 @@ const goHome = () => {
   align-items: center;
 }
 .copy-button {
-  min-inline-size: 24px;
-  min-block-size: 36px;
+  min-inline-size: 44px;
+    min-block-size: 44px;
 }
 .copy-button .icon-check {
   display: none;

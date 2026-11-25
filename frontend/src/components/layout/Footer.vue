@@ -122,3 +122,12 @@ import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../
 
 const categories = ['BLUSA', 'BODY', 'CONJUNTO', 'PANTALON', 'REMERA', 'TOP', 'VESTIDO']
 </script>
+
+<style scoped>
+a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+}
+</style>

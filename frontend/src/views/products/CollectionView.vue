@@ -32,7 +32,7 @@
             <div class="pb-6 border-b border-gray-200">
               <h3 class="mb-4 text-lg font-medium text-gray-900">Categorías</h3>
               <div class="space-y-2">
-                <label v-for="category in categories" :key="category.id" class="flex items-center">
+                <label v-for="category in categories" :key="category.id" class="flex items-center min-h-11 cursor-pointer">
                   <input 
                     type="radio" 
                     :value="category.name" 
@@ -43,7 +43,7 @@
                   <span class="ml-3 text-sm text-gray-700">{{ category.name }}</span>
                   <span class="ml-auto text-xs text-gray-500">({{ getCategoryCount(category.name) }})</span>
                 </label>
-                <label class="flex items-center">
+                <label class="flex items-center min-h-11 cursor-pointer">
                   <input 
                     type="radio" 
                     value="" 
@@ -61,7 +61,7 @@
             <div class="py-6 border-b border-gray-200">
               <h3 class="mb-4 text-lg font-medium text-gray-900">Precio</h3>
               <div class="space-y-2">
-                <label v-for="priceRange in priceRanges" :key="priceRange.label" class="flex items-center">
+                <label v-for="priceRange in priceRanges" :key="priceRange.label" class="flex items-center min-h-11 cursor-pointer">
                   <input 
                     type="radio" 
                     :value="priceRange.value" 
@@ -71,7 +71,7 @@
                   >
                   <span class="ml-3 text-sm text-gray-700">{{ priceRange.label }}</span>
                 </label>
-                <label class="flex items-center">
+                <label class="flex items-center min-h-11 cursor-pointer">
                   <input 
                     type="radio" 
                     value="" 
