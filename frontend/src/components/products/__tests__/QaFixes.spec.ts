@@ -6,14 +6,14 @@ import CollectionView from '../../../views/products/CollectionView.vue'
 import ShoppingCart from '../../cart/ShoppingCart.vue'
 
 const { product, push } = vi.hoisted(() => ({
-  product: { id: 11, name: 'Blusa VELA', price: 33000, images: [], is_unique: false,
+  product: { id: 11, categoria: 'BLUSA', name: 'Blusa VELA', price: 33000, images: [], is_unique: false,
     variants: [{ id: 1, color: 'BEIGE', talle: 'M', stock: 5 }] },
   push: vi.fn()
 }))
 vi.mock('vue-router', () => ({ useRoute: () => ({ params: { id: '11' }, query: {} }), useRouter: () => ({ push }) }))
 vi.mock('../../../config/index', () => ({
   productsApi: { getProducts: async () => ({ products: [product] }) },
-  masterDataApi: { getColors: async () => [], getSizes: async () => [], getCategoriesWithStock: async () => [{ id: 1, name: 'BLUSA' }] }
+  masterDataApi: { getColors: async () => [], getSizes: async () => [], getCategoriesWithStock: async () => [{ id: 1, name: 'BLUSA' }, { id: 2, name: 'SHOE' }] }
 }))
 vi.mock('../../../store/products', () => ({ useProducts: () => ({ products: ref([product]), isLoading: ref(false), ensureProducts: vi.fn() }) }))
 vi.mock('../../../store/cart', () => ({ useCartStore: () => ({
@@ -47,5 +47,7 @@ describe('Regresiones QA', () => {
     expect(wrapper.get('dialog').text()).toContain('Precio')
     expect(wrapper.get('dialog').text()).toContain('Ordenar por')
     expect(wrapper.get('dialog').text()).toContain('Limpiar filtros')
+    expect(wrapper.get('dialog').text()).toContain('Blusa (1)')
+    expect(wrapper.get('dialog').text()).not.toContain('Calzado')
   })
 })

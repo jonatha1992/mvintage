@@ -32,7 +32,7 @@
             <div class="pb-6 border-b border-gray-200">
               <h3 class="mb-4 text-lg font-medium text-gray-900">Categorías</h3>
               <div class="space-y-2">
-                <label v-for="category in categories" :key="category.id" class="flex items-center min-h-11 cursor-pointer">
+                <label v-for="category in visibleCategories" :key="category.id" class="flex items-center min-h-11 cursor-pointer">
                   <input 
                     type="radio" 
                     :value="category.name" 
@@ -215,9 +215,9 @@
       <div class="p-4 space-y-6">
         <fieldset>
           <legend class="mb-3 font-medium">Categorías</legend>
-          <label v-for="category in categories" :key="category.id" class="flex items-center min-h-12 gap-3">
+          <label v-for="category in visibleCategories" :key="category.id" class="flex items-center min-h-12 gap-3">
             <input type="radio" name="mobile-category" :value="category.name" v-model="filters.category" @change="applyFilters">
-            {{ categoryLabel(category.name) }}
+            {{ categoryLabel(category.name) }} ({{ getCategoryCount(category.name) }})
           </label>
           <label class="flex items-center min-h-12 gap-3">
             <input type="radio" name="mobile-category" value="" v-model="filters.category" @change="applyFilters">
@@ -280,6 +280,7 @@ const { products, isLoading, ensureProducts } = useProducts()
 
 // Data
 const categories = ref<Category[]>([])
+const visibleCategories = computed(() => categories.value.filter(category => getCategoryCount(category.name) > 0))
 const mobileFilters = ref<HTMLDialogElement | null>(null)
 const productsPerPage = ref(12)
 const currentPage = ref(1)
