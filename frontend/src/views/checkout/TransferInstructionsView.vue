@@ -116,7 +116,7 @@
             :href="whatsappTransferUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center justify-center px-6 py-3 font-medium text-white transition-colors bg-green-600 rounded-md hover:bg-green-700"
+            class="inline-flex items-center justify-center px-6 py-3 font-medium text-white transition-colors bg-green-700 rounded-md hover:bg-green-800"
           >
             Enviar comprobante por WhatsApp
           </a>
