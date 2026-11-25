@@ -1,7 +1,7 @@
 <template>
   <div class="bg-white shadow rounded-lg p-6">
     <div class="flex items-center justify-between mb-4">
-      <h3 class="font-heading text-lg font-medium text-gray-900">Información de contacto</h3>
+      <h2 id="contact-heading" tabindex="-1" class="font-heading text-lg font-medium text-gray-900">Información de contacto</h2>
       
       <!-- Loading indicator -->
       <div v-if="loadingUserData" class="flex items-center text-sm text-gray-500">
@@ -77,30 +77,7 @@
       </div>
     </div>
 
-    <!-- Continue Button -->
-    <div v-if="isContactInfoComplete" class="mt-6 pt-4 border-t border-gray-200">
-      <div class="text-center">
-        <div class="mb-4">
-          <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-3">
-            <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-          </div>
-          <h4 class="font-heading text-lg font-medium text-gray-900 mb-2">Información de contacto completa</h4>
-          <p class="font-body text-sm text-gray-600 mb-4">Ahora selecciona el método de entrega</p>
-        </div>
-        <button
-          type="button"
-          @click="$emit('continue')"
-          class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-black hover:bg-gray-800 transition-colors"
-        >
-          <span class="text-white">Continuar a entrega</span>
-          <svg class="ml-2 -mr-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
+
   </div>
 </template>
 
@@ -126,7 +103,7 @@ const emit = defineEmits<{
   'update:email': [value: string]
   'update:phone': [value: string]
   'update:phoneCountryCode': [value: string]
-  'continue': []
+
 }>()
 
 // Validación de formato de teléfono
@@ -154,11 +131,5 @@ const isValidPhone = computed(() => {
   return pattern.test(cleanPhone)
 })
 
-const isContactInfoComplete = computed(() => {
-  return props.firstName.trim() && 
-         props.lastName.trim() && 
-         props.email.trim() && 
-         props.phone.trim() &&
-         isValidPhone.value
-})
+
 </script>

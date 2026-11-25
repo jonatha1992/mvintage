@@ -120,51 +120,15 @@
             </div>
           </div>
 
-          <!-- Delivery Summary (Step 4) - Only in left column -->
-          <div v-if="currentStep === 4" class="mt-6">
-            <div class="p-6 bg-white rounded-lg shadow">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900 font-heading">Información de entrega</h3>
-                <button 
-                  @click="currentStep = 3"
-                  class="text-sm text-blue-600 hover:text-blue-800 font-body"
-                >
-                  Editar
-                </button>
-              </div>
-              
-              <div class="p-4 space-y-2 text-sm rounded-lg bg-gray-50">
-                <div class="flex justify-between">
-                  <span class="font-medium text-gray-700 font-body">Nombre:</span>
-                  <span class="text-gray-900 font-body">{{ checkoutForm.firstName }} {{ checkoutForm.lastName }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="font-medium text-gray-700 font-body">Email:</span>
-                  <span class="text-gray-900 font-body">{{ checkoutForm.email }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="font-medium text-gray-700 font-body">Teléfono:</span>
-                  <span class="text-gray-900 font-body">{{ checkoutForm.phone }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="font-medium text-gray-700 font-body">Modalidad:</span>
-                  <span class="text-gray-900 font-body">Retiro en el local</span>
-                </div>
-                <div class="flex justify-between gap-4">
-                  <span class="font-medium text-gray-700 font-body">Dirección:</span>
-                  <a :href="STORE_MAPS_URL" target="_blank" rel="noopener noreferrer" class="text-right text-gray-900 underline font-body hover:text-gray-600">{{ STORE_PICKUP_ADDRESS }}</a>
-                </div>
-                <p class="text-xs text-gray-600 font-body">{{ STORE_PICKUP_HOURS }}.</p>
-              </div>
-            </div>
-          </div>
+
         </div>
 
         <!-- Checkout Form -->
         <div class="order-1 lg:order-2 lg:h-full lg:overflow-y-auto lg:pr-4">
-          <form @submit.prevent="processOrder" class="space-y-6">
+          <form ref="checkoutFormElement" @submit.prevent="processOrder" class="space-y-6">
             <!-- Step 2: Delivery Info (incluye datos de contacto) -->
             <div v-if="currentStep === 2">
+              <button type="button" class="min-h-11 px-3 mb-3 underline" @click="handleGoToStep(1)">Volver al carrito</button>
               <ContactInfoStep
                 :first-name="checkoutForm.firstName"
                 :last-name="checkoutForm.lastName"
@@ -188,8 +152,10 @@
             </div>
 
             <!-- Step 3: Payment Method -->
-            <div v-if="currentStep === 3" class="p-6 bg-white rounded-lg shadow" data-payment-section ref="paymentSection">
-              <h3 class="mb-4 text-lg font-medium text-gray-900 font-heading">Método de pago</h3>
+            <div v-if="currentStep === 3" class="p-6 bg-white rounded-lg shadow" data-payment-section>
+              <h2 id="payment-heading" tabindex="-1" class="mb-4 text-lg font-medium text-gray-900 font-heading">Método de pago</h2>
+              <p class="mb-4 text-sm text-gray-700">Retiro en el local · {{ STORE_PICKUP_ADDRESS }}. {{ STORE_PICKUP_HOURS }}.</p>
+              <button type="button" class="min-h-11 px-3 mb-4 underline" @click="handleGoToStep(2)">Volver al contacto</button>
               
               <div class="space-y-3">
                 <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
@@ -229,7 +195,7 @@
                 <button
                   type="submit"
                   :disabled="processing"
-                  class="w-full px-6 py-3 font-medium text-white transition-all duration-200 bg-black rounded-md hover:bg-gray-800 hover:scale-105 active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  class="w-full px-6 py-3 font-medium text-white transition-all duration-200 bg-black rounded-md hover:bg-gray-800 motion-safe:active:scale-[0.98] disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   <span v-if="processing" class="text-white">Procesando...</span>
                   <span v-else class="text-white">Finalizar compra</span>
@@ -241,21 +207,6 @@
               </div>
             </div>
 
-            <!-- Submit Button -->
-            <div v-if="currentStep === 4" class="p-6 bg-white rounded-lg shadow">
-              <button
-                type="submit"
-                :disabled="processing"
-                class="w-full px-4 py-3 font-medium text-white transition-colors bg-black rounded-md hover:bg-gray-800 disabled:bg-gray-400"
-              >
-                <span class="text-white" v-if="processing">Procesando...</span>
-                <span class="text-white" v-else>Confirmar pedido</span>
-              </button>
-              
-              <p class="mt-3 text-xs text-center font-body text-body-text">
-                Al confirmar tu pedido, aceptas nuestros términos y condiciones
-              </p>
-            </div>
 
           </form>
         </div>
@@ -284,7 +235,7 @@
 <script setup lang="ts">
 import { orderAccessToken } from '../../utils/orderAccess';
 import { formatPrice, getEffectivePrice, isProductDiscountActive } from '../../utils/price'
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../../store/cart';
 import { useAuthStore } from '../../store/auth';
@@ -308,7 +259,7 @@ const toast = useToast();
 const { loadCustomerData, getCheckoutFormData } = useUserData();
 
 // Ref para la sección de método de pago
-const paymentSection = ref<HTMLElement | null>(null);
+const checkoutFormElement = ref<HTMLFormElement | null>(null);
 
 const processing = ref(false);
 const loadingUserData = ref(false);
@@ -345,23 +296,24 @@ const isContactInfoComplete = computed(() => {
   return checkoutForm.value.firstName.trim() && 
          checkoutForm.value.lastName.trim() && 
          checkoutForm.value.email.trim() && 
-         checkoutForm.value.phone.trim();
+         isValidPhone(checkoutForm.value.phone, checkoutForm.value.phoneCountryCode);
 });
 
 const isDeliveryInfoComplete = computed(() => {
   return deliveryMethod.value === 'retiro_local' && Boolean(isContactInfoComplete.value);
 });
 
+const focusStep = async (step: 2 | 3) => {
+  currentStep.value = step;
+  await nextTick();
+  const heading = document.getElementById(step === 2 ? 'contact-heading' : 'payment-heading');
+  heading?.focus({ preventScroll: true });
+  heading?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+};
+
 const goToPaymentStep = () => {
-  if (isDeliveryInfoComplete.value) {
-    currentStep.value = 3;
-    setTimeout(() => {
-      if (paymentSection.value) {
-        paymentSection.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }, 100);
+  if (checkoutFormElement.value?.reportValidity() && isDeliveryInfoComplete.value) {
+    void focusStep(3);
   }
 };
 
@@ -372,7 +324,7 @@ const handleGoToStep = (step: number) => {
     // Navigate back to cart
     router.push('/cart');
   } else if (step === 2) {
-    currentStep.value = 2;
+    void focusStep(2);
   } else if (step === 3 && isDeliveryInfoComplete.value) {
     goToPaymentStep();
   }

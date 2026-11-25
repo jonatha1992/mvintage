@@ -15,6 +15,8 @@
       </div>
 
       <div v-if="transferInfo" class="space-y-6">
+        <router-link v-if="orderData?.order_id" :to="orderLink(Number(orderData.order_id))" class="inline-flex items-center min-h-11 px-3 underline">Ver mi pedido</router-link>
+        <PendingTransferActions v-if="orderData?.order_id" :order-id="Number(orderData.order_id)" @updated="router.push(orderLink(Number(orderData.order_id)))" />
         <!-- Datos de Transferencia -->
         <div class="p-6 bg-white rounded-lg shadow">
           <h2 class="flex items-center mb-6 text-xl font-medium text-gray-900">
@@ -207,6 +209,8 @@
 </template>
 
 <script setup lang="ts">
+import PendingTransferActions from '../../components/checkout/PendingTransferActions.vue'
+import { orderLink } from '../../utils/orderAccess'
 import { formatPrice } from '../../utils/price'
 import { WHATSAPP_NUMBER } from '../../config/payments'
 import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS, TRANSFER_ALIAS } from '../../config/store'

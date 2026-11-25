@@ -35,6 +35,7 @@
 
       <!-- Order Details -->
       <div v-else-if="order" class="space-y-6">
+        <PendingTransferActions :order-id="Number(orderId)" @updated="loadOrderDetails" />
         <!-- Order Header -->
         <div class="p-6 bg-white rounded-lg shadow">
           <div class="flex items-center justify-between mb-4">
@@ -279,6 +280,7 @@
 
 <script setup lang="ts">
 import { formatPrice } from '../../utils/price'
+import PendingTransferActions from '../../components/checkout/PendingTransferActions.vue'
 import { orderAccessToken } from '../../utils/orderAccess'
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';

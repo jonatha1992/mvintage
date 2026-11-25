@@ -366,6 +366,17 @@ export const paymentsApi = {
 
 // API functions for orders
 export const ordersApi = {
+  payWithMercadoPago: async (orderId: number): Promise<{ checkout_url: string }> => {
+    const response = await apiClient.post(`/orders/${orderId}/pay-with-mercadopago`, {}, {
+      params: { access_token: orderAccessToken(orderId) },
+    });
+    return response.data;
+  },
+  cancelPendingOrder: async (orderId: number): Promise<void> => {
+    await apiClient.post(`/orders/${orderId}/cancel`, {}, {
+      params: { access_token: orderAccessToken(orderId) },
+    });
+  },
   // Create new order
   async createOrder(orderData: any): Promise<any> {
     const response = await apiClient.post('/orders/', orderData);

@@ -530,6 +530,21 @@ class NotificacionesService:
                 },
             )
 
+    def notificar_pedido_cancelado(self, snapshot: Optional[OrderNotificationSnapshot]) -> None:
+        if snapshot is None:
+            return
+        self._safe_send(
+            role="duena",
+            event="cancelado",
+            order_id=snapshot.order_id,
+            to=self.owner_email,
+            subject=f"Pedido #{snapshot.order_id} cancelado por la clienta",
+            titulo=f"Pedido #{snapshot.order_id} cancelado",
+            mensaje=f"{snapshot.customer_name} canceló su pedido pendiente de transferencia. El stock fue devuelto por variante. Total: {format_ars(snapshot.total)}.",
+            idempotency_key=f"showroomisabella-order-{snapshot.order_id}-cancelled-owner",
+            boton={"texto": "Ver pedidos", "url": f"{self.site_url}/admin/orders"},
+        )
+
     def notificar_pago_confirmado(self, snapshot: Optional[OrderNotificationSnapshot]) -> None:
         if snapshot is None or not snapshot.customer_email:
             return
