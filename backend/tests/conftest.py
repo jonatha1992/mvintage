@@ -18,6 +18,7 @@ os.environ["ENVIRONMENT"] = "dev"
 os.environ["DATABASE_URL"] = "sqlite://"
 
 from app.core.auth_firebase import verify_firebase_token
+from app.core.order_access import optional_order_user
 from app.core.rate_limit import default_rate_limiter
 from app.db.session import get_session
 from app.main import app
@@ -99,5 +100,7 @@ def auth_cookie(client, db_session):
         db_session.commit()
 
     app.dependency_overrides[verify_firebase_token] = lambda: firebase_user
+    app.dependency_overrides[optional_order_user] = lambda: firebase_user
     yield {"Authorization": "Bearer isolated-test-token"}
+    app.dependency_overrides.pop(optional_order_user, None)
     app.dependency_overrides.pop(verify_firebase_token, None)

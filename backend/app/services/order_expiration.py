@@ -113,15 +113,31 @@ def cancel_expired_pending_orders(
         _release_advisory_lock(session)
 
 
+def run_pending_order_maintenance(session: Session) -> List[int]:
+    from app.controllers.payments_controller import payments_controller
+
+    if not _try_acquire_advisory_lock(session):
+        return []
+    try:
+        payments_controller.reconcile_pending_payments(session)
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        _release_advisory_lock(session)
+    return cancel_expired_pending_orders(session)
+
+
 def run_pending_order_expiration_once(custom_engine=None) -> List[int]:
     eng = custom_engine if custom_engine is not None else engine
-    with Session(eng) as session:
-        return cancel_expired_pending_orders(session)
+    # Mantener la misma conexión durante los commits conserva el advisory lock.
+    with eng.connect() as connection, Session(bind=connection) as session:
+        return run_pending_order_maintenance(session)
 
 
 async def pending_order_expiration_loop(interval_seconds: Optional[int] = None) -> None:
     sleep_seconds = (
-        PENDING_ORDER_CLEANUP_INTERVAL_MINUTES * 60
+        min(PENDING_ORDER_CLEANUP_INTERVAL_MINUTES, 2) * 60
         if interval_seconds is None
         else interval_seconds
     )

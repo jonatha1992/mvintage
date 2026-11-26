@@ -1,10 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from app.routes.admin_images import router as admin_images_router
 from app.routes.products import router as products_router
 from app.routes.customers import router as customers_router
 from app.routes.orders import router as orders_router
+from app.routes.order_payment_actions import router as order_payment_actions_router
 from app.routes.inventory import router as inventory_router
 from app.routes.order_items import router as order_items_router
 from app.routes.users import router as users_router
@@ -72,16 +74,17 @@ async def shutdown_event():
     _expiration_task = None
 
 
-# CORS Middleware Configuration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_origins,  # Use dynamic origins from settings
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
-    expose_headers=["Content-Disposition", "Set-Cookie"],  # Expose additional headers
-    max_age=600,  # Cache preflight requests for 10 minutes
-)
+@app.middleware("http")
+async def catch_unhandled_exceptions(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception:
+        logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Error interno del servidor"},
+        )
+
 
 @app.middleware("http")
 async def security_headers(request, call_next):
@@ -94,10 +97,23 @@ async def security_headers(request, call_next):
     return response
 
 
+# CORS registrado al final para envolver security_headers y errores 500
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["Content-Disposition", "Set-Cookie"],
+    max_age=600,
+)
+
+
 app.include_router(admin_images_router, prefix="/api/v1")
 app.include_router(products_router, prefix="/api/v1")
 app.include_router(customers_router, prefix="/api/v1")
 app.include_router(orders_router, prefix="/api/v1")
+app.include_router(order_payment_actions_router, prefix="/api/v1")
 app.include_router(inventory_router, prefix="/api/v1")
 app.include_router(order_items_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")

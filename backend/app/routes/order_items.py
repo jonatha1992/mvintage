@@ -78,9 +78,7 @@ def create_order_item(
             detail=f"Stock insuficiente para el producto {order_item_data.product_id}. Cantidad solicitada: {order_item_data.quantity}",
         )
 
-    unit_price = product.price
-    if product.has_discount and product.discount_percentage:
-        unit_price = round(product.price * (1 - product.discount_percentage / 100), 2)
+    unit_price = product.effective_price()
 
     db_order_item = OrderItem(
         order_id=order_item_data.order_id,
@@ -151,7 +149,7 @@ def update_order_item(
     db_order_item.order_id = order_item_data.order_id
     db_order_item.product_id = order_item_data.product_id
     db_order_item.quantity = order_item_data.quantity
-    db_order_item.price = product.price
+    db_order_item.price = product.effective_price()
     
     session.add(db_order_item)
     session.commit()

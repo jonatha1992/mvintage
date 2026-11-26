@@ -8,7 +8,7 @@
         <template v-if="product">
           <template v-if="product.categoria">
             <li aria-hidden="true">/</li>
-            <li>{{ product.categoria }}</li>
+            <li>{{ categoryLabel(product.categoria) }}</li>
           </template>
           <li aria-hidden="true">/</li>
           <li class="font-medium text-gray-900" aria-current="page">{{ product.name }}</li>
@@ -65,7 +65,11 @@
           </div>
 
           <span v-if="isOutOfStock" class="absolute px-3 py-1 text-xs font-bold text-white bg-gray-700 rounded top-3 left-3">SIN STOCK</span>
-          <span v-else-if="product.has_discount && discountPercentage" class="absolute px-3 py-1 text-xs font-bold text-white bg-red-600 rounded top-3 left-3">-{{ discountPercentage }}%</span>
+          <span
+            v-else-if="hasActiveDiscount && promoBadgeText"
+            data-testid="detail-promo-badge"
+            class="absolute px-3 py-1 text-xs font-bold tracking-wide text-white uppercase bg-rose-700 rounded top-3 left-3 promo-badge"
+          >{{ promoBadgeText }}</span>
 
           <div v-if="product.images.length > 1" class="flex justify-center gap-1 mt-2 lg:hidden" role="tablist" aria-label="Elegir imagen">
             <button
@@ -100,12 +104,15 @@
         <h1 class="text-2xl font-light text-gray-900 font-heading">{{ product.name }}</h1>
 
         <div class="mt-3">
-          <div v-if="product.has_discount && product.discounted_price" class="flex flex-wrap items-baseline gap-x-3">
-            <span class="text-3xl font-medium text-gray-900">{{ formatPrice(finalPrice) }}</span>
-            <span class="text-lg text-gray-500 line-through">{{ formatPrice(product.price) }}</span>
+          <div v-if="hasActiveDiscount" class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span class="text-3xl font-semibold text-rose-700" data-testid="detail-discounted-price">{{ formatPrice(finalPrice) }}</span>
+            <span class="text-lg text-gray-500 line-through" data-testid="detail-original-price">{{ formatPrice(product.price) }}</span>
+            <span v-if="discountPercentage > 0" class="px-2 py-0.5 text-xs font-semibold text-rose-800 bg-rose-100 rounded">
+              -{{ discountPercentage }}%
+            </span>
           </div>
           <span v-else class="text-3xl font-medium text-gray-900">{{ formatPrice(finalPrice) }}</span>
-          <p v-if="MERCADOPAGO_HABILITADO && installments > 1" class="mt-1 text-sm text-gray-700">
+          <p v-if="MERCADOPAGO_HABILITADO && installments > 1" data-testid="detail-installments" class="mt-1 text-sm text-gray-700">
             {{ installments }} x {{ formatPrice(Math.round(finalPrice / installments)) }} sin interés
           </p>
         </div>
@@ -225,9 +232,12 @@
                 <img :src="getSimilarProductImage(similar)" :alt="similar.name" loading="lazy" decoding="async" width="400" height="500" class="object-cover w-full h-full" />
               </div>
               <h3 class="mt-2 text-sm text-gray-900 truncate">{{ similar.name }}</h3>
-              <p class="text-sm font-medium text-gray-900">{{ formatPrice(similar.discounted_price ?? similar.price) }}</p>
+              <div class="flex items-baseline gap-1.5">
+                <p :class="isProductDiscountActive(similar) ? 'text-sm font-semibold text-rose-700' : 'text-sm font-medium text-gray-900'">{{ formatPrice(getEffectivePrice(similar)) }}</p>
+                <span v-if="isProductDiscountActive(similar)" class="text-xs text-gray-400 line-through">{{ formatPrice(similar.price) }}</span>
+              </div>
               <p v-if="MERCADOPAGO_HABILITADO && (similar.max_installments ?? 1) > 1" class="text-xs text-gray-600">
-                {{ similar.max_installments }} x {{ formatPrice(Math.round((similar.discounted_price ?? similar.price) / (similar.max_installments ?? 1))) }} sin interés
+                {{ similar.max_installments }} x {{ formatPrice(Math.round(getEffectivePrice(similar) / (similar.max_installments ?? 1))) }} sin interés
               </p>
             </router-link>
           </li>
@@ -346,6 +356,11 @@
 }
 @media (prefers-reduced-motion: no-preference) {
   .gallery-track { scroll-behavior: smooth; }
+  .promo-badge { animation: promoBadgePulse 3s ease-in-out infinite; }
+}
+@keyframes promoBadgePulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.03); opacity: 0.92; }
 }
 .info-dialog {
   width: min(92vw, 26rem);
@@ -371,7 +386,14 @@
 </style>
 
 <script setup lang="ts">
-import { formatPrice } from '../../utils/price'
+import { categoryLabel } from '../../utils/category'
+import {
+  formatPrice,
+  getDiscountPercentage,
+  getEffectivePrice,
+  getPromoBadgeText,
+  isProductDiscountActive,
+} from '../../utils/price'
 import { applySeo, productSeo, routeSeo } from '../../utils/seo'
 import { buildImageVariantUrl, buildImageSrcset } from '../../utils/imageUrl'
 import { ref, computed, watch } from 'vue';
@@ -415,7 +437,9 @@ const shareDialog = ref<HTMLDialogElement | null>(null);
 import { MERCADOPAGO_HABILITADO, WHATSAPP_NUMBER } from '../../config/payments';
 import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from '../../config/store';
 
-const finalPrice = computed(() => product.value?.has_discount && product.value.discounted_price ? product.value.discounted_price : product.value?.price ?? 0);
+const hasActiveDiscount = computed(() => isProductDiscountActive(product.value));
+const finalPrice = computed(() => getEffectivePrice(product.value));
+const promoBadgeText = computed(() => getPromoBadgeText(product.value));
 const installments = computed(() => product.value?.max_installments ?? 1);
 const pageUrl = computed(() => window.location.href);
 const whatsappUrl = computed(() =>
@@ -578,13 +602,7 @@ const isOutOfStock = computed(() => {
 });
 
 // Calculate discount percentage
-const discountPercentage = computed(() => {
-  if (!product.value || !product.value.has_discount || !product.value.discount_amount) {
-    return 0;
-  }
-  
-  return Math.round((product.value.discount_amount / product.value.price) * 100);
-});
+const discountPercentage = computed(() => getDiscountPercentage(product.value));
 
 const clampQuantity = () => {
   const value = Number(quantity.value);

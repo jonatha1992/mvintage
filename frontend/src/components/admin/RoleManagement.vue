@@ -7,7 +7,7 @@
           v-model="searchQuery"
           @input="searchUsers"
           type="text"
-          placeholder="Buscar usuarios por email..."
+          placeholder="Buscar usuarios por correo electrónico..." aria-label="Buscar usuarios por correo electrónico"
           class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
@@ -574,3 +574,8 @@ onMounted(() => {
   loadRoles()
 })
 </script>
+
+<style scoped>
+button, input, select { min-block-size: 44px; }
+button { min-inline-size: 44px; }
+</style>

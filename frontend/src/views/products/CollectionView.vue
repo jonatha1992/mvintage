@@ -17,7 +17,7 @@
             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
           </svg>
           <span v-if="selectedCategory" class="font-medium text-gray-900">
-            {{ selectedCategory }}
+            {{ categoryLabel(selectedCategory) }}
           </span>
         </div>
       </div>
@@ -32,7 +32,7 @@
             <div class="pb-6 border-b border-gray-200">
               <h3 class="mb-4 text-lg font-medium text-gray-900">Categorías</h3>
               <div class="space-y-2">
-                <label v-for="category in categories" :key="category.id" class="flex items-center">
+                <label v-for="category in visibleCategories" :key="category.id" class="flex items-center min-h-11 cursor-pointer">
                   <input 
                     type="radio" 
                     :value="category.name" 
@@ -40,10 +40,10 @@
                     @change="applyFilters"
                     class="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-500"
                   >
-                  <span class="ml-3 text-sm text-gray-700">{{ category.name }}</span>
+                  <span class="ml-3 text-sm text-gray-700">{{ categoryLabel(category.name) }}</span>
                   <span class="ml-auto text-xs text-gray-500">({{ getCategoryCount(category.name) }})</span>
                 </label>
-                <label class="flex items-center">
+                <label class="flex items-center min-h-11 cursor-pointer">
                   <input 
                     type="radio" 
                     value="" 
@@ -61,7 +61,7 @@
             <div class="py-6 border-b border-gray-200">
               <h3 class="mb-4 text-lg font-medium text-gray-900">Precio</h3>
               <div class="space-y-2">
-                <label v-for="priceRange in priceRanges" :key="priceRange.label" class="flex items-center">
+                <label v-for="priceRange in priceRanges" :key="priceRange.label" class="flex items-center min-h-11 cursor-pointer">
                   <input 
                     type="radio" 
                     :value="priceRange.value" 
@@ -71,7 +71,7 @@
                   >
                   <span class="ml-3 text-sm text-gray-700">{{ priceRange.label }}</span>
                 </label>
-                <label class="flex items-center">
+                <label class="flex items-center min-h-11 cursor-pointer">
                   <input 
                     type="radio" 
                     value="" 
@@ -84,6 +84,22 @@
               </div>
             </div>
 
+            <!-- Promo Filter -->
+            <div class="py-6 border-b border-gray-200">
+              <h3 class="mb-4 text-lg font-medium text-gray-900">Promociones</h3>
+              <label class="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  v-model="filters.onlyPromos"
+                  @change="applyFilters"
+                  data-testid="filter-only-promos"
+                  class="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-500"
+                >
+                <span class="ml-3 text-sm text-gray-700">En promoción</span>
+                <span class="ml-auto text-xs text-gray-500">({{ promoProductsCount }})</span>
+              </label>
+            </div>
+
             <!-- Sort Options -->
             <div class="py-6">
               <h3 class="mb-4 text-lg font-medium text-gray-900">Ordenar por</h3>
@@ -93,6 +109,7 @@
                 class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
               >
                 <option value="">Recomendados</option>
+                <option value="promo">En promoción</option>
                 <option value="price-asc">Precio: Menor a Mayor</option>
                 <option value="price-desc">Precio: Mayor a Menor</option>
                 <option value="name-asc">Nombre: A-Z</option>
@@ -128,7 +145,7 @@
           </div>
 
           <!-- Collection Header -->
-          <div class="flex items-center justify-between mb-8">
+          <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div>
               <h1 class="text-3xl font-light tracking-wide text-gray-800">
                 {{ collectionTitle }}
@@ -136,6 +153,23 @@
               <p class="mt-1 text-sm text-gray-400">
                 {{ filteredProducts.length }} producto{{ filteredProducts.length !== 1 ? 's' : '' }}
               </p>
+            </div>
+            <div
+              v-if="searchQuery"
+              data-testid="active-search-chip"
+              class="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-gray-800 bg-white border border-gray-200 rounded-full shadow-sm"
+            >
+              <span>Buscando: <strong>«{{ searchQuery }}»</strong></span>
+              <button
+                type="button"
+                @click="clearSearchQuery"
+                aria-label="Limpiar búsqueda"
+                class="inline-flex items-center justify-center w-6 h-6 text-gray-500 transition-colors rounded-full hover:bg-gray-100 hover:text-gray-900"
+              >
+                <svg class="w-3.5 h-3.5" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -172,7 +206,7 @@
               </svg>
             </div>
             <template v-if="selectedCategory && getCategoryCount(selectedCategory) === 0">
-              <h3 class="mb-2 text-lg font-medium text-gray-900">No hay productos en la categoría «{{ selectedCategory }}»</h3>
+              <h3 class="mb-2 text-lg font-medium text-gray-900">No hay productos en la categoría «{{ categoryLabel(selectedCategory) }}»</h3>
               <p class="mb-4 text-gray-500">Mirá el resto de la colección.</p>
               <button @click="clearFilters" class="btn-minimal btn-dark">
                 Ver todos los productos
@@ -198,9 +232,9 @@
       <div class="p-4 space-y-6">
         <fieldset>
           <legend class="mb-3 font-medium">Categorías</legend>
-          <label v-for="category in categories" :key="category.id" class="flex items-center min-h-12 gap-3">
+          <label v-for="category in visibleCategories" :key="category.id" class="flex items-center min-h-12 gap-3">
             <input type="radio" name="mobile-category" :value="category.name" v-model="filters.category" @change="applyFilters">
-            {{ category.name }}
+            {{ categoryLabel(category.name) }} ({{ getCategoryCount(category.name) }})
           </label>
           <label class="flex items-center min-h-12 gap-3">
             <input type="radio" name="mobile-category" value="" v-model="filters.category" @change="applyFilters">
@@ -218,10 +252,18 @@
             Todos los precios
           </label>
         </fieldset>
+        <fieldset>
+          <legend class="mb-3 font-medium">Promociones</legend>
+          <label class="flex items-center min-h-12 gap-3">
+            <input type="checkbox" v-model="filters.onlyPromos" @change="applyFilters">
+            En promoción ({{ promoProductsCount }})
+          </label>
+        </fieldset>
         <div>
           <label for="mobile-sort" class="block mb-3 font-medium">Ordenar por</label>
           <select id="mobile-sort" v-model="filters.sortBy" @change="applyFilters" class="w-full min-h-12 px-3 border border-gray-400 rounded-md">
             <option value="">Recomendados</option>
+            <option value="promo">En promoción</option>
             <option value="price-asc">Precio: Menor a Mayor</option>
             <option value="price-desc">Precio: Mayor a Menor</option>
             <option value="name-asc">Nombre: A-Z</option>
@@ -237,6 +279,7 @@
 </template>
 
 <script setup lang="ts">
+import { categoryLabel } from '../../utils/category'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProductCard from '../../components/products/ProductCard.vue'
@@ -244,6 +287,7 @@ import ProductCardSkeleton from '../../components/products/ProductCardSkeleton.v
 import { masterDataApi } from '../../config/index'
 import type { Product, Category } from '../../types'
 import { useProducts } from '../../store/products'
+import { getDiscountPercentage, getEffectivePrice, isProductDiscountActive } from '../../utils/price'
 
 const route = useRoute()
 const router = useRouter()
@@ -253,6 +297,7 @@ const { products, isLoading, ensureProducts } = useProducts()
 
 // Data
 const categories = ref<Category[]>([])
+const visibleCategories = computed(() => categories.value.filter(category => getCategoryCount(category.name) > 0))
 const mobileFilters = ref<HTMLDialogElement | null>(null)
 const productsPerPage = ref(12)
 const currentPage = ref(1)
@@ -261,8 +306,13 @@ const currentPage = ref(1)
 const filters = ref({
   category: '',
   priceRange: '',
+  onlyPromos: false,
   sortBy: ''
 })
+
+const promoProductsCount = computed(() =>
+  products.value.filter(product => isProductDiscountActive(product)).length
+)
 
 // Price ranges
 const priceRanges = [
@@ -276,15 +326,41 @@ const selectedCategory = computed(() => {
   return filters.value.category || (route.query.category as string) || ''
 })
 
+const searchQuery = computed(() => {
+  const raw = route.query.q
+  if (Array.isArray(raw)) return (raw[0] || '').trim()
+  return typeof raw === 'string' ? raw.trim() : ''
+})
+
+const matchesSearchQuery = (product: Product, term: string): boolean => {
+  const needle = term.toLowerCase()
+  if (product.name?.toLowerCase().includes(needle)) return true
+  if (product.categoria?.toLowerCase().includes(needle)) return true
+  if (product.categoria && categoryLabel(product.categoria).toLowerCase().includes(needle)) return true
+  if (product.description?.toLowerCase().includes(needle)) return true
+  if (product.color?.toLowerCase().includes(needle)) return true
+  return Boolean(product.variants?.some(v => v.color?.toLowerCase().includes(needle)))
+}
+
 const collectionTitle = computed(() => {
+  if (searchQuery.value && !selectedCategory.value) {
+    return `Resultados para «${searchQuery.value}»`
+  }
   if (selectedCategory.value) {
-    return `Colección ${selectedCategory.value.charAt(0).toUpperCase() + selectedCategory.value.slice(1).toLowerCase()}`
+    return `Colección ${categoryLabel(selectedCategory.value)}`
   }
   return 'Toda la Colección'
 })
 
 const filteredProducts = computed(() => {
   let filteredProducts = [...products.value]
+
+  // Filter by search query (?q=)
+  if (searchQuery.value) {
+    filteredProducts = filteredProducts.filter(product =>
+      matchesSearchQuery(product, searchQuery.value)
+    )
+  }
 
   // Filter by category
   if (filters.value.category) {
@@ -293,11 +369,16 @@ const filteredProducts = computed(() => {
     )
   }
 
+  // Filter by promo
+  if (filters.value.onlyPromos) {
+    filteredProducts = filteredProducts.filter(product => isProductDiscountActive(product))
+  }
+
   // Filter by price range
   if (filters.value.priceRange) {
     const [min, max] = filters.value.priceRange.split('-').map(Number)
     filteredProducts = filteredProducts.filter(product => {
-      const price = Number(product.price)
+      const price = getEffectivePrice(product)
       if (max) {
         return price >= min && price <= max
       } else {
@@ -309,11 +390,21 @@ const filteredProducts = computed(() => {
   // Sort products
   if (filters.value.sortBy) {
     switch (filters.value.sortBy) {
+      case 'promo':
+        filteredProducts.sort((a, b) => {
+          const aPromo = isProductDiscountActive(a) ? 1 : 0
+          const bPromo = isProductDiscountActive(b) ? 1 : 0
+          if (aPromo !== bPromo) return bPromo - aPromo
+          const pctDiff = getDiscountPercentage(b) - getDiscountPercentage(a)
+          if (pctDiff !== 0) return pctDiff
+          return b.id - a.id
+        })
+        break
       case 'price-asc':
-        filteredProducts.sort((a, b) => Number(a.price) - Number(b.price))
+        filteredProducts.sort((a, b) => getEffectivePrice(a) - getEffectivePrice(b))
         break
       case 'price-desc':
-        filteredProducts.sort((a, b) => Number(b.price) - Number(a.price))
+        filteredProducts.sort((a, b) => getEffectivePrice(b) - getEffectivePrice(a))
         break
       case 'name-asc':
         filteredProducts.sort((a, b) => a.name.localeCompare(b.name))
@@ -346,8 +437,10 @@ const hasMoreProducts = computed(() => {
 
 const activeFiltersCount = computed(() => {
   let count = 0
+  if (searchQuery.value) count++
   if (filters.value.category) count++
   if (filters.value.priceRange) count++
+  if (filters.value.onlyPromos) count++
   if (filters.value.sortBy) count++
   return count
 })
@@ -363,17 +456,26 @@ const applyFilters = () => {
   currentPage.value = 1
   // Update URL query params
   const query: any = {}
+  if (searchQuery.value) query.q = searchQuery.value
   if (filters.value.category) query.category = filters.value.category
   if (filters.value.priceRange) query.price = filters.value.priceRange
+  if (filters.value.onlyPromos) query.promo = '1'
   if (filters.value.sortBy) query.sort = filters.value.sortBy
   
   router.push({ query })
+}
+
+const clearSearchQuery = () => {
+  const { q: _removed, ...rest } = route.query
+  currentPage.value = 1
+  router.replace({ query: rest })
 }
 
 const clearFilters = () => {
   filters.value = {
     category: '',
     priceRange: '',
+    onlyPromos: false,
     sortBy: ''
   }
   currentPage.value = 1
@@ -408,6 +510,7 @@ const loadCategories = async () => {
 watch(() => route.query, (newQuery) => {
   filters.value.category = (newQuery.category as string) || ''
   filters.value.priceRange = (newQuery.price as string) || ''
+  filters.value.onlyPromos = newQuery.promo === '1' || newQuery.promo === 'true'
   filters.value.sortBy = (newQuery.sort as string) || ''
   currentPage.value = 1
 }, { immediate: true })

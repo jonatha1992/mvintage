@@ -72,6 +72,10 @@ export interface Product {
   stock?: number | null;
   has_discount: boolean;
   discount_percentage?: number | null;
+  promo_label?: string | null;
+  discount_starts_at?: string | null;
+  discount_ends_at?: string | null;
+  discount_active?: boolean;
   max_installments?: number;
   discounted_price?: number;
   discount_amount?: number;

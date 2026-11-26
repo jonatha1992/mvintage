@@ -1,6 +1,7 @@
 import axios, { type AxiosInstance } from 'axios';
 import { auth } from './firebase';
 import { config } from './app';
+import { orderAccessToken } from '../utils/orderAccess';
 
 // Importar tipos de usuarios
 import type {
@@ -346,7 +347,9 @@ export const paymentsApi = {
 
   // Get payment status for an order
   async getPaymentStatus(orderId: number): Promise<any> {
-    const response = await apiClient.get(`/payments/status/${orderId}`);
+    const response = await apiClient.get(`/payments/status/${orderId}`, {
+      params: { access_token: orderAccessToken(orderId) },
+    });
     return response.data;
   },
 
@@ -363,6 +366,17 @@ export const paymentsApi = {
 
 // API functions for orders
 export const ordersApi = {
+  payWithMercadoPago: async (orderId: number): Promise<{ checkout_url: string }> => {
+    const response = await apiClient.post(`/orders/${orderId}/pay-with-mercadopago`, {}, {
+      params: { access_token: orderAccessToken(orderId) },
+    });
+    return response.data;
+  },
+  cancelPendingOrder: async (orderId: number): Promise<void> => {
+    await apiClient.post(`/orders/${orderId}/cancel`, {}, {
+      params: { access_token: orderAccessToken(orderId) },
+    });
+  },
   // Create new order
   async createOrder(orderData: any): Promise<any> {
     const response = await apiClient.post('/orders/', orderData);
@@ -388,7 +402,9 @@ export const ordersApi = {
 
   // Get order by ID
   async getOrder(id: number): Promise<any> {
-    const response = await apiClient.get(`/orders/${id}`);
+    const response = await apiClient.get(`/orders/${id}`, {
+      params: { access_token: orderAccessToken(id) },
+    });
     return response.data;
   },
 
@@ -623,20 +639,36 @@ export const shippingQuotesApi = {
 // API functions for products
 export const productsApi = {
   // Get all products
-  async getProducts(params?: {
-    categoryId?: number;
-    colorId?: number;
-    sizeId?: number;
-    search?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    inStock?: boolean;
-    sortBy?: 'name' | 'price' | 'created_at';
-    sortOrder?: 'asc' | 'desc';
-    page?: number;
-    limit?: number;
-  }): Promise<{ products: Product[]; total: number }> {
-    const response = await apiClient.get('/products/', { params });
+  async getProducts(
+    params?: {
+      categoryId?: number;
+      colorId?: number;
+      sizeId?: number;
+      search?: string;
+      q?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      inStock?: boolean;
+      sortBy?: 'name' | 'price' | 'created_at';
+      sortOrder?: 'asc' | 'desc';
+      page?: number;
+      limit?: number;
+    },
+    options?: { signal?: AbortSignal }
+  ): Promise<{ products: Product[]; total: number }> {
+    const queryParams: Record<string, unknown> = {};
+    if (params) {
+      const { search, q, ...rest } = params;
+      Object.assign(queryParams, rest);
+      const queryText = (q ?? search)?.trim();
+      if (queryText) {
+        queryParams.q = queryText;
+      }
+    }
+    const response = await apiClient.get('/products/', {
+      params: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+      signal: options?.signal,
+    });
     // Backend returns array directly, not wrapped in object
     const products = Array.isArray(response.data) ? response.data : [];
     return { products, total: products.length };

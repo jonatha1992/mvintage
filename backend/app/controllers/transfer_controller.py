@@ -11,6 +11,7 @@ from fastapi import HTTPException
 from sqlmodel import Session, select
 
 from app.models.order import Order
+from app.models.order_item import OrderItem
 from app.models.customer import Customer
 from app.models.payment_config import PaymentConfig
 
@@ -87,6 +88,16 @@ class TransferController:
             # Obtener información bancaria
             bank_info = self.get_bank_info(session)
             
+            # Recalcular total desde los ítems de la base si existen (nunca confiar en el frontend)
+            order_items = session.exec(
+                select(OrderItem).where(OrderItem.order_id == order.id)
+            ).all()
+            if order_items:
+                recalculated = round(sum(float(i.price) * i.quantity for i in order_items), 2)
+                if order.delivery_cost:
+                    recalculated = round(recalculated + float(order.delivery_cost), 2)
+                order.total = recalculated
+
             # Actualizar orden con información de transferencia
             order.bank_account_info = json.dumps(bank_info)
             order.payment_status = "pending_payment"
@@ -180,6 +191,11 @@ class TransferController:
             if not order:
                 raise HTTPException(status_code=404, detail="Orden no encontrada")
             
+            session.refresh(order, with_for_update=True)
+            if (order.payment_method not in ("transfer", "bank_transfer")
+                    or order.payment_status != "pending_payment" or order.stock_released):
+                raise HTTPException(status_code=409, detail="Este pedido ya no permite verificar una transferencia")
+
             # Actualizar estado de verificación
             order.transfer_verified = verified
             order.verified_by_admin = verified

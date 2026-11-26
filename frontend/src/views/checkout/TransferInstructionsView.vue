@@ -8,13 +8,15 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h1 class="text-3xl font-light text-gray-900">¡Pedido Confirmado!</h1>
+        <h1 class="text-3xl font-light text-gray-900">Pedido recibido · Esperando tu transferencia</h1>
         <p class="mt-2 text-lg text-gray-600">
-          Orden #{{ orderData?.order_id || 'Cargando...' }}
+          Recibimos tu pedido #{{ orderData?.order_id || 'Cargando...' }}
         </p>
       </div>
 
       <div v-if="transferInfo" class="space-y-6">
+        <router-link v-if="orderData?.order_id" :to="orderLink(Number(orderData.order_id))" class="inline-flex items-center min-h-11 px-3 underline">Ver mi pedido</router-link>
+        <PendingTransferActions v-if="orderData?.order_id" :order-id="Number(orderData.order_id)" @updated="router.push(orderLink(Number(orderData.order_id)))" />
         <!-- Datos de Transferencia -->
         <div class="p-6 bg-white rounded-lg shadow">
           <h2 class="flex items-center mb-6 text-xl font-medium text-gray-900">
@@ -84,7 +86,7 @@
               <div class="p-4 border border-gray-200 rounded">
                 <h3 class="mb-3 font-medium text-gray-900">Monto a Transferir</h3>
                 <div class="text-center">
-                  <div class="text-3xl font-bold text-green-600">
+                  <div class="text-3xl font-bold text-green-700">
                     {{ formatPrice(transferInfo.total_amount) }}
                   </div>
                   <p class="mt-1 text-sm text-gray-600">Monto exacto</p>
@@ -108,20 +110,20 @@
         <div class="p-6 text-center bg-white rounded-lg shadow">
           <h2 class="mb-2 text-xl font-medium text-gray-900">Enviá el comprobante por WhatsApp</h2>
           <p class="mb-4 text-sm text-gray-600">
-            Una vez realizada la transferencia al alias <strong class="font-mono text-gray-900">{{ displayAlias }}</strong>, envianos el comprobante para confirmar tu pedido.
+            Mandá el comprobante por WhatsApp e indicá el número de pedido #{{ orderData?.order_id }}. Te confirmamos el pago por mail y coordinamos el retiro en el local.
           </p>
           <a
             :href="whatsappTransferUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center justify-center px-6 py-3 font-medium text-white transition-colors bg-green-600 rounded-md hover:bg-green-700"
+            class="inline-flex items-center justify-center px-6 py-3 font-medium text-white transition-colors bg-green-700 rounded-md hover:bg-green-800"
           >
             Enviar comprobante por WhatsApp
           </a>
         </div>
 
         <!-- Instrucciones -->
-        <div v-if="transferInfo.instructions?.length" class="p-6 bg-white rounded-lg shadow">
+        <div class="p-6 bg-white rounded-lg shadow">
           <h2 class="flex items-center mb-4 text-xl font-medium text-gray-900">
             <svg class="w-6 h-6 mr-2 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -130,12 +132,13 @@
           </h2>
           
           <div class="space-y-3">
-            <div v-for="(instruction, index) in transferInfo.instructions" :key="index" class="flex items-start">
-              <div class="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-medium mr-3 mt-0.5">
-                {{ index + 1 }}
-              </div>
-              <p class="text-gray-700">{{ instruction }}</p>
-            </div>
+            <ol class="pl-5 space-y-3 text-gray-900 list-decimal">
+              <li>Transferí <strong>{{ formatPrice(transferInfo.total_amount) }}</strong> al alias <strong>{{ displayAlias }}</strong>, a nombre de <strong>{{ transferInfo.bank_info?.holder_name || 'Priscila Moyano' }}</strong>.</li>
+              <li>Mandá el comprobante por WhatsApp e indicá el número de pedido <strong>#{{ orderData?.order_id }}</strong>.</li>
+              <li>Te confirmamos el pago por mail y coordinamos el retiro en el local.</li>
+            </ol>
+            <p class="mt-4 text-gray-700">Tu pedido queda pendiente de pago hasta que verifiquemos la transferencia. Crear el pedido no confirma el pago. La reserva vence a las 24 horas.</p>
+
           </div>
         </div>
 
@@ -207,6 +210,8 @@
 </template>
 
 <script setup lang="ts">
+import PendingTransferActions from '../../components/checkout/PendingTransferActions.vue'
+import { orderLink } from '../../utils/orderAccess'
 import { formatPrice } from '../../utils/price'
 import { WHATSAPP_NUMBER } from '../../config/payments'
 import { STORE_MAPS_URL, STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS, TRANSFER_ALIAS } from '../../config/store'
@@ -368,8 +373,8 @@ const goHome = () => {
   align-items: center;
 }
 .copy-button {
-  min-inline-size: 24px;
-  min-block-size: 36px;
+  min-inline-size: 44px;
+    min-block-size: 44px;
 }
 .copy-button .icon-check {
   display: none;

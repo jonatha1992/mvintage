@@ -1,5 +1,12 @@
 ﻿<template>
-  <router-link v-reveal="index" :to="`/product/${product.id}/${product.name}`" class="block h-full">
+  <component
+    :is="preview ? 'div' : 'router-link'"
+    v-reveal="index"
+    :to="preview ? undefined : `/product/${product.id}/${product.name}`"
+    :aria-label="preview ? 'Vista previa' : undefined"
+    class="block h-full"
+    :class="{ 'cursor-default': preview }"
+  >
     <div class="flex flex-col h-full overflow-hidden transition-shadow duration-200 bg-white border border-gray-300 rounded-lg shadow-sm hover:shadow-md group product-card">
       <!-- Imagen del producto -->
       <div
@@ -41,15 +48,19 @@
         </div>
 
         <!-- Etiquetas de producto -->
-        <div v-if="product.is_new || product.is_sale || product.has_discount" class="absolute space-y-1 top-2 left-2">
+        <div v-if="product.is_new || product.is_sale || hasActiveDiscount" class="absolute z-10 flex flex-col items-start gap-1 top-2 left-2">
           <span v-if="product.is_new" class="inline-block px-2 py-0.5 text-[10px] font-medium text-white bg-black uppercase">
             New
           </span>
           <span v-if="product.is_sale" class="inline-block px-2 py-0.5 text-[10px] font-medium text-white bg-red-600 uppercase">
             Sale
           </span>
-          <span v-if="product.has_discount && product.discount_percentage" class="inline-block px-2 py-0.5 text-[10px] font-medium text-white bg-orange-500 uppercase">
-            -{{ product.discount_percentage }}%
+          <span
+            v-if="hasActiveDiscount && promoBadgeText"
+            data-testid="promo-badge"
+            class="inline-block px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white bg-rose-700 uppercase promo-badge"
+          >
+            {{ promoBadgeText }}
           </span>
         </div>
 
@@ -69,17 +80,17 @@
 
         <!-- Categoría -->
         <p v-if="product.categoria" class="mb-2 text-xs tracking-wider text-gray-500 uppercase">
-          {{ product.categoria }}
+          {{ categoryLabel(product.categoria) }}
         </p>
         
         <!-- Precios -->
         <div class="pt-2 mt-auto">
           <!-- Precio con descuento -->
-          <div v-if="product.has_discount && product.discounted_price" class="space-y-0.5">
-            <span class="block text-sm font-bold text-gray-900">
-              {{ formatPrice(product.discounted_price) }}
+          <div v-if="hasActiveDiscount" class="space-y-0.5">
+            <span class="block text-sm font-bold text-rose-700" data-testid="discounted-price">
+              {{ formatPrice(effectivePrice) }}
             </span>
-            <span class="text-xs text-gray-400 line-through">
+            <span class="text-xs text-gray-400 line-through" data-testid="original-price">
               {{ formatPrice(product.price) }}
             </span>
           </div>
@@ -94,15 +105,24 @@
               {{ formatPrice(product.original_price) }}
             </span>
           </div>
+          <p
+            v-if="MERCADOPAGO_HABILITADO && cardInstallments > 1"
+            data-testid="card-installments"
+            class="mt-1 text-[11px] text-gray-600"
+          >
+            {{ cardInstallments }} x {{ formatPrice(Math.round(effectivePrice / cardInstallments)) }} sin interés
+          </p>
         </div>
       </div>
     </div>
     
-  </router-link>
+  </component>
 </template>
 
 <script setup lang="ts">
-import { formatPrice } from '../../utils/price'
+import { categoryLabel } from '../../utils/category'
+import { formatPrice, getEffectivePrice, getPromoBadgeText, isProductDiscountActive } from '../../utils/price'
+import { MERCADOPAGO_HABILITADO } from '../../config/payments'
 import { vReveal } from '../../composables/useReveal'
 import { buildImageVariantUrl, buildImageSrcset } from '../../utils/imageUrl'
 import { defineProps, computed, ref } from 'vue';
@@ -111,16 +131,26 @@ import type { Product } from '../../types/products/product.types';
 const defaultImage = '/imagen-portada.svg';
 const CARD_IMAGE_SIZES = '(max-width: 639px) 46vw, (max-width: 1023px) 45vw, (max-width: 1279px) 30vw, 23vw';
 
-const props = defineProps<{
-  product: Product;
-  index?: number;
-}>();
+const props = withDefaults(
+  defineProps<{
+    product: Product;
+    index?: number;
+    preview?: boolean;
+  }>(),
+  {
+    preview: false,
+  }
+);
 
 const primaryImageFailed = ref(false);
 const shouldLoadHover = ref(false);
 
 const isFirstRow = computed(() => (props.index ?? 0) < 4);
 const isPriorityCard = computed(() => (props.index ?? 0) < 2);
+const hasActiveDiscount = computed(() => isProductDiscountActive(props.product));
+const effectivePrice = computed(() => getEffectivePrice(props.product));
+const promoBadgeText = computed(() => getPromoBadgeText(props.product));
+const cardInstallments = computed(() => props.product.max_installments ?? 1);
 
 const canHover = (): boolean =>
   typeof window !== 'undefined' &&
@@ -242,13 +272,30 @@ const quickAdd = () => {
 }
 
 /* Estilos para las etiquetas de producto */
-.bg-black, .bg-red-600, .bg-orange-500 {
+.bg-black, .bg-red-600, .bg-rose-700 {
   border-radius: 2px;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.05em;
   line-height: 1;
-  padding: 0.25rem 0.4rem;
+  padding: 0.25rem 0.45rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .promo-badge {
+    animation: promoBadgePulse 3s ease-in-out infinite;
+  }
+}
+
+@keyframes promoBadgePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 0.92;
+  }
 }
 
 /* Estilos para el texto tachado */

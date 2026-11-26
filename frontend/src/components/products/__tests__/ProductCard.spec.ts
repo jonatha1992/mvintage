@@ -39,13 +39,32 @@ const mockMatchMedia = (matches: boolean) => {
 };
 
 describe('ProductCard', () => {
-  const mountCard = (product: Product, index = 0) =>
+  const mountCard = (product: Product, index = 0, preview = false) =>
     mount(ProductCard, {
-      props: { product, index },
+      props: { product, index, preview },
       global: {
-        stubs: { RouterLink: { template: '<a><slot /></a>' } },
+        stubs: {
+          RouterLink: {
+            props: ['to'],
+            template: '<a :href="to"><slot /></a>',
+          },
+        },
       },
     });
+
+  it('renders link with product id when preview is false and non-link div with preview label when preview is true', () => {
+    const normal = mountCard(makeProduct({ id: 42, name: 'Remera Test' }), 0, false);
+    const link = normal.find('a');
+    expect(link.exists()).toBe(true);
+    expect(link.attributes('href')).toBe('/product/42/Remera Test');
+
+    const previewCard = mountCard(makeProduct({ id: 42, name: 'Remera Test' }), 0, true);
+    expect(previewCard.find('a').exists()).toBe(false);
+    const previewEl = previewCard.find('[aria-label="Vista previa"]');
+    expect(previewEl.exists()).toBe(true);
+    expect(previewEl.element.tagName.toLowerCase()).toBe('div');
+    expect(previewEl.classes()).toContain('cursor-default');
+  });
 
   it('does not render hover image until pointerenter on hover-capable desktop', async () => {
     const restore = mockMatchMedia(true);
@@ -89,5 +108,50 @@ describe('ProductCard', () => {
     expect(img4.attributes('loading')).toBe('lazy');
     expect(img4.attributes('fetchpriority')).toBeUndefined();
     expect(img4.attributes('decoding')).toBe('async');
+  });
+
+  it('renders discounted price, struck-through original price, promo badge and installments on discounted price', () => {
+    const wrapper = mountCard(
+      makeProduct({
+        price: 30000,
+        has_discount: true,
+        discount_percentage: 20,
+        discounted_price: 24000,
+        promo_label: 'Liquidación',
+        max_installments: 3,
+      })
+    );
+
+    expect(wrapper.find('[data-testid="promo-badge"]').text()).toBe('Liquidación');
+    expect(wrapper.find('[data-testid="discounted-price"]').text()).toBe('$24.000');
+    expect(wrapper.find('[data-testid="original-price"]').text()).toBe('$30.000');
+    const installments = wrapper.find('[data-testid="card-installments"]');
+    if (installments.exists()) {
+      expect(installments.text()).toContain('$8.000');
+    }
+  });
+
+  it('falls back to -XX% badge when promo_label is empty and hides expired discounts', () => {
+    const active = mountCard(
+      makeProduct({
+        price: 20000,
+        has_discount: true,
+        discount_percentage: 15,
+        promo_label: null,
+      })
+    );
+    expect(active.find('[data-testid="promo-badge"]').text()).toBe('-15%');
+    expect(active.find('[data-testid="discounted-price"]').text()).toBe('$17.000');
+
+    const expired = mountCard(
+      makeProduct({
+        price: 20000,
+        has_discount: true,
+        discount_percentage: 25,
+        discount_ends_at: '2020-01-01T00:00:00Z',
+      })
+    );
+    expect(expired.find('[data-testid="promo-badge"]').exists()).toBe(false);
+    expect(expired.find('[data-testid="discounted-price"]').exists()).toBe(false);
   });
 });

@@ -5,8 +5,9 @@
       <!-- Step 1: Carrito -->
       <div class="flex flex-col items-center">
         <button 
+          aria-label="Volver al carrito"
           @click="$emit('go-to-step', 1)"
-          class="flex items-center justify-center w-8 h-8 text-sm font-medium transition-all duration-300 rounded-full cursor-pointer hover:shadow-lg"
+          class="flex items-center justify-center w-11 h-11 text-sm font-medium transition-all duration-300 rounded-full cursor-pointer hover:shadow-lg"
           :class="getStepClasses(1)"
         >
           <CheckIcon v-if="currentStep > 1" class="w-4 h-4" />
@@ -27,9 +28,11 @@
       <!-- Step 2: Retiro -->
       <div class="flex flex-col items-center">
         <button 
+          aria-label="Ir al contacto y retiro"
+          :aria-current="currentStep === 2 ? 'step' : undefined"
           @click="$emit('go-to-step', 2)"
           :class="[
-            'flex items-center justify-center w-8 h-8 text-sm font-medium transition-all duration-300 rounded-full cursor-pointer hover:shadow-lg',
+            'flex items-center justify-center w-11 h-11 text-sm font-medium transition-all duration-300 rounded-full cursor-pointer hover:shadow-lg',
             currentStep >= 2 
               ? 'bg-gray-800 text-white' 
               : 'bg-gray-200 text-gray-600',
@@ -39,7 +42,7 @@
           <CheckIcon v-if="currentStep > 2" class="w-4 h-4" />
           <MapPinIcon v-else class="w-4 h-4" />
         </button>
-        <span class="mt-2 text-xs font-body text-body-text">Retiro</span>
+        <span class="mt-2 text-xs font-body text-body-text">Contacto y retiro</span>
       </div>
 
       <!-- Progress Line 2 -->
@@ -53,9 +56,11 @@
       <!-- Step 3: Pago -->
       <div class="flex flex-col items-center">
         <button 
+          aria-label="Ir al pago"
+          :aria-current="currentStep === 3 ? 'step' : undefined"
           @click="$emit('go-to-step', 3)"
           :class="[
-            'flex items-center justify-center w-8 h-8 text-sm font-medium transition-all duration-300 rounded-full cursor-pointer hover:shadow-lg',
+            'flex items-center justify-center w-11 h-11 text-sm font-medium transition-all duration-300 rounded-full cursor-pointer hover:shadow-lg',
             currentStep >= 3 
               ? 'bg-gray-800 text-white' 
               : 'bg-gray-200 text-gray-600',
@@ -110,6 +115,9 @@ const getStepClasses = (step: number) => {
 /* Additional animations if needed */
 .step-transition {
   transition: all 0.3s ease-in-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
 }
 </style>
 

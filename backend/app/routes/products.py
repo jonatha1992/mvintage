@@ -1,12 +1,15 @@
 
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, Body
-from sqlmodel import Session, select
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Body, Query
+from sqlalchemy import exists, or_
+from sqlmodel import Session, col, select
 
 from app.db.session import get_session
+from app.models.order_item import OrderItem
 from app.models.product import (
-    Product, ProductCreate, ProductRead, ProductImage, ProductVariant, 
-    ProductImageRead, ProductVariantRead, StockCheckItem, StockCheckResponse, StockCheckResultItem
+    Product, ProductCreate, ProductRead, ProductImage, ProductVariant,
+    ProductVariantCreate, ProductImageRead, ProductVariantRead,
+    StockCheckItem, StockCheckResponse, StockCheckResultItem
 )
 from app.core.security import get_current_user, require_manager_or_admin
 
@@ -33,7 +36,7 @@ def create_product(
     
     # For non-unique products, create ProductVariant objects
     if not product.is_unique:
-        db_product.variants = [ProductVariant(**variant.model_dump()) for variant in product.variants]
+        db_product.variants = [ProductVariant(**variant.model_dump(exclude={"id"})) for variant in product.variants]
     else:
         # For unique products, variants are empty (handled by the product attributes)
         db_product.variants = []
@@ -45,8 +48,32 @@ def create_product(
     return db_product
 
 @router.get("/products/", response_model=List[ProductRead])
-def read_products(session: Session = Depends(get_session), skip: int = 0, limit: int = 100):
-    products = session.exec(select(Product).offset(skip).limit(limit)).all()
+def read_products(
+    session: Session = Depends(get_session),
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=100),
+    q: Optional[str] = Query(default=None),
+):
+    statement = select(Product)
+    term = q.strip() if q else ""
+    if term:
+        pattern = f"%{term}%"
+        variant_color_match = exists(
+            select(ProductVariant.id).where(
+                ProductVariant.product_id == Product.id,
+                col(ProductVariant.color).ilike(pattern),
+            )
+        )
+        statement = statement.where(
+            or_(
+                col(Product.name).ilike(pattern),
+                col(Product.categoria).ilike(pattern),
+                col(Product.description).ilike(pattern),
+                col(Product.color).ilike(pattern),
+                variant_color_match,
+            )
+        )
+    products = session.exec(statement.offset(skip).limit(limit)).all()
     return [ProductRead.model_validate(p) for p in products]
 
 @router.get("/products/{product_id}", response_model=ProductRead)
@@ -73,28 +100,118 @@ def update_product(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-    # Update product fields
+    existing_variants = list(db_product.variants)
+    existing_by_id = {v.id: v for v in existing_variants if v.id is not None}
+    variants_to_update: list[tuple[ProductVariant, ProductVariantCreate]] = []
+    variants_to_create: list[ProductVariantCreate] = []
+    matched_ids: set[int] = set()
+
+    if not product.is_unique:
+        unmatched_by_key: dict[tuple[str | None, str | None], list[ProductVariant]] = {}
+        for incoming in product.variants:
+            if incoming.id is not None:
+                existing = existing_by_id.get(incoming.id)
+                if existing is None or existing.id in matched_ids:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"La variante {incoming.id} no pertenece al producto {product_id}",
+                    )
+                matched_ids.add(existing.id)
+                variants_to_update.append((existing, incoming))
+
+        for v in existing_variants:
+            if v.id is not None and v.id not in matched_ids:
+                unmatched_by_key.setdefault((v.color, v.talle), []).append(v)
+
+        for incoming in product.variants:
+            if incoming.id is None:
+                bucket = unmatched_by_key.get((incoming.color, incoming.talle))
+                if bucket:
+                    existing = bucket.pop(0)
+                    if existing.id is not None:
+                        matched_ids.add(existing.id)
+                    variants_to_update.append((existing, incoming))
+                else:
+                    variants_to_create.append(incoming)
+
+    variants_to_remove = [
+        v for v in existing_variants if v.id is None or v.id not in matched_ids
+    ]
+    remove_ids = [v.id for v in variants_to_remove if v.id is not None]
+    if remove_ids:
+        used_variant_ids = set(
+            session.exec(
+                select(OrderItem.variant_id)
+                .where(col(OrderItem.variant_id).in_(remove_ids))
+                .distinct()
+            ).all()
+        )
+        if used_variant_ids:
+            blocked = [v for v in variants_to_remove if v.id in used_variant_ids]
+            labels = ", ".join(
+                f"{v.color or '-'} / {v.talle or '-'}" for v in blocked
+            )
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    f"No se puede eliminar la variante ({labels}) porque tiene pedidos asociados. "
+                    "Podés dejar su stock en 0."
+                ),
+            )
+
     product_data = product.model_dump(exclude_unset=True, exclude={'images', 'variants'})
     for key, value in product_data.items():
         setattr(db_product, key, value)
 
-    # Delete old variants and images
-    for variant in db_product.variants:
-        session.delete(variant)
-    for image in db_product.images:
-        session.delete(image)
-
-    # Create new images
-    db_product.images = [ProductImage(image_url=url) for url in product.images]
-    
-    # Create new variants only for non-unique products
-    if not product.is_unique:
-        db_product.variants = [ProductVariant(**variant.model_dump()) for variant in product.variants]
+    if not product.has_discount:
+        db_product.discount_percentage = None
+        db_product.promo_label = None
+        db_product.discount_starts_at = None
+        db_product.discount_ends_at = None
     else:
-        db_product.variants = []
+        db_product.discount_percentage = product.discount_percentage
+        db_product.promo_label = product.promo_label
+        db_product.discount_starts_at = product.discount_starts_at
+        db_product.discount_ends_at = product.discount_ends_at
 
-    session.add(db_product)
-    session.commit()
+    existing_images = list(db_product.images)
+    desired_urls = list(product.images)
+    if [img.image_url for img in existing_images] != desired_urls:
+        existing_by_url: dict[str, list[ProductImage]] = {}
+        for img in existing_images:
+            existing_by_url.setdefault(img.image_url, []).append(img)
+        synced_images: list[ProductImage] = []
+        for url in desired_urls:
+            bucket = existing_by_url.get(url)
+            if bucket:
+                synced_images.append(bucket.pop(0))
+            else:
+                synced_images.append(ProductImage(product_id=db_product.id, image_url=url))
+        db_product.images = synced_images
+
+    for existing, incoming in variants_to_update:
+        existing.color = incoming.color
+        existing.talle = incoming.talle
+        existing.stock = incoming.stock
+
+    for variant in variants_to_remove:
+        db_product.variants.remove(variant)
+
+    for incoming in variants_to_create:
+        db_product.variants.append(
+            ProductVariant(
+                product_id=db_product.id,
+                color=incoming.color,
+                talle=incoming.talle,
+                stock=incoming.stock,
+            )
+        )
+
+    try:
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
     session.refresh(db_product)
     return db_product
 
